@@ -1,48 +1,59 @@
+export type PostType = 'posts' | 'exam-notices' | 'results';
+
 export interface Job {
   id: string;
   title: string;
   department: string;
-  postDate: string;
+  description: string;
+  qualification: string;
+  vacancies: string;
+  postedDate: string;
   lastDate: string;
-  shortInfo: string;
-  content: string; // Markdown or HTML content
-  tags: string[];
-  importantLinks: { label: string; url: string }[];
-  isFeatured?: boolean;
+  applyLink: string;
+  status: 'active' | 'closing-soon' | 'expired';
+  createdAt?: string;
+}
+
+export interface QuickLink {
+  id: string;
+  title: string;
+  category: string;
+  url: string;
+  description: string;
+  status: 'active' | 'inactive';
+  createdAt?: string;
+}
+
+export interface ContentPost {
+  id: string;
+  title: string;
+  category: string;
+  content: string;
+  status: 'published' | 'draft';
+  type: PostType;
+  publishedDate: string;
+  createdAt?: string;
+  examDate?: string;
 }
 
 export interface Subscriber {
   id: string;
   email: string;
   subscriptionDate: string;
-  status: 'active' | 'inactive';
-}
-
-export interface QuickLink {
-  id: string;
-  title: string;
-  url: string;
-  category: 'Admit Card' | 'Result' | 'Latest Jobs' | 'Answer Key' | 'Syllabus';
-}
-
-export interface ContentPost {
-  id: string;
-  title: string;
-  content: string; // Markdown or HTML
-  author: string;
-  publishDate: string;
-  category: 'Blog' | 'News' | 'Updates';
-  tags: string[];
-}
-
-export interface BreakingNews {
-  id:string;
-  text: string;
-  link: string;
-  isActive: boolean;
+  status: 'active';
 }
 
 export interface AdSettings {
+  // Display Settings
+  adFrequency: 'low' | 'medium' | 'high';
+  bannerAds: boolean;
+  squareAds: boolean;
+  skyscraperAds: boolean;
+  popupAds: boolean;
+  adStartTime: string;
+  adEndTime: string;
+
+  // Network Configurations
   adsense: {
     enabled: boolean;
     publisherId: string;
@@ -55,47 +66,29 @@ export interface AdSettings {
     enabled: boolean;
     code: string;
   };
-  adFrequency: 'low' | 'medium' | 'high';
-  adStartTime: string;
-  adEndTime: string;
-  bannerAds: boolean;
-  squareAds: boolean;
-  skyscraperAds: boolean;
-  popupAds: boolean;
+  
+  // Kept for backward compatibility if needed, but new implementation focuses on networks
+  headerAdCode: string;
+  sidebarAdCode: string;
+  footerAdCode: string;
+  headerAdEnabled: boolean;
+  sidebarAdEnabled: boolean;
+  footerAdEnabled: boolean;
 }
 
-export interface GeneralSettings {
-  siteTitle: string;
-  siteDescription: string;
-  logoUrl: string;
-  faviconUrl: string;
-  contactEmail: string;
-  footerText: string;
+
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  submittedAt: string;
 }
 
-export interface DataContextType {
-  jobs: Job[];
-  addJob: (job: Omit<Job, 'id'>) => void;
-  updateJob: (job: Job) => void;
-  deleteJob: (id: string) => void;
-  subscribers: Subscriber[];
-  addSubscriber: (email: string) => void;
-  deleteSubscriber: (id: string) => void;
-  quickLinks: QuickLink[];
-  addQuickLink: (link: Omit<QuickLink, 'id'>) => void;
-  updateQuickLink: (link: QuickLink) => void;
-  deleteQuickLink: (id: string) => void;
-  contentPosts: ContentPost[];
-  addContentPost: (post: Omit<ContentPost, 'id'>) => void;
-  updateContentPost: (post: ContentPost) => void;
-  deleteContentPost: (id: string) => void;
-  breakingNews: BreakingNews[];
-  addBreakingNews: (news: Omit<BreakingNews, 'id'>) => void;
-  updateBreakingNews: (news: BreakingNews) => void;
-  deleteBreakingNews: (id: string) => void;
-  adSettings: AdSettings;
-  updateAdSettings: (settings: AdSettings) => void;
-  generalSettings: GeneralSettings;
-  updateGeneralSettings: (settings: GeneralSettings) => void;
-  loading: boolean;
+export interface BreakingNews {
+    id: string;
+    text: string;
+    link: string;
+    status: 'active' | 'inactive';
 }

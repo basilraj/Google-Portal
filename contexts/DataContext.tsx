@@ -1,78 +1,178 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { DataContextType, Job, Subscriber, QuickLink, ContentPost, BreakingNews, AdSettings, GeneralSettings } from '../types';
-import useLocalStorage from '../hooks/useLocalStorage';
-import {
-  initialJobs,
-  initialSubscribers,
-  initialQuickLinks,
-  initialContentPosts,
-  initialBreakingNews,
-  initialAdSettings,
-  initialGeneralSettings,
-} from '../services/database';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Job, QuickLink, ContentPost, Subscriber, AdSettings, ContactSubmission, BreakingNews } from '../types';
+import * as db from '../services/database';
+
+interface DataContextType {
+  jobs: Job[];
+  addJob: (job: Omit<Job, 'id' | 'status'>) => void;
+  updateJob: (job: Job) => void;
+  deleteJob: (jobId: string) => void;
+  
+  quickLinks: QuickLink[];
+  addQuickLink: (link: Omit<QuickLink, 'id'>) => void;
+  updateQuickLink: (link: QuickLink) => void;
+  deleteQuickLink: (linkId: string) => void;
+  
+  posts: ContentPost[];
+  addPost: (post: Omit<ContentPost, 'id'>) => void;
+  updatePost: (post: ContentPost) => void;
+  deletePost: (postId: string) => void;
+  
+  subscribers: Subscriber[];
+  addSubscriber: (email: string) => boolean;
+  deleteSubscriber: (subscriberId: string) => void;
+
+  adSettings: AdSettings;
+  updateAdSettings: (settings: AdSettings) => void;
+
+  contacts: ContactSubmission[];
+  addContact: (contactData: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
+
+  breakingNews: BreakingNews[];
+  addNews: (news: Omit<BreakingNews, 'id'>) => void;
+  updateNews: (news: BreakingNews) => void;
+  deleteNews: (newsId: string) => void;
+}
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [loading, setLoading] = useState(false);
-  const [jobs, setJobs] = useLocalStorage<Job[]>('jobs', initialJobs);
-  const [subscribers, setSubscribers] = useLocalStorage<Subscriber[]>('subscribers', initialSubscribers);
-  const [quickLinks, setQuickLinks] = useLocalStorage<QuickLink[]>('quickLinks', initialQuickLinks);
-  const [contentPosts, setContentPosts] = useLocalStorage<ContentPost[]>('contentPosts', initialContentPosts);
-  const [breakingNews, setBreakingNews] = useLocalStorage<BreakingNews[]>('breakingNews', initialBreakingNews);
-  const [adSettings, setAdSettings] = useLocalStorage<AdSettings>('adSettings', initialAdSettings);
-  const [generalSettings, setGeneralSettings] = useLocalStorage<GeneralSettings>('generalSettings', initialGeneralSettings);
+export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [quickLinks, setQuickLinks] = useState<QuickLink[]>([]);
+  const [posts, setPosts] = useState<ContentPost[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [adSettings, setAdSettings] = useState<AdSettings>(db.adService.getSettings());
+  const [contacts, setContacts] = useState<ContactSubmission[]>([]);
+  const [breakingNews, setBreakingNews] = useState<BreakingNews[]>([]);
 
-  const generateId = () => new Date().toISOString() + Math.random().toString(36).substring(2, 9);
+
+  useEffect(() => {
+    setJobs(db.jobService.getJobs());
+    setQuickLinks(db.linkService.getLinks());
+    setPosts(db.postService.getPosts());
+    setSubscribers(db.subscriberService.getSubscribers());
+    setContacts(db.contactService.getContacts());
+    setBreakingNews(db.breakingNewsService.getNews());
+  }, []);
+
+  // Job Functions
+  const addJob = (jobData: Omit<Job, 'id' | 'status'>) => {
+    const newJob: Job = { ...jobData, id: Date.now().toString(), status: 'active', createdAt: new Date().toISOString() };
+    const updatedJobs = [...jobs, newJob];
+    setJobs(updatedJobs);
+    db.jobService.saveJobs(updatedJobs);
+  };
+  const updateJob = (updatedJob: Job) => {
+    const updatedJobs = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
+    setJobs(updatedJobs);
+    db.jobService.saveJobs(updatedJobs);
+  };
+  const deleteJob = (jobId: string) => {
+    const updatedJobs = jobs.filter(j => j.id !== jobId);
+    setJobs(updatedJobs);
+    db.jobService.saveJobs(updatedJobs);
+  };
+
+  // QuickLink Functions
+  const addQuickLink = (linkData: Omit<QuickLink, 'id'>) => {
+    const newLink: QuickLink = { ...linkData, id: Date.now().toString(), createdAt: new Date().toISOString() };
+    const updatedLinks = [...quickLinks, newLink];
+    setQuickLinks(updatedLinks);
+    db.linkService.saveLinks(updatedLinks);
+  };
+  const updateQuickLink = (updatedLink: QuickLink) => {
+    const updatedLinks = quickLinks.map(l => l.id === updatedLink.id ? updatedLink : l);
+    setQuickLinks(updatedLinks);
+    db.linkService.saveLinks(updatedLinks);
+  };
+  const deleteQuickLink = (linkId: string) => {
+    const updatedLinks = quickLinks.filter(l => l.id !== linkId);
+    setQuickLinks(updatedLinks);
+    db.linkService.saveLinks(updatedLinks);
+  };
   
-  // Job functions
-  const addJob = (job: Omit<Job, 'id'>) => setJobs(prev => [{ ...job, id: generateId() }, ...prev]);
-  const updateJob = (updatedJob: Job) => setJobs(prev => prev.map(job => (job.id === updatedJob.id ? updatedJob : job)));
-  const deleteJob = (id: string) => setJobs(prev => prev.filter(job => job.id !== id));
-
-  // Subscriber functions
-  const addSubscriber = (email: string) => {
-    const newSubscriber: Subscriber = {
-      id: generateId(),
-      email,
-      subscriptionDate: new Date().toLocaleDateString(),
-      status: 'active',
-    };
-    setSubscribers(prev => [...prev, newSubscriber]);
+  // Post Functions
+  const addPost = (postData: Omit<ContentPost, 'id'>) => {
+    const newPost: ContentPost = { ...postData, id: Date.now().toString(), createdAt: new Date().toISOString() };
+    const updatedPosts = [...posts, newPost];
+    setPosts(updatedPosts);
+    db.postService.savePosts(updatedPosts);
   };
-  const deleteSubscriber = (id: string) => setSubscribers(prev => prev.filter(sub => sub.id !== id));
-
-  // QuickLink functions
-  const addQuickLink = (link: Omit<QuickLink, 'id'>) => setQuickLinks(prev => [{ ...link, id: generateId() }, ...prev]);
-  const updateQuickLink = (updatedLink: QuickLink) => setQuickLinks(prev => prev.map(link => (link.id === updatedLink.id ? updatedLink : link)));
-  const deleteQuickLink = (id: string) => setQuickLinks(prev => prev.filter(link => link.id !== id));
-
-  // ContentPost functions
-  const addContentPost = (post: Omit<ContentPost, 'id'>) => setContentPosts(prev => [{ ...post, id: generateId() }, ...prev]);
-  const updateContentPost = (updatedPost: ContentPost) => setContentPosts(prev => prev.map(post => (post.id === updatedPost.id ? updatedPost : post)));
-  const deleteContentPost = (id: string) => setContentPosts(prev => prev.filter(post => post.id !== id));
-
-  // BreakingNews functions
-  const addBreakingNews = (news: Omit<BreakingNews, 'id'>) => setBreakingNews(prev => [{ ...news, id: generateId() }, ...prev]);
-  const updateBreakingNews = (updatedNews: BreakingNews) => setBreakingNews(prev => prev.map(news => (news.id === updatedNews.id ? updatedNews : news)));
-  const deleteBreakingNews = (id: string) => setBreakingNews(prev => prev.filter(news => news.id !== id));
-
-  // Settings functions
-  const updateAdSettings = (settings: AdSettings) => setAdSettings(settings);
-  const updateGeneralSettings = (settings: GeneralSettings) => setGeneralSettings(settings);
-
-  const value: DataContextType = {
-    loading,
-    jobs, addJob, updateJob, deleteJob,
-    subscribers, addSubscriber, deleteSubscriber,
-    quickLinks, addQuickLink, updateQuickLink, deleteQuickLink,
-    contentPosts, addContentPost, updateContentPost, deleteContentPost,
-    breakingNews, addBreakingNews, updateBreakingNews, deleteBreakingNews,
-    adSettings, updateAdSettings,
-    generalSettings, updateGeneralSettings
+  const updatePost = (updatedPost: ContentPost) => {
+    const updatedPosts = posts.map(p => p.id === updatedPost.id ? updatedPost : p);
+    setPosts(updatedPosts);
+    db.postService.savePosts(updatedPosts);
+  };
+  const deletePost = (postId: string) => {
+    const updatedPosts = posts.filter(p => p.id !== postId);
+    setPosts(updatedPosts);
+    db.postService.savePosts(updatedPosts);
   };
 
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+  // Subscriber Functions
+  const addSubscriber = (email: string): boolean => {
+    if (subscribers.some(s => s.email === email)) {
+        alert('This email is already subscribed.');
+        return false;
+    }
+    const newSubscriber: Subscriber = { id: Date.now().toString(), email, subscriptionDate: new Date().toISOString().split('T')[0], status: 'active' };
+    const updatedSubscribers = [...subscribers, newSubscriber];
+    setSubscribers(updatedSubscribers);
+    db.subscriberService.saveSubscribers(updatedSubscribers);
+    return true;
+  };
+  const deleteSubscriber = (subscriberId: string) => {
+    const updatedSubscribers = subscribers.filter(s => s.id !== subscriberId);
+    setSubscribers(updatedSubscribers);
+    db.subscriberService.saveSubscribers(updatedSubscribers);
+  };
+  
+  // Ad Settings Function
+  const updateAdSettings = (settings: AdSettings) => {
+    setAdSettings(settings);
+    db.adService.saveSettings(settings);
+    alert('Ad settings saved!');
+  };
+
+  // Contact Form Function
+  const addContact = (contactData: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
+    const newContact: ContactSubmission = { ...contactData, id: Date.now().toString(), submittedAt: new Date().toISOString() };
+    const updatedContacts = [...contacts, newContact];
+    setContacts(updatedContacts);
+    db.contactService.saveContacts(updatedContacts);
+  };
+
+  // Breaking News Functions
+  const addNews = (newsData: Omit<BreakingNews, 'id'>) => {
+    const newNews: BreakingNews = { ...newsData, id: Date.now().toString() };
+    const updatedNews = [...breakingNews, newNews];
+    setBreakingNews(updatedNews);
+    db.breakingNewsService.saveNews(updatedNews);
+  };
+  const updateNews = (updatedNewsItem: BreakingNews) => {
+    const updatedNews = breakingNews.map(n => n.id === updatedNewsItem.id ? updatedNewsItem : n);
+    setBreakingNews(updatedNews);
+    db.breakingNewsService.saveNews(updatedNews);
+  };
+  const deleteNews = (newsId: string) => {
+    const updatedNews = breakingNews.filter(n => n.id !== newsId);
+    setBreakingNews(updatedNews);
+    db.breakingNewsService.saveNews(updatedNews);
+  };
+
+  return (
+    <DataContext.Provider value={{ 
+        jobs, addJob, updateJob, deleteJob,
+        quickLinks, addQuickLink, updateQuickLink, deleteQuickLink,
+        posts, addPost, updatePost, deletePost,
+        subscribers, addSubscriber, deleteSubscriber,
+        adSettings, updateAdSettings,
+        contacts, addContact,
+        breakingNews, addNews, updateNews, deleteNews
+    }}>
+      {children}
+    </DataContext.Provider>
+  );
 };
 
 export const useData = () => {
