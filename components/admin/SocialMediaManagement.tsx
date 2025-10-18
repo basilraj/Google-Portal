@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { SocialMediaSettings } from '../../types';
@@ -68,7 +67,7 @@ const SocialMediaManagement: React.FC = () => {
                 </div>
 
                 <div>
-                    <label htmlFor="telegram" className="block text-sm font-medium text-gray-700">Telegram URL</label>
+                    <label htmlFor="telegram" className="block text-sm font-medium text-gray-700">Telegram Channel URL</label>
                     <div className="mt-1 flex rounded-md shadow-sm">
                         <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
                             <Icon prefix="fab" name="telegram-plane" className="w-5 text-center" />
@@ -82,6 +81,38 @@ const SocialMediaManagement: React.FC = () => {
                             className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300"
                             placeholder="https://t.me/your-channel"
                         />
+                    </div>
+                </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="telegramGroup" className="block text-sm font-medium text-gray-700">Telegram Group URL</label>
+                        <div className="mt-1 flex rounded-md shadow-sm">
+                             <input
+                                type="url"
+                                id="telegramGroup"
+                                name="telegramGroup"
+                                value={formData.telegramGroup}
+                                onChange={handleChange}
+                                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border-gray-300"
+                                placeholder="https://t.me/joinchat/..."
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label htmlFor="telegramGroupIcon" className="block text-sm font-medium text-gray-700">Group Icon</label>
+                         <div className="mt-1 flex rounded-md shadow-sm">
+                            <input
+                                type="text"
+                                id="telegramGroupIcon"
+                                name="telegramGroupIcon"
+                                value={formData.telegramGroupIcon}
+                                onChange={handleChange}
+                                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-r-md border-gray-300"
+                                placeholder="e.g., users"
+                            />
+                        </div>
+                         <p className="text-xs text-gray-500 mt-1">Font Awesome icon name.</p>
                     </div>
                 </div>
 

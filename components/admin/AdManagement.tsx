@@ -50,12 +50,11 @@ const AdManagement: React.FC = () => {
         }
     };
     
-    // FIX: Added missing handleNestedChange function to handle complex state updates.
     const handleNestedChange = (path: (string | number)[], value: any) => {
         setFormData(prev => {
-            const newState = JSON.parse(JSON.stringify(prev)); // Deep copy
+            const newState = JSON.parse(JSON.stringify(prev)); // Deep copy for safety
             let current: any = newState;
-            for(let i = 0; i < path.length - 1; i++) {
+            for (let i = 0; i < path.length - 1; i++) {
                 current = current[path[i]];
             }
             current[path[path.length - 1]] = value;

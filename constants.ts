@@ -1,5 +1,4 @@
-
-import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings } from './types';
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification } from './types';
 
 export const INITIAL_JOBS: Job[] = [
     {
@@ -80,6 +79,8 @@ export const INITIAL_SUBSCRIBERS: Subscriber[] = [
 
 export const INITIAL_CONTACTS: ContactSubmission[] = [];
 
+export const INITIAL_EMAIL_NOTIFICATIONS: EmailNotification[] = [];
+
 export const INITIAL_BREAKING_NEWS: BreakingNews[] = [
     { id: '1', text: 'SSC CGL 2025 Notification Released. Last date to apply is Nov 20, 2025.', link: '#', status: 'active' },
     { id: '2', text: 'Railway NTPC Final Result has been declared. Check your result now.', link: '#', status: 'active' },
@@ -156,4 +157,6 @@ export const initialSocialMediaSettings: SocialMediaSettings = {
     instagram: 'https://instagram.com',
     telegram: 'https://telegram.org',
     whatsapp: 'https://whatsapp.com',
+    telegramGroup: 'https://t.me/joinchat/yourgroup',
+    telegramGroupIcon: 'cog',
 };

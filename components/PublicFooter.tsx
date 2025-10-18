@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useData } from '../contexts/DataContext';
 import Icon from './Icon';
@@ -37,7 +36,7 @@ const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                             <ul className="space-y-2 text-sm">
                                 {latestPosts.map(post => (
                                     <li key={post.id}>
-                                        <a href="/Google-Portal/blog" onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="text-gray-300 hover:underline" title={post.title}>
+                                        <a href={`/Google-Portal/blog/${post.id}`} onClick={(e) => { e.preventDefault(); navigate(`/blog/${post.id}`); }} className="text-gray-300 hover:underline" title={post.title}>
                                             {post.title.length > 35 ? `${post.title.substring(0, 35)}...` : post.title}
                                         </a>
                                     </li>

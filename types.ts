@@ -1,5 +1,11 @@
+// FIX: Removed self-import of types which caused declaration conflicts.
+
+
 
 export type JobStatus = 'active' | 'closing-soon' | 'expired';
+export type LinkStatus = 'active' | 'inactive';
+export type PostStatus = 'published' | 'draft';
+export type PostType = 'posts' | 'exam-notices' | 'results';
 
 export interface Job {
   id: string;
@@ -9,7 +15,7 @@ export interface Job {
   qualification: string;
   vacancies: string;
   postedDate: string; // YYYY-MM-DD
-  lastDate: string; // YYYY-MM-DD
+  lastDate: string;   // YYYY-MM-DD
   applyLink: string;
   status: JobStatus;
   createdAt: string; // ISO 8601
@@ -21,11 +27,8 @@ export interface QuickLink {
   category: string;
   url: string;
   description: string;
-  status: 'active' | 'inactive';
+  status: LinkStatus;
 }
-
-export type PostType = 'posts' | 'exam-notices' | 'results';
-export type PostStatus = 'published' | 'draft';
 
 export interface ContentPost {
   id: string;
@@ -36,7 +39,7 @@ export interface ContentPost {
   type: PostType;
   publishedDate: string; // YYYY-MM-DD
   createdAt?: string; // ISO 8601
-  examDate?: string; // YYYY-MM-DD
+  examDate?: string;    // YYYY-MM-DD
   imageUrl?: string;
 }
 
@@ -44,7 +47,7 @@ export interface Subscriber {
   id: string;
   email: string;
   subscriptionDate: string; // YYYY-MM-DD
-  status: 'active' | 'inactive';
+  status: 'active';
 }
 
 export interface ContactSubmission {
@@ -60,67 +63,64 @@ export interface BreakingNews {
   id: string;
   text: string;
   link: string;
-  status: 'active' | 'inactive';
+  status: LinkStatus;
 }
 
-export interface AdminCredentials {
-  username: string;
-  password: string;
-}
-
-export interface ABTest {
-  id: string;
-  placement: string;
-  enabled: boolean;
-  codeA: string;
-  codeB: string;
-  stats: {
+export interface ABTestStats {
     impressionsA: number;
     clicksA: number;
     impressionsB: number;
     clicksB: number;
-  };
+}
+
+export interface ABTest {
+    id: string;
+    placement: string;
+    enabled: boolean;
+    codeA: string;
+    codeB: string;
+    stats: ABTestStats;
 }
 
 export interface GeoTargetedAd {
-  id: string;
-  country: string;
-  code: string;
+    id: string;
+    country: string;
+    code: string;
 }
 
 export interface AdSettings {
-  headerAdEnabled: boolean;
-  headerAdCode: string;
-  sidebarAdEnabled: boolean;
-  sidebarAdCode: string;
-  footerAdEnabled: boolean;
-  footerAdCode: string;
-  adFrequency: 'low' | 'medium' | 'high';
-  adStartTime: string;
-  adEndTime: string;
-  bannerAds: boolean;
-  squareAds: boolean;
-  skyscraperAds: boolean;
-  popupAds: boolean;
-  adsense: {
-    enabled: boolean;
-    publisherId: string;
-  };
-  customAds: {
-    enabled: boolean;
-    rotation: boolean;
-    codes: string[];
-  };
-  abTests: ABTest[];
-  deviceTargeting: {
-    enabled: boolean;
-    desktopCode: string;
-    mobileCode: string;
-  };
-  geoTargeting: {
-    enabled: boolean;
-    rules: GeoTargetedAd[];
-  };
+    headerAdEnabled: boolean;
+    headerAdCode: string;
+    sidebarAdEnabled: boolean;
+    sidebarAdCode: string;
+    footerAdEnabled: boolean;
+    footerAdCode: string;
+    adFrequency: 'low' | 'medium' | 'high';
+    adStartTime: string;
+    adEndTime: string;
+    bannerAds: boolean;
+    squareAds: boolean;
+    skyscraperAds: boolean;
+    popupAds: boolean;
+    adsense: {
+        enabled: boolean;
+        publisherId: string;
+    };
+    customAds: {
+        enabled: boolean;
+        rotation: boolean;
+        codes: string[];
+    };
+    abTests: ABTest[];
+    deviceTargeting: {
+        enabled: boolean;
+        desktopCode: string;
+        mobileCode: string;
+    };
+    geoTargeting: {
+        enabled: boolean;
+        rules: GeoTargetedAd[];
+    };
 }
 
 export interface SEOSettings {
@@ -149,4 +149,20 @@ export interface SocialMediaSettings {
     instagram: string;
     telegram: string;
     whatsapp: string;
+    telegramGroup: string;
+    telegramGroupIcon: string;
+}
+
+export interface AdminCredentials {
+  username: string;
+  password: string;
+}
+
+export interface EmailNotification {
+  id: string;
+  recipient: string; // Subscriber's email
+  subject: string;
+  body: string;
+  sentAt: string; // ISO 8601
+  jobId: string; // To link back to the job
 }

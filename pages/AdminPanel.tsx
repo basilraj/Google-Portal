@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
@@ -17,8 +18,9 @@ import SEOManagement from '../components/admin/SEOManagement';
 import UserProfile from '../components/admin/UserProfile';
 import SettingsManagement from '../components/admin/SettingsManagement';
 import SocialMediaManagement from '../components/admin/SocialMediaManagement';
+import NotificationHistory from '../components/admin/NotificationHistory';
 
-type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'notices' | 'results' | 'links' | 'subscribers' | 'contacts' | 'news' | 'ads' | 'seo' | 'settings' | 'profile' | 'social';
+type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'notices' | 'results' | 'links' | 'subscribers' | 'contacts' | 'news' | 'ads' | 'seo' | 'settings' | 'profile' | 'social' | 'notifications';
 
 const AdminPanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -34,6 +36,7 @@ const AdminPanel: React.FC = () => {
         { id: 'links', title: 'Quick Links', icon: 'link' },
         { id: 'news', title: 'Breaking News', icon: 'newspaper' },
         { id: 'subscribers', title: 'Subscribers', icon: 'users' },
+        { id: 'notifications', title: 'Notification History', icon: 'history' },
         { id: 'contacts', title: 'Contact Messages', icon: 'envelope' },
         { id: 'social', title: 'Social Media', icon: 'share-alt' },
         { id: 'ads', title: 'Ad Management', icon: 'ad' },
@@ -51,6 +54,7 @@ const AdminPanel: React.FC = () => {
             case 'results': return <ResultManagement />;
             case 'links': return <QuickLinkManagement />;
             case 'subscribers': return <SubscriberManagement />;
+            case 'notifications': return <NotificationHistory />;
             case 'contacts': return <ContactManagement />;
             case 'news': return <BreakingNewsManagement />;
             case 'social': return <SocialMediaManagement />;

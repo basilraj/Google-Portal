@@ -102,9 +102,9 @@ const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTa
                      <div className="bg-white p-6 rounded-lg shadow-sm">
                         <h3 className="text-xl font-bold text-gray-700 mb-4">Quick Actions</h3>
                         <div className="space-y-3">
-                            <QuickActionButton label="Add New Job" icon="plus" onClick={() => setActiveTab('jobs')} />
-                            <QuickActionButton label="Add New Post" icon="file-medical" onClick={() => setActiveTab('posts')} />
-                            <QuickActionButton label="Manage Ads" icon="cogs" onClick={() => setActiveTab('ads')} />
+                            <QuickActionButton label="Manage Job Listings" icon="briefcase" onClick={() => setActiveTab('jobs')} />
+                            <QuickActionButton label="Manage Content Posts" icon="file-alt" onClick={() => setActiveTab('posts')} />
+                            <QuickActionButton label="Manage Subscribers" icon="users" onClick={() => setActiveTab('subscribers')} />
                         </div>
                     </div>
                 </div>

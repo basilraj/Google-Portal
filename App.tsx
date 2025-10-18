@@ -11,6 +11,8 @@ import Disclaimer from './pages/Disclaimer';
 import TermsAndConditions from './pages/TermsAndConditions';
 import BlogPage from './pages/BlogPage';
 import JobDetailPage from './pages/JobDetailPage';
+import BlogDetailPage from './pages/BlogDetailPage';
+import TelegramFAB from './components/TelegramFAB';
 
 export const basePath = '/Google-Portal';
 
@@ -62,6 +64,7 @@ const App: React.FC = () => {
     let title = seoSettings.global.siteTitle;
     if (route.startsWith('/admin')) title = `Admin Panel | ${title}`;
     else if (route.startsWith('/job/')) title = `Job Details | ${title}`;
+    else if (route.startsWith('/blog/')) title = `Blog Post | ${title}`;
     else if (route === '/blog') title = `Blog | ${title}`;
     else if (route === '/privacy') title = `Privacy Policy | ${title}`;
     else if (route === '/terms') title = `Terms & Conditions | ${title}`;
@@ -81,39 +84,51 @@ const App: React.FC = () => {
   };
 
   const route = path.replace(basePath, '') || '/';
+  const isPublicRoute = !route.startsWith('/admin');
 
-  if (generalSettings.maintenanceMode && !route.startsWith('/admin')) {
-      return <MaintenancePage />;
-  }
+  const renderPage = () => {
+    if (generalSettings.maintenanceMode && isPublicRoute) {
+        return <MaintenancePage />;
+    }
 
-  if (route.startsWith('/admin')) {
-    return isLoggedIn ? <AdminPanel /> : <AdminLoginPage />;
-  }
-  
-  if (route.startsWith('/job/')) {
-    const jobId = route.split('/')[2];
-    return <JobDetailPage jobId={jobId} navigate={navigate} />;
-  }
-  
-  switch (route) {
-    case '/':
-      return <PublicWebsite navigate={navigate} />;
-    case '/blog':
-      return <BlogPage navigate={navigate} />;
-    case '/privacy':
-      return <PrivacyPolicy navigate={navigate} />;
-    case '/about':
-      return <AboutUs navigate={navigate} />;
-    case '/disclaimer':
-        return <Disclaimer navigate={navigate} />;
-    case '/terms':
-        return <TermsAndConditions navigate={navigate} />;
-    default:
-        // For a deployed SPA on a static host, an unknown path might be a 404.
-        // The 404.html handles this, so if we reach here, it's likely a logic error
-        // or a path that doesn't exist. Safely redirecting home is a good fallback.
+    if (route.startsWith('/admin')) {
+      return isLoggedIn ? <AdminPanel /> : <AdminLoginPage />;
+    }
+    
+    if (route.startsWith('/job/')) {
+      const jobId = route.split('/')[2];
+      return <JobDetailPage jobId={jobId} navigate={navigate} />;
+    }
+
+    if (route.startsWith('/blog/')) {
+      const postId = route.split('/')[2];
+      return <BlogDetailPage postId={postId} navigate={navigate} />;
+    }
+    
+    switch (route) {
+      case '/':
         return <PublicWebsite navigate={navigate} />;
-  }
+      case '/blog':
+        return <BlogPage navigate={navigate} />;
+      case '/privacy':
+        return <PrivacyPolicy navigate={navigate} />;
+      case '/about':
+        return <AboutUs navigate={navigate} />;
+      case '/disclaimer':
+          return <Disclaimer navigate={navigate} />;
+      case '/terms':
+          return <TermsAndConditions navigate={navigate} />;
+      default:
+          return <PublicWebsite navigate={navigate} />;
+    }
+  };
+
+  return (
+    <>
+      {renderPage()}
+      {isPublicRoute && !generalSettings.maintenanceMode && <TelegramFAB />}
+    </>
+  );
 };
 
 export default App;

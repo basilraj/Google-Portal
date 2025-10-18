@@ -3,7 +3,6 @@ import { useData } from '../contexts/DataContext';
 import BlogPostCard from '../components/BlogPostCard';
 import Icon from '../components/Icon';
 import PublicFooter from '../components/PublicFooter';
-import Modal from '../components/Modal';
 import { ContentPost } from '../types';
 import PublicHeader from '../components/PublicHeader';
 
@@ -14,8 +13,6 @@ const AdComponent: React.FC<{ code: string }> = ({ code }) => (
 const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { posts, adSettings } = useData();
     const [selectedCategory, setSelectedCategory] = useState('All Categories');
-    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-    const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
     
     const blogPosts = useMemo(() => posts.filter(p => p.type === 'posts' && p.status === 'published')
                                       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()), [posts]);
@@ -33,8 +30,7 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
     }, [blogPosts, selectedCategory]);
 
     const handleReadMore = (post: ContentPost) => {
-        setSelectedPost(post);
-        setIsPostModalOpen(true);
+        navigate(`/blog/${post.id}`);
     };
 
     return (
@@ -83,25 +79,6 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                 </div>
             )}
             <PublicFooter navigate={navigate} />
-
-            <Modal isOpen={isPostModalOpen} onClose={() => setIsPostModalOpen(false)} title={selectedPost?.title || 'Blog Post'}>
-                {selectedPost && (
-                    <div className="static-content">
-                        {selectedPost.imageUrl && (
-                            <img src={selectedPost.imageUrl} alt={selectedPost.title} className="w-full h-auto max-h-80 object-cover rounded-lg mb-6" />
-                        )}
-                        <div className="text-sm text-gray-500 mb-4 flex flex-wrap gap-x-4">
-                            <span><strong>Published:</strong> {selectedPost.publishedDate}</span>
-                            <span><strong>Category:</strong> {selectedPost.category}</span>
-                        </div>
-                        <hr className="mb-6"/>
-                        <p className="whitespace-pre-wrap text-left">{selectedPost.content}</p>
-                        <div className="flex justify-end pt-4 mt-6">
-                            <button onClick={() => setIsPostModalOpen(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Close</button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
         </div>
     );
 };

@@ -1,13 +1,14 @@
 import React from 'react';
 import { ContentPost } from '../types';
 import Icon from './Icon';
+import { basePath } from '../App';
 
 const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost) => void; }> = ({ post, onReadMore }) => {
     // Generate share URLs
-    const shareUrl = window.location.href.split('#')[0]; // Blog page URL
+    const postUrl = `${window.location.origin}${basePath}/blog/${post.id}`.replace(/([^:]\/)\/+/g, "$1");
     const shareTitle = `Read on our blog: ${post.title}`;
-    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
-    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + shareUrl)}`;
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}&quote=${encodeURIComponent(shareTitle)}`;
+    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + postUrl)}`;
     
     // Truncate content for snippet
     const snippet = post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content;

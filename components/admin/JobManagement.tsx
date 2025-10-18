@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Job } from '../../types';
@@ -7,6 +6,7 @@ import Modal from '../Modal';
 import Pagination from './Pagination';
 import usePagination from '../../hooks/usePagination';
 import { getEffectiveJobStatus } from '../../utils/jobUtils';
+import JobDetailView from '../JobDetailView';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -25,7 +25,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
     </div>
 );
 
-const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id'>, id?: string) => void; onCancel: () => void }> = ({ job, onSave, onCancel }) => {
+const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string) => void; onCancel: () => void }> = ({ job, onSave, onCancel }) => {
     const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(job ? { ...job } : {
         title: '',
         department: '',
@@ -45,9 +45,9 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id'>, id?: string)
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { createdAt, ...saveData } = formData as any;
-        onSave(saveData, job?.id);
+        // Explicitly destructure id and createdAt to create a clean object for saving.
+        const { id, createdAt, ...dataToSave } = formData as Job;
+        onSave(dataToSave, job?.id);
     };
 
     return (
@@ -247,6 +247,8 @@ const JobManagement: React.FC = () => {
     const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
     const [sortKey, setSortKey] = useState<SortKey>('createdAt');
     const [sortDirection, setSortDirection] = useState<SortDirection>('descending');
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    const [previewJobId, setPreviewJobId] = useState<string | null>(null);
 
     const handleSort = (key: SortKey) => {
         if (sortKey === key) {
@@ -292,7 +294,7 @@ const JobManagement: React.FC = () => {
         setSelectedJobIds([]);
     }, [currentPage, statusFilter, sortKey, sortDirection]);
 
-    const handleSave = (jobData: Omit<Job, 'id'>, id?: string) => {
+    const handleSave = (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string) => {
         if (id) {
             const originalJob = jobs.find(j => j.id === id);
             if (originalJob) {
@@ -308,6 +310,11 @@ const JobManagement: React.FC = () => {
     const handleEdit = (job: Job) => {
         setEditingJob(job);
         setIsModalOpen(true);
+    };
+    
+    const handlePreview = (jobId: string) => {
+        setPreviewJobId(jobId);
+        setIsPreviewModalOpen(true);
     };
 
     const handleDelete = (jobId: string) => {
@@ -415,6 +422,8 @@ const JobManagement: React.FC = () => {
         }
     };
 
+    const jobToPreview = jobs.find(job => job.id === previewJobId);
+
     const SortableHeader: React.FC<{ columnKey: SortKey; title: string; className?: string }> = ({ columnKey, title, className }) => (
         <th className={`px-6 py-3 cursor-pointer ${className}`} onClick={() => handleSort(columnKey)}>
             <div className="flex items-center gap-2">
@@ -499,7 +508,8 @@ const JobManagement: React.FC = () => {
                                     <td data-label="Status" className="px-6 py-4">
                                          <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${effectiveStatus === 'active' ? 'bg-green-100 text-green-800' : effectiveStatus === 'closing-soon' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{effectiveStatus.replace('-', ' ')}</span>
                                     </td>
-                                    <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
+                                    <td data-label="Actions" className="px-6 py-4 flex gap-4 items-center actions-cell">
+                                        <button onClick={() => handlePreview(job.id)} className="text-blue-500 hover:text-blue-700" aria-label={`Preview job: ${job.title}`}><Icon name="eye" /></button>
                                         <button onClick={() => handleEdit(job)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit job: ${job.title}`}><Icon name="edit" /></button>
                                         <button onClick={() => handleDelete(job.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete job: ${job.title}`}><Icon name="trash" /></button>
                                     </td>
@@ -526,6 +536,15 @@ const JobManagement: React.FC = () => {
                 onUpload={handleBulkUpload}
                 errorMessages={bulkUploadErrors}
             />
+            <Modal isOpen={isPreviewModalOpen} onClose={() => setIsPreviewModalOpen(false)} title="Job Preview">
+                {jobToPreview ? (
+                    <div className="bg-gray-50 -m-6 p-6">
+                        <JobDetailView job={jobToPreview} />
+                    </div>
+                ) : (
+                    <p>Could not find job to preview.</p>
+                )}
+            </Modal>
         </div>
     );
 };
