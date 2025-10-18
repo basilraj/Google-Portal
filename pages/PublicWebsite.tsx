@@ -54,9 +54,9 @@ const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate(`/job/${job.id}`)} className="text-sm font-semibold text-indigo-600 hover:underline">
+                    <a href={`${basePath}/job/${job.id}`} onClick={(e) => { e.preventDefault(); navigate(`/job/${job.id}`); }} className="text-sm font-semibold text-indigo-600 hover:underline">
                         View Full Details
-                    </button>
+                    </a>
                     <a href={job.applyLink} target="_blank" rel="noopener noreferrer" className={`font-bold py-2 px-4 rounded-md transition-opacity ${effectiveStatus === 'expired' ? 'bg-gray-400 text-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'}`}>
                         {effectiveStatus === 'expired' ? 'Expired' : 'Apply Now'}
                     </a>
@@ -118,6 +118,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     const [searchQuery, setSearchQuery] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('all');
     const [qualificationFilter, setQualificationFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all-active');
     const [subscriberEmail, setSubscriberEmail] = useState('');
     const [subscriptionMessage, setSubscriptionMessage] = useState('');
     const [contactForm, setContactForm] = useState<Omit<ContactSubmission, 'id' | 'submittedAt'>>({ name: '', email: '', subject: '', message: ''});
@@ -168,18 +169,27 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         setSearchQuery('');
         setDepartmentFilter('all');
         setQualificationFilter('all');
+        setStatusFilter('all-active');
     };
 
     const filteredJobs = useMemo(() => {
-        return jobs.filter(job => 
-            getEffectiveJobStatus(job) !== 'expired' &&
-            (searchQuery === '' || 
+        return jobs.filter(job => {
+            const effectiveStatus = getEffectiveJobStatus(job);
+            
+            const statusMatch = effectiveStatus !== 'expired' && 
+                                (statusFilter === 'all-active' || effectiveStatus === statusFilter);
+
+            const searchMatch = (searchQuery === '' || 
              job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-             job.department.toLowerCase().includes(searchQuery.toLowerCase())) &&
-            (departmentFilter === 'all' || job.department === departmentFilter) &&
-            (qualificationFilter === 'all' || job.qualification === qualificationFilter)
-        );
-    }, [jobs, searchQuery, departmentFilter, qualificationFilter]);
+             job.department.toLowerCase().includes(searchQuery.toLowerCase()));
+
+            const departmentMatch = (departmentFilter === 'all' || job.department === departmentFilter);
+            
+            const qualificationMatch = (qualificationFilter === 'all' || job.qualification === qualificationFilter);
+
+            return statusMatch && searchMatch && departmentMatch && qualificationMatch;
+        });
+    }, [jobs, searchQuery, departmentFilter, qualificationFilter, statusFilter]);
 
     const { 
         currentPage: jobsCurrentPage, 
@@ -210,8 +220,8 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 </div>
             </section>
             
-            <section className="advanced-search bg-white p-6 rounded-lg shadow-md -mt-8 mx-4 md:mx-auto max-w-4xl relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <section className="advanced-search bg-white p-6 rounded-lg shadow-md -mt-8 mx-4 md:mx-auto max-w-6xl relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div>
                         <label htmlFor="departmentFilter" className="block text-sm font-medium text-gray-700">Department</label>
                         <select id="departmentFilter" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
@@ -226,6 +236,14 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                             {qualifications.map(qual => (
                                 <option key={qual} value={qual}>{qual === 'all' ? 'All Qualifications' : qual}</option>
                             ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="statusFilter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                            <option value="all-active">All Active</option>
+                            <option value="active">Active</option>
+                            <option value="closing-soon">Closing Soon</option>
                         </select>
                     </div>
                     <button onClick={handleClearFilters} className="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-md hover:bg-gray-300 transition-colors w-full md:w-auto">

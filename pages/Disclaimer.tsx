@@ -10,11 +10,11 @@ const Disclaimer: React.FC<{ navigate: (path: string) => void }> = ({ navigate }
 
   return (
     <StaticPage title="Disclaimer" navigate={navigate}>
-      <p>The information provided by Divine Computer Job Portal ("we," "us," or "our") on this website is for general informational purposes only. All information on the site is provided in good faith, however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the site.</p>
+      <p>The information provided by Divine Computer Jobs ("we," "us," or "our") on this website is for general informational purposes only. All information on the site is provided in good faith, however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the site.</p>
       <p><strong>UNDER NO CIRCUMSTANCE SHALL WE HAVE ANY LIABILITY TO YOU FOR ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF THE SITE OR RELIANCE ON ANY INFORMATION PROVIDED ON THE SITE. YOUR USE OF THE SITE AND YOUR RELIANCE ON ANY INFORMATION ON THE SITE IS SOLELY AT YOUR OWN RISK.</strong></p>
       
       <h2>Not an Official Government Website</h2>
-      <p>Divine Computer Job Portal is a private entity and is <strong>not affiliated with, endorsed by, or in any way officially connected with any government agency, organization, or board.</strong> The names of government departments are used only for the purpose of identification of job postings. We are an independent informational portal that gathers and presents information about government job vacancies from various sources.</p>
+      <p>Divine Computer Jobs is a private entity and is <strong>not affiliated with, endorsed by, or in any way officially connected with any government agency, organization, or board.</strong> The names of government departments are used only for the purpose of identification of job postings. We are an independent informational portal that gathers and presents information about government job vacancies from various sources.</p>
       
       <h2>Accuracy of Information</h2>
       <p>We strive to provide accurate and up-to-date information. However, we do not guarantee the accuracy of all information presented. Job details such as vacancy counts, eligibility criteria, and important dates are subject to change by the official recruiting bodies.</p>

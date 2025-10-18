@@ -142,6 +142,7 @@ export interface SEOSettings {
 export interface GeneralSettings {
     maintenanceMode: boolean;
     maintenanceMessage: string;
+    emailNotificationsEnabled: boolean;
 }
 
 export interface SocialMediaSettings {
@@ -165,4 +166,27 @@ export interface EmailNotification {
   body: string;
   sentAt: string; // ISO 8601
   jobId: string; // To link back to the job
+}
+
+export interface CustomEmail {
+  id: string;
+  recipients: 'all' | string[]; // 'all' for all subscribers, or an array of emails
+  subject: string;
+  body: string;
+  sentAt: string; // ISO 8601
+}
+
+export interface BackupData {
+    jobs: Job[];
+    quickLinks: QuickLink[];
+    posts: ContentPost[];
+    subscribers: Subscriber[];
+    contacts: ContactSubmission[];
+    breakingNews: BreakingNews[];
+    adSettings: AdSettings;
+    seoSettings: SEOSettings;
+    generalSettings: GeneralSettings;
+    socialMediaSettings: SocialMediaSettings;
+    emailNotifications: EmailNotification[];
+    customEmails: CustomEmail[];
 }

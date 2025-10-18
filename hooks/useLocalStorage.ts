@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 import storage from '../utils/storage';
 
-function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetStateAction<T>>] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = storage.getItem(key);

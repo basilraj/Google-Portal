@@ -1,4 +1,4 @@
-import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification } from './types';
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification, CustomEmail } from './types';
 
 export const INITIAL_JOBS: Job[] = [
     {
@@ -81,6 +81,8 @@ export const INITIAL_CONTACTS: ContactSubmission[] = [];
 
 export const INITIAL_EMAIL_NOTIFICATIONS: EmailNotification[] = [];
 
+export const INITIAL_CUSTOM_EMAILS: CustomEmail[] = [];
+
 export const INITIAL_BREAKING_NEWS: BreakingNews[] = [
     { id: '1', text: 'SSC CGL 2025 Notification Released. Last date to apply is Nov 20, 2025.', link: '#', status: 'active' },
     { id: '2', text: 'Railway NTPC Final Result has been declared. Check your result now.', link: '#', status: 'active' },
@@ -133,12 +135,12 @@ export const initialAdSettings: AdSettings = {
 
 export const initialSeoSettings: SEOSettings = {
     global: {
-        siteTitle: 'Divine Computer Job Portal',
+        siteTitle: 'Divine Computer Jobs',
         metaDescription: 'Find the latest government job notifications, exam results, and admit cards. Your one-stop destination for all government job updates in India.',
-        metaKeywords: 'government jobs, sarkari naukri, job portal, railway jobs, ssc, upsc, banking jobs',
+        metaKeywords: 'divine computer jobs, government jobs, sarkari naukri, job portal, railway jobs, ssc, upsc, banking jobs',
     },
     social: {
-        ogTitle: 'Divine Computer Job Portal - Latest Government Jobs',
+        ogTitle: 'Divine Computer Jobs - Latest Government Jobs',
         ogDescription: 'Your gateway to a successful career in the public sector. Get daily updates on all government job vacancies.',
         ogImageUrl: '',
     },
@@ -150,6 +152,7 @@ export const initialSeoSettings: SEOSettings = {
 export const initialGeneralSettings: GeneralSettings = {
     maintenanceMode: false,
     maintenanceMessage: 'Our website is currently undergoing scheduled maintenance. We should be back shortly. Thank you for your patience.',
+    emailNotificationsEnabled: true,
 };
 
 export const initialSocialMediaSettings: SocialMediaSettings = {

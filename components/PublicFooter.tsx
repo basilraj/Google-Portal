@@ -15,7 +15,7 @@ const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
                     <div className="md:col-span-2">
-                        <h3 className="text-lg font-bold mb-4">About Divine Computer Job Portal</h3>
+                        <h3 className="text-lg font-bold mb-4">About Divine Computer Jobs</h3>
                         <p className="text-sm text-gray-300">
                             Your premier destination for the latest government job notifications. We are dedicated to providing timely and accurate updates on job vacancies, exam schedules, admit cards, and results to help you achieve your career goals in the public sector.
                         </p>
@@ -49,7 +49,7 @@ const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                 </div>
                 <div className="border-t border-white/20 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-center">
                     <div className="mb-4 md:mb-0">
-                        <p className="text-xs text-gray-400">&copy; 2025 Divine Computer Job Portal. All Rights Reserved.</p>
+                        <p className="text-xs text-gray-400">&copy; 2025 Divine Computer Jobs. All Rights Reserved.</p>
                     </div>
                      <div className="flex justify-center space-x-6">
                         {socialMediaSettings.facebook && <a href={socialMediaSettings.facebook} target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook page" className="text-white hover:text-blue-500 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-2xl" /></a>}

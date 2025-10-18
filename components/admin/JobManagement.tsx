@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Job } from '../../types';
 import Icon from '../Icon';
@@ -7,6 +7,7 @@ import Pagination from './Pagination';
 import usePagination from '../../hooks/usePagination';
 import { getEffectiveJobStatus } from '../../utils/jobUtils';
 import JobDetailView from '../JobDetailView';
+import ConfirmationModal from './ConfirmationModal';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -25,7 +26,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
     </div>
 );
 
-const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string) => void; onCancel: () => void }> = ({ job, onSave, onCancel }) => {
+const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string) => void; onCancel: () => void; isLoading: boolean; }> = ({ job, onSave, onCancel, isLoading }) => {
     const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(job ? { ...job } : {
         title: '',
         department: '',
@@ -37,6 +38,14 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
         applyLink: '',
         status: 'active',
     });
+    
+    const titleInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        // Automatically focus the title input when the modal opens.
+        titleInputRef.current?.focus();
+    }, []);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -54,7 +63,7 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
                 <label className="block text-sm font-medium text-gray-700">Job Title *</label>
-                <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                <input ref={titleInputRef} type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div>
@@ -100,7 +109,9 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
             </div>
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Save Job</button>
+                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 w-28 text-center disabled:opacity-75" disabled={isLoading}>
+                    {isLoading ? <Icon name="spinner" className="animate-spin mx-auto" /> : 'Save Job'}
+                </button>
             </div>
         </form>
     );
@@ -111,7 +122,8 @@ const BulkUploadModal: React.FC<{
     onClose: () => void;
     onUpload: (file: File) => void;
     errorMessages: string[];
-}> = ({ isOpen, onClose, onUpload, errorMessages }) => {
+    isLoading: boolean;
+}> = ({ isOpen, onClose, onUpload, errorMessages, isLoading }) => {
     const [file, setFile] = useState<File | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,11 +200,11 @@ const BulkUploadModal: React.FC<{
                     <button
                         type="button"
                         onClick={handleUpload}
-                        disabled={!file}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                        disabled={!file || isLoading}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                     >
-                        <Icon name="upload" className="mr-2" />
-                        Upload & Save
+                        {isLoading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="upload" />}
+                        {isLoading ? 'Uploading...' : 'Upload & Save'}
                     </button>
                 </div>
             </div>
@@ -249,6 +261,20 @@ const JobManagement: React.FC = () => {
     const [sortDirection, setSortDirection] = useState<SortDirection>('descending');
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [previewJobId, setPreviewJobId] = useState<string | null>(null);
+    const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [confirmModalContent, setConfirmModalContent] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; }>({ title: '', message: '', onConfirm: () => {} });
+
+    const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+        setNotification({ type, message });
+        setTimeout(() => setNotification(null), 4000);
+    };
+
+    const openConfirmationModal = (title: string, message: React.ReactNode, onConfirm: () => void) => {
+        setConfirmModalContent({ title, message, onConfirm });
+        setIsConfirmModalOpen(true);
+    };
 
     const handleSort = (key: SortKey) => {
         if (sortKey === key) {
@@ -295,16 +321,22 @@ const JobManagement: React.FC = () => {
     }, [currentPage, statusFilter, sortKey, sortDirection]);
 
     const handleSave = (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string) => {
-        if (id) {
-            const originalJob = jobs.find(j => j.id === id);
-            if (originalJob) {
-                 updateJob({ ...originalJob, ...jobData, id });
+        setIsLoading(true);
+        setTimeout(() => { // Simulate async operation
+            if (id) {
+                const originalJob = jobs.find(j => j.id === id);
+                if (originalJob) {
+                     updateJob({ ...originalJob, ...jobData, id });
+                     showNotification(`Job '${jobData.title}' updated successfully!`);
+                }
+            } else {
+                addJob(jobData);
+                showNotification(`Job '${jobData.title}' added successfully!`);
             }
-        } else {
-            addJob(jobData);
-        }
-        setIsModalOpen(false);
-        setEditingJob(undefined);
+            setIsModalOpen(false);
+            setEditingJob(undefined);
+            setIsLoading(false);
+        }, 500);
     };
 
     const handleEdit = (job: Job) => {
@@ -318,81 +350,110 @@ const JobManagement: React.FC = () => {
     };
 
     const handleDelete = (jobId: string) => {
-        if (window.confirm('Are you sure you want to delete this job?')) {
-            deleteJob(jobId);
-        }
+        const jobToDelete = jobs.find(j => j.id === jobId);
+        if (!jobToDelete) return;
+
+        openConfirmationModal(
+            'Confirm Deletion',
+            <>Are you sure you want to delete the job: <strong>"{jobToDelete.title}"</strong>? This action cannot be undone.</>,
+            () => {
+                setIsLoading(true);
+                setTimeout(() => {
+                    deleteJob(jobId);
+                    showNotification(`Job '${jobToDelete.title}' deleted successfully.`);
+                    setIsLoading(false);
+                    setIsConfirmModalOpen(false);
+                }, 500);
+            }
+        );
     };
     
     const handleBulkUpload = (file: File) => {
         setBulkUploadErrors([]);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target?.result as string;
-            if (!text) {
-                setBulkUploadErrors(['File is empty or could not be read.']);
-                return;
-            }
-
-            const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
-            if (lines.length <= 1) {
-                setBulkUploadErrors(['CSV file must contain a header and at least one data row.']);
-                return;
-            }
-            
-            const errors: string[] = [];
-            const jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[] = [];
-            const headerLine = lines[0];
-            const headers = parseCsvLine(headerLine).map(h => h.trim());
-            
-            const requiredHeaders = ['title', 'department', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
-            if (JSON.stringify(headers) !== JSON.stringify(requiredHeaders)) {
-                 setBulkUploadErrors([`Invalid CSV header. Expected: ${requiredHeaders.join(',')}`]);
-                 return;
-            }
-
-            lines.slice(1).forEach((line, index) => {
-                const rowNum = index + 2;
-                const values = parseCsvLine(line);
-
-                if (values.length !== headers.length) {
-                    errors.push(`Line ${rowNum}: Incorrect number of columns. Expected ${headers.length}, found ${values.length}.`);
-                    return; // Skip this row
+        setIsLoading(true);
+        setTimeout(() => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target?.result as string;
+                if (!text) {
+                    setBulkUploadErrors(['File is empty or could not be read.']);
+                    showNotification('Upload failed: File is empty.', 'error');
+                    setIsLoading(false);
+                    return;
                 }
 
-                const jobEntry = headers.reduce((obj, header, i) => {
-                    obj[header as keyof typeof obj] = values[i];
-                    return obj;
-                }, {} as any);
+                const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
+                if (lines.length <= 1) {
+                    setBulkUploadErrors(['CSV file must contain a header and at least one data row.']);
+                    showNotification('Upload failed: CSV is missing data.', 'error');
+                    setIsLoading(false);
+                    return;
+                }
                 
-                // Validation
-                if (!jobEntry.title) errors.push(`Line ${rowNum}: 'title' is required.`);
-                if (!jobEntry.department) errors.push(`Line ${rowNum}: 'department' is required.`);
-                if (!jobEntry.postedDate) errors.push(`Line ${rowNum}: 'postedDate' is required.`);
-                if (jobEntry.postedDate && isNaN(new Date(jobEntry.postedDate).getTime())) {
-                    errors.push(`Line ${rowNum}: Invalid format for 'postedDate'. Please use YYYY-MM-DD.`);
-                }
-                if (!jobEntry.lastDate) errors.push(`Line ${rowNum}: 'lastDate' is required.`);
-                if (jobEntry.lastDate && isNaN(new Date(jobEntry.lastDate).getTime())) {
-                    errors.push(`Line ${rowNum}: Invalid format for 'lastDate'. Please use YYYY-MM-DD.`);
+                const errors: string[] = [];
+                const jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[] = [];
+                const headerLine = lines[0];
+                const headers = parseCsvLine(headerLine).map(h => h.trim());
+                
+                const requiredHeaders = ['title', 'department', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
+                if (JSON.stringify(headers) !== JSON.stringify(requiredHeaders)) {
+                     const errorMsg = `Invalid CSV header. Expected: ${requiredHeaders.join(',')}`;
+                     setBulkUploadErrors([errorMsg]);
+                     showNotification(errorMsg, 'error');
+                     setIsLoading(false);
+                     return;
                 }
 
-                if (errors.length === 0) {
-                    jobsData.push(jobEntry);
+                lines.slice(1).forEach((line, index) => {
+                    const rowNum = index + 2;
+                    const values = parseCsvLine(line);
+
+                    if (values.length !== headers.length) {
+                        errors.push(`Line ${rowNum}: Incorrect number of columns. Expected ${headers.length}, found ${values.length}.`);
+                        return; // Skip this row
+                    }
+
+                    const jobEntry = headers.reduce((obj, header, i) => {
+                        obj[header as keyof typeof obj] = values[i];
+                        return obj;
+                    }, {} as any);
+                    
+                    // Validation
+                    if (!jobEntry.title) errors.push(`Line ${rowNum}: 'title' is required.`);
+                    if (!jobEntry.department) errors.push(`Line ${rowNum}: 'department' is required.`);
+                    if (!jobEntry.postedDate) errors.push(`Line ${rowNum}: 'postedDate' is required.`);
+                    if (jobEntry.postedDate && isNaN(new Date(jobEntry.postedDate).getTime())) {
+                        errors.push(`Line ${rowNum}: Invalid format for 'postedDate'. Please use YYYY-MM-DD.`);
+                    }
+                    if (!jobEntry.lastDate) errors.push(`Line ${rowNum}: 'lastDate' is required.`);
+                    if (jobEntry.lastDate && isNaN(new Date(jobEntry.lastDate).getTime())) {
+                        errors.push(`Line ${rowNum}: Invalid format for 'lastDate'. Please use YYYY-MM-DD.`);
+                    }
+
+                    if (errors.length === 0) {
+                        jobsData.push(jobEntry);
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    setBulkUploadErrors(errors);
+                    showNotification('Upload failed. Please check the errors below the upload button.', 'error');
+                    setIsLoading(false);
+                } else {
+                    const addedCount = addMultipleJobs(jobsData);
+                    showNotification(`${addedCount} jobs uploaded successfully.`);
+                    setIsBulkUploadModalOpen(false);
+                    setIsLoading(false);
                 }
-            });
-            
-            if (errors.length > 0) {
-                setBulkUploadErrors(errors);
-            } else {
-                const addedCount = addMultipleJobs(jobsData);
-                alert(`${addedCount} jobs have been successfully uploaded.`);
-                setIsBulkUploadModalOpen(false);
-            }
-        };
-        reader.onerror = () => {
-             setBulkUploadErrors(['Failed to read the file.']);
-        };
-        reader.readAsText(file);
+            };
+            reader.onerror = () => {
+                 const errorMsg = 'Failed to read the file.';
+                 setBulkUploadErrors([errorMsg]);
+                 showNotification(errorMsg, 'error');
+                 setIsLoading(false);
+            };
+            reader.readAsText(file);
+        }, 500);
     };
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -413,13 +474,25 @@ const JobManagement: React.FC = () => {
 
     const handleBulkDelete = () => {
         if (selectedJobIds.length === 0) {
-            alert('Please select at least one job to delete.');
+            showNotification('Please select at least one job to delete.', 'error');
             return;
         }
-        if (window.confirm(`Are you sure you want to delete ${selectedJobIds.length} selected job(s)?`)) {
-            deleteMultipleJobs(selectedJobIds);
-            setSelectedJobIds([]);
-        }
+
+        openConfirmationModal(
+            'Confirm Bulk Deletion',
+            <>Are you sure you want to delete <strong>{selectedJobIds.length}</strong> selected job(s)? This action cannot be undone.</>,
+            () => {
+                setIsLoading(true);
+                setTimeout(() => {
+                    const count = selectedJobIds.length;
+                    deleteMultipleJobs(selectedJobIds);
+                    setSelectedJobIds([]);
+                    showNotification(`${count} job(s) deleted successfully.`);
+                    setIsLoading(false);
+                    setIsConfirmModalOpen(false);
+                }, 500);
+            }
+        );
     };
 
     const jobToPreview = jobs.find(job => job.id === previewJobId);
@@ -437,15 +510,28 @@ const JobManagement: React.FC = () => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm">
+            {notification && (
+                <div
+                    className={`p-4 mb-4 text-sm rounded-lg ${
+                        notification.type === 'success'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                    }`}
+                    role="alert"
+                >
+                    <span className="font-medium">{notification.type === 'success' ? 'Success!' : 'Error:'}</span> {notification.message}
+                </div>
+            )}
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                  <div className="flex items-center gap-4">
                     <h2 className="text-xl font-bold text-gray-700">Job Listings</h2>
                     {selectedJobIds.length > 0 && (
                         <button
                             onClick={handleBulkDelete}
-                            className="bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-red-700 transition-colors"
+                            disabled={isLoading}
+                            className="bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Icon name="trash" /> Delete ({selectedJobIds.length})
+                           <Icon name="trash" /> Delete ({selectedJobIds.length})
                         </button>
                     )}
                 </div>
@@ -511,7 +597,7 @@ const JobManagement: React.FC = () => {
                                     <td data-label="Actions" className="px-6 py-4 flex gap-4 items-center actions-cell">
                                         <button onClick={() => handlePreview(job.id)} className="text-blue-500 hover:text-blue-700" aria-label={`Preview job: ${job.title}`}><Icon name="eye" /></button>
                                         <button onClick={() => handleEdit(job)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit job: ${job.title}`}><Icon name="edit" /></button>
-                                        <button onClick={() => handleDelete(job.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete job: ${job.title}`}><Icon name="trash" /></button>
+                                        <button onClick={() => handleDelete(job.id)} disabled={isLoading} className="text-red-500 hover:text-red-700 disabled:text-gray-300 disabled:cursor-not-allowed" aria-label={`Delete job: ${job.title}`}><Icon name="trash" /></button>
                                     </td>
                                 </tr>
                             )})}
@@ -528,13 +614,14 @@ const JobManagement: React.FC = () => {
                 />
             )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingJob ? 'Edit Job' : 'Add New Job'}>
-                <JobForm job={editingJob} onSave={handleSave} onCancel={() => setIsModalOpen(false)} />
+                <JobForm job={editingJob} onSave={handleSave} onCancel={() => setIsModalOpen(false)} isLoading={isLoading} />
             </Modal>
             <BulkUploadModal
                 isOpen={isBulkUploadModalOpen}
                 onClose={() => { setIsBulkUploadModalOpen(false); setBulkUploadErrors([]); }}
                 onUpload={handleBulkUpload}
                 errorMessages={bulkUploadErrors}
+                isLoading={isLoading}
             />
             <Modal isOpen={isPreviewModalOpen} onClose={() => setIsPreviewModalOpen(false)} title="Job Preview">
                 {jobToPreview ? (
@@ -545,6 +632,15 @@ const JobManagement: React.FC = () => {
                     <p>Could not find job to preview.</p>
                 )}
             </Modal>
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmModalContent.onConfirm}
+                title={confirmModalContent.title}
+                message={confirmModalContent.message}
+                isLoading={isLoading}
+                confirmText="Delete"
+            />
         </div>
     );
 };

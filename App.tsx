@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useData } from './contexts/DataContext';
@@ -57,6 +58,11 @@ const App: React.FC = () => {
     window.addEventListener('popstate', onLocationChange);
     return () => window.removeEventListener('popstate', onLocationChange);
   }, []);
+  
+  // This effect listens for path changes and scrolls to the top of the page.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [path]);
   
   // Update document title based on SEO settings and current page
   useEffect(() => {

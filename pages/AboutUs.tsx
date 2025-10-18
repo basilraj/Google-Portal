@@ -11,11 +11,11 @@ const AboutUs: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) =
   return (
     <StaticPage title="About Us" navigate={navigate}>
       <h2>Our Mission</h2>
-      <p>Welcome to <strong>Divine Computer Job Portal</strong>, your number one source for all government job notifications. We're dedicated to giving you the very best and latest information, with a focus on accuracy, timeliness, and reliability.</p>
+      <p>Welcome to <strong>Divine Computer Jobs</strong>, your number one source for all government job notifications. We're dedicated to giving you the very best and latest information, with a focus on accuracy, timeliness, and reliability.</p>
       <p>Our mission is to bridge the gap between job seekers and their dream government jobs. We understand the challenges of finding authentic information about government vacancies, and we strive to create a platform that simplifies this process, making it accessible to everyone across the country.</p>
       
       <h2>Who We Are</h2>
-      <p>Founded in 2025, Divine Computer Job Portal has come a long way from its beginnings. When we first started out, our passion for helping aspiring candidates drove us to do intense research and gave us the impetus to turn hard work and inspiration into a booming online portal. We now serve candidates all over India and are thrilled to be a part of the fair and transparent wing of the public service recruitment industry.</p>
+      <p>Founded in 2025, Divine Computer Jobs has come a long way from its beginnings. When we first started out, our passion for helping aspiring candidates drove us to do intense research and gave us the impetus to turn hard work and inspiration into a booming online portal. We now serve candidates all over India and are thrilled to be a part of the fair and transparent wing of the public service recruitment industry.</p>
       
       <h2>What We Offer</h2>
       <p>Our platform is designed to be a one-stop solution for government job aspirants. Here's what we provide:</p>
@@ -30,7 +30,7 @@ const AboutUs: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) =
       <p>
         Sincerely,
         <br />
-        The Divine Computer Job Portal Team
+        The Divine Computer Jobs Team
       </p>
     </StaticPage>
   );

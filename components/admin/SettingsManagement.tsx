@@ -62,13 +62,37 @@ const SettingsManagement: React.FC = () => {
                     <textarea
                         id="maintenanceMessage"
                         name="maintenanceMessage"
-                        rows={4}
+                        rows={3}
                         value={formData.maintenanceMessage}
                         onChange={handleChange}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                         placeholder="e.g., Our website is currently undergoing scheduled maintenance..."
                     />
                      <p className="text-xs text-gray-500 mt-1">This message will be displayed to visitors when maintenance mode is active.</p>
+                </div>
+                
+                <div className="border-t pt-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Email Settings</h3>
+                    <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+                        <label htmlFor="emailNotificationsEnabled" className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    id="emailNotificationsEnabled"
+                                    name="emailNotificationsEnabled"
+                                    checked={formData.emailNotificationsEnabled}
+                                    onChange={handleChange}
+                                    className="sr-only"
+                                />
+                                <div className={`block w-14 h-8 rounded-full ${formData.emailNotificationsEnabled ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
+                                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${formData.emailNotificationsEnabled ? 'translate-x-6' : ''}`}></div>
+                            </div>
+                            <div className="ml-3 text-gray-700">
+                                <span className="font-medium">Enable Email Notifications</span>
+                                <p className="text-xs text-gray-500">Turn on/off automatic emails for new job alerts and subscriber welcome messages.</p>
+                            </div>
+                        </label>
+                    </div>
                 </div>
                 
                 {message && (

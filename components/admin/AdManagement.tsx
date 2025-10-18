@@ -25,11 +25,32 @@ const AdManagement: React.FC = () => {
     const { adSettings, updateAdSettings } = useData();
     const [formData, setFormData] = useState<AdSettings>(adSettings);
     const [activeSection, setActiveSection] = useState<string>('display');
+    const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
     
-    // Ensure form data is synced if context data changes
+    // Ensure local form data is synced if context data changes externally
     useEffect(() => {
         setFormData(adSettings);
     }, [adSettings]);
+    
+    // Auto-save with debounce when formData changes
+    useEffect(() => {
+        // Prevent saving on the initial render when formData is first set
+        if (JSON.stringify(formData) === JSON.stringify(adSettings)) {
+            return;
+        }
+
+        setSaveState('saving');
+        const handler = setTimeout(() => {
+            updateAdSettings(formData);
+            setSaveState('saved');
+            setTimeout(() => setSaveState('idle'), 2000); // Reset to idle
+        }, 1200); // 1.2-second debounce timer
+
+        return () => {
+            clearTimeout(handler); // Cleanup timeout on unmount or if formData changes again
+        };
+    }, [formData, updateAdSettings, adSettings]);
+
 
     const handleToggleSection = (section: string) => {
         setActiveSection(prev => prev === section ? '' : section);
@@ -77,18 +98,36 @@ const AdManagement: React.FC = () => {
         handleNestedChange(['geoTargeting', 'rules'], formData.geoTargeting.rules.filter(rule => rule.id !== id));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        updateAdSettings(formData);
-    };
-
     const calculateCTR = (clicks: number, impressions: number) => {
         if (impressions === 0) return '0.00%';
         return ((clicks / impressions) * 100).toFixed(2) + '%';
     };
 
+    const SaveStatusIndicator: React.FC = () => {
+        let content;
+        switch(saveState) {
+            case 'saving':
+                content = <><Icon name="spinner" className="animate-spin" /> Saving...</>;
+                break;
+            case 'saved':
+                content = <><Icon name="check-circle" /> All changes saved</>;
+                break;
+            default:
+                return null;
+        }
+        return (
+            <div className="text-sm text-gray-500 font-medium flex items-center gap-2 transition-opacity">
+                {content}
+            </div>
+        );
+    };
+
     return (
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-4 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-700">Ad Settings</h2>
+                <SaveStatusIndicator />
+            </div>
             
             <AccordionSection title="Global Display Settings" isOpen={activeSection === 'display'} onToggle={() => handleToggleSection('display')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -127,16 +166,25 @@ const AdManagement: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Direct Placements</h3>
                          <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Header Ad Code</label>
-                                <textarea name="headerAdCode" value={formData.headerAdCode} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"/>
+                                <label className="flex items-center gap-3 mb-2">
+                                    <input type="checkbox" name="headerAdEnabled" checked={formData.headerAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
+                                    <span className="font-medium text-gray-700">Enable Header Ad</span>
+                                </label>
+                                <textarea name="headerAdCode" value={formData.headerAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.headerAdEnabled}/>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Sidebar Ad Code</label>
-                                <textarea name="sidebarAdCode" value={formData.sidebarAdCode} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"/>
+                                <label className="flex items-center gap-3 mb-2">
+                                    <input type="checkbox" name="sidebarAdEnabled" checked={formData.sidebarAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
+                                    <span className="font-medium text-gray-700">Enable Sidebar Ad</span>
+                                </label>
+                                <textarea name="sidebarAdCode" value={formData.sidebarAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.sidebarAdEnabled}/>
                             </div>
                              <div>
-                                <label className="block text-sm font-medium text-gray-700">Footer Ad Code</label>
-                                <textarea name="footerAdCode" value={formData.footerAdCode} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"/>
+                                <label className="flex items-center gap-3 mb-2">
+                                    <input type="checkbox" name="footerAdEnabled" checked={formData.footerAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
+                                    <span className="font-medium text-gray-700">Enable Footer Ad</span>
+                                </label>
+                                <textarea name="footerAdCode" value={formData.footerAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.footerAdEnabled}/>
                             </div>
                          </div>
                     </div>
@@ -261,13 +309,7 @@ const AdManagement: React.FC = () => {
                     </div>
                  </div>
             </AccordionSection>
-
-            <div className="flex justify-end mt-6 p-4 border-t bg-gray-50">
-                <button type="submit" className="bg-indigo-600 text-white px-8 py-3 rounded-md hover:bg-indigo-700 text-lg font-semibold flex items-center gap-2">
-                    <Icon name="save" /> Save All Ad Settings
-                </button>
-            </div>
-        </form>
+        </div>
     );
 };
 

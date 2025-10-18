@@ -35,7 +35,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
         <header className="bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-lg sticky top-0 z-40">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center flex-wrap">
                 <a href={`${basePath}/`} onClick={(e) => handleLinkClick(e, `${basePath}/`)} className="text-center md:text-left cursor-pointer">
-                    <h1 className="text-2xl font-bold">Divine Computer Job Portal</h1>
+                    <h1 className="text-2xl font-bold">Divine Computer Jobs</h1>
                     <p className="text-sm opacity-90">Your Gateway to Government Jobs</p>
                 </a>
                 <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">

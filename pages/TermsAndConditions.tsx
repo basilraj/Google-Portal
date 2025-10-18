@@ -10,8 +10,8 @@ const TermsAndConditions: React.FC<{ navigate: (path: string) => void }> = ({ na
 
   return (
     <StaticPage title="Terms and Conditions" navigate={navigate}>
-      <p>Welcome to Divine Computer Job Portal. If you continue to browse and use this website, you are agreeing to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern Divine Computer Job Portal's relationship with you in relation to this website.</p>
-      <p>The term 'Divine Computer Job Portal' or 'us' or 'we' refers to the owner of the website. The term 'you' refers to the user or viewer of our website.</p>
+      <p>Welcome to Divine Computer Jobs. If you continue to browse and use this website, you are agreeing to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern Divine Computer Jobs's relationship with you in relation to this website.</p>
+      <p>The term 'Divine Computer Jobs' or 'us' or 'we' refers to the owner of the website. The term 'you' refers to the user or viewer of our website.</p>
       <p>The use of this website is subject to the following terms of use:</p>
       
       <ol>
@@ -34,7 +34,7 @@ const TermsAndConditions: React.FC<{ navigate: (path: string) => void }> = ({ na
         <li>
           <strong>Limitation of Liability</strong>
           <p>In no event will we be liable for any loss or damage including without limitation, indirect or consequential loss or damage, or any loss or damage whatsoever arising from loss of data or profits arising out of, or in connection with, the use of this website.</p>
-          <p>Every effort is made to keep the website up and running smoothly. However, Divine Computer Job Portal takes no responsibility for, and will not be liable for, the website being temporarily unavailable due to technical issues beyond our control.</p>
+          <p>Every effort is made to keep the website up and running smoothly. However, Divine Computer Jobs takes no responsibility for, and will not be liable for, the website being temporarily unavailable due to technical issues beyond our control.</p>
         </li>
         <li>
           <strong>Governing Law</strong>

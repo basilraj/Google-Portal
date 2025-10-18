@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
@@ -19,8 +16,10 @@ import UserProfile from '../components/admin/UserProfile';
 import SettingsManagement from '../components/admin/SettingsManagement';
 import SocialMediaManagement from '../components/admin/SocialMediaManagement';
 import NotificationHistory from '../components/admin/NotificationHistory';
+import EmailMarketing from '../components/admin/EmailMarketing';
+import BackupRestore from '../components/admin/BackupRestore';
 
-type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'notices' | 'results' | 'links' | 'subscribers' | 'contacts' | 'news' | 'ads' | 'seo' | 'settings' | 'profile' | 'social' | 'notifications';
+type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'notices' | 'results' | 'links' | 'subscribers' | 'contacts' | 'news' | 'ads' | 'seo' | 'settings' | 'profile' | 'social' | 'notifications' | 'email' | 'backup';
 
 const AdminPanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -36,12 +35,14 @@ const AdminPanel: React.FC = () => {
         { id: 'links', title: 'Quick Links', icon: 'link' },
         { id: 'news', title: 'Breaking News', icon: 'newspaper' },
         { id: 'subscribers', title: 'Subscribers', icon: 'users' },
+        { id: 'email', title: 'Email Marketing', icon: 'paper-plane' },
         { id: 'notifications', title: 'Notification History', icon: 'history' },
         { id: 'contacts', title: 'Contact Messages', icon: 'envelope' },
         { id: 'social', title: 'Social Media', icon: 'share-alt' },
         { id: 'ads', title: 'Ad Management', icon: 'ad' },
         { id: 'seo', title: 'SEO Settings', icon: 'search-dollar' },
         { id: 'settings', title: 'General Settings', icon: 'cogs' },
+        { id: 'backup', title: 'Backup & Restore', icon: 'database' },
         { id: 'profile', title: 'Admin Profile', icon: 'user-cog' },
     ];
 
@@ -54,6 +55,7 @@ const AdminPanel: React.FC = () => {
             case 'results': return <ResultManagement />;
             case 'links': return <QuickLinkManagement />;
             case 'subscribers': return <SubscriberManagement />;
+            case 'email': return <EmailMarketing />;
             case 'notifications': return <NotificationHistory />;
             case 'contacts': return <ContactManagement />;
             case 'news': return <BreakingNewsManagement />;
@@ -61,6 +63,7 @@ const AdminPanel: React.FC = () => {
             case 'ads': return <AdManagement />;
             case 'seo': return <SEOManagement />;
             case 'settings': return <SettingsManagement />;
+            case 'backup': return <BackupRestore />;
             case 'profile': return <UserProfile />;
             default: return <Dashboard setActiveTab={setActiveTab} />;
         }

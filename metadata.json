@@ -1,5 +1,5 @@
 {
-  "name": "Divine Computer Job Portal Admin",
-  "description": "A comprehensive admin panel for managing the SarkariNaukri job portal. This application allows administrators to manage job listings, quick links, content posts, subscribers, and advertisement settings for the public-facing website.",
+  "name": "Divine Computer Jobs Admin",
+  "description": "A comprehensive admin panel for managing the Divine Computer Jobs portal. This application allows administrators to manage job listings, quick links, content posts, subscribers, and advertisement settings for the public-facing website.",
   "requestFramePermissions": []
 }

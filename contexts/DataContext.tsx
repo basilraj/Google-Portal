@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification } from '../types';
-import { INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_CONTACTS, INITIAL_BREAKING_NEWS, initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, INITIAL_EMAIL_NOTIFICATIONS } from '../constants';
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification, CustomEmail, BackupData } from '../types';
+import { INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_CONTACTS, INITIAL_BREAKING_NEWS, initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, INITIAL_EMAIL_NOTIFICATIONS, INITIAL_CUSTOM_EMAILS } from '../constants';
 
 // Define the shape of the context data
 interface DataContextType {
@@ -21,6 +21,7 @@ interface DataContextType {
     addPost: (post: Omit<ContentPost, 'id' | 'createdAt'>) => void;
     updatePost: (post: ContentPost) => void;
     deletePost: (postId: string) => void;
+    deleteMultiplePosts: (postIds: string[]) => void;
 
     subscribers: Subscriber[];
     addSubscriber: (email: string) => boolean;
@@ -50,6 +51,13 @@ interface DataContextType {
     emailNotifications: EmailNotification[];
     deleteEmailNotification: (id: string) => void;
     clearAllEmailNotifications: () => void;
+
+    customEmails: CustomEmail[];
+    sendCustomEmail: (subject: string, body: string) => void;
+    deleteCustomEmail: (id: string) => void;
+
+    createBackup: () => BackupData;
+    restoreBackup: (data: BackupData) => boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -66,10 +74,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [generalSettings, setGeneralSettings] = useLocalStorage<GeneralSettings>('generalSettings', initialGeneralSettings);
     const [socialMediaSettings, setSocialMediaSettings] = useLocalStorage<SocialMediaSettings>('socialMediaSettings', initialSocialMediaSettings);
     const [emailNotifications, setEmailNotifications] = useLocalStorage<EmailNotification[]>('emailNotifications', INITIAL_EMAIL_NOTIFICATIONS);
+    const [customEmails, setCustomEmails] = useLocalStorage<CustomEmail[]>('customEmails', INITIAL_CUSTOM_EMAILS);
 
     const generateId = () => Date.now().toString();
 
     const sendNewJobNotification = (job: Job) => {
+        if (!generalSettings.emailNotificationsEnabled) {
+            return;
+        }
+
         const activeSubscribers = subscribers.filter(s => s.status === 'active');
         if (activeSubscribers.length === 0) {
             return;
@@ -78,23 +91,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const basePath = '/Google-Portal'; // As used in vite.config.ts and other components
         const jobUrl = `${window.location.origin}${basePath}/job/${job.id}`;
 
-        const subject = `New Job Posting: ${job.title}`;
+        const subject = `New Job Alert from Divine Computer Jobs: ${job.title}`;
         const body = `Hello,
 
-A new job has been posted that might interest you.
+A new job opportunity has just been posted on Divine Computer Jobs.
 
+----------------------------------------
 Job Title: ${job.title}
 Department: ${job.department}
 Qualification: ${job.qualification}
 Vacancies: ${job.vacancies}
 Last Date to Apply: ${job.lastDate}
+----------------------------------------
 
-View more details and apply here: ${jobUrl}
+To view the full details and apply, please visit the link below:
+${jobUrl}
 
-Thank you for subscribing to Divine Computer Job Portal.
+We wish you the best of luck in your job search!
 
 Regards,
-The Team
+The Team at Divine Computer Jobs
         `.trim();
 
         const newNotifications: EmailNotification[] = activeSubscribers.map(subscriber => ({
@@ -159,6 +175,9 @@ The Team
     const deletePost = (postId: string) => {
         setPosts(prev => prev.filter(p => p.id !== postId));
     };
+    const deleteMultiplePosts = (postIds: string[]) => {
+        setPosts(prev => prev.filter(post => !postIds.includes(post.id)));
+    };
     
     // Subscriber Management
     const addSubscriber = (email: string) => {
@@ -172,6 +191,33 @@ The Team
             status: 'active'
         };
         setSubscribers(prev => [newSubscriber, ...prev]);
+
+        // Send welcome email if enabled
+        if (generalSettings.emailNotificationsEnabled) {
+            const welcomeSubject = `Welcome to Divine Computer Jobs!`;
+            const welcomeBody = `Hello,
+
+Thank you for subscribing to Divine Computer Jobs! We're excited to have you with us.
+
+You are now on our list to receive the latest updates on government job openings, exam notifications, and results directly in your inbox.
+
+Our goal is to help you find your dream job in the public sector. Stay tuned for upcoming opportunities!
+
+Best Regards,
+The Team at Divine Computer Jobs
+            `.trim();
+
+            const welcomeNotification: EmailNotification = {
+                id: `${generateId()}-welcome`,
+                recipient: newSubscriber.email,
+                subject: welcomeSubject,
+                body: welcomeBody,
+                sentAt: new Date().toISOString(),
+                jobId: 'welcome-email' // A special ID to distinguish it
+            };
+            setEmailNotifications(prev => [welcomeNotification, ...prev]);
+        }
+
         return true;
     };
     const deleteSubscriber = (id: string) => {
@@ -213,6 +259,30 @@ The Team
             setEmailNotifications([]);
         }
     };
+    
+    // Custom Email Management
+    const sendCustomEmail = (subject: string, body: string) => {
+        const activeSubscribers = subscribers.filter(s => s.status === 'active');
+        if (activeSubscribers.length === 0) {
+            alert("There are no active subscribers to send emails to.");
+            return;
+        }
+        const newEmail: CustomEmail = {
+            id: generateId(),
+            recipients: 'all',
+            subject,
+            body,
+            sentAt: new Date().toISOString(),
+        };
+        setCustomEmails(prev => [newEmail, ...prev]);
+        alert(`Email "${subject}" has been queued for sending to all ${activeSubscribers.length} subscribers.`);
+    };
+    
+    const deleteCustomEmail = (id: string) => {
+        if (window.confirm('Are you sure you want to delete this email record?')) {
+            setCustomEmails(prev => prev.filter(e => e.id !== id));
+        }
+    };
 
     // Settings Management
     const updateAdSettings = (settings: AdSettings) => setAdSettings(settings);
@@ -220,10 +290,38 @@ The Team
     const updateGeneralSettings = (settings: GeneralSettings) => setGeneralSettings(settings);
     const updateSocialMediaSettings = (settings: SocialMediaSettings) => setSocialMediaSettings(settings);
 
+    // Backup & Restore
+    const createBackup = (): BackupData => {
+        return {
+            jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings,
+            seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails,
+        };
+    };
+
+    const restoreBackup = (data: BackupData): boolean => {
+        // Basic validation
+        if (!data || !Array.isArray(data.jobs) || !data.adSettings) {
+            return false;
+        }
+        setJobs(data.jobs || []);
+        setQuickLinks(data.quickLinks || []);
+        setPosts(data.posts || []);
+        setSubscribers(data.subscribers || []);
+        setContacts(data.contacts || []);
+        setBreakingNews(data.breakingNews || []);
+        setAdSettings(data.adSettings || initialAdSettings);
+        setSeoSettings(data.seoSettings || initialSeoSettings);
+        setGeneralSettings(data.generalSettings || initialGeneralSettings);
+        setSocialMediaSettings(data.socialMediaSettings || initialSocialMediaSettings);
+        setEmailNotifications(data.emailNotifications || []);
+        setCustomEmails(data.customEmails || []);
+        return true;
+    };
+
     const value = {
         jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs,
         quickLinks, addQuickLink, updateQuickLink, deleteQuickLink,
-        posts, addPost, updatePost, deletePost,
+        posts, addPost, updatePost, deletePost, deleteMultiplePosts,
         subscribers, addSubscriber, deleteSubscriber,
         contacts, addContact, deleteContact,
         breakingNews, addNews, updateNews, deleteNews,
@@ -232,6 +330,8 @@ The Team
         generalSettings, updateGeneralSettings,
         socialMediaSettings, updateSocialMediaSettings,
         emailNotifications, deleteEmailNotification, clearAllEmailNotifications,
+        customEmails, sendCustomEmail, deleteCustomEmail,
+        createBackup, restoreBackup,
     };
 
     return (
