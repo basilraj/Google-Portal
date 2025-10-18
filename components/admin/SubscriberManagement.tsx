@@ -70,7 +70,7 @@ const SubscriberManagement: React.FC = () => {
                                 <td data-label="Subscribed On" className="px-6 py-4">{sub.subscriptionDate}</td>
                                 <td data-label="Status" className="px-6 py-4"><span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">{sub.status}</span></td>
                                 <td data-label="Actions" className="px-6 py-4 actions-cell">
-                                     <button onClick={() => handleDelete(sub.id, sub.email)} className="text-red-500 hover:text-red-700">
+                                     <button onClick={() => handleDelete(sub.id, sub.email)} className="text-red-500 hover:text-red-700" aria-label={`Delete subscriber: ${sub.email}`}>
                                         <Icon name="trash" />
                                     </button>
                                 </td>

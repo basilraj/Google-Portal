@@ -116,8 +116,8 @@ const QuickLinkManagement: React.FC = () => {
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${link.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{link.status}</span>
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                    <button onClick={() => handleEdit(link)} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
-                                    <button onClick={() => handleDelete(link.id)} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
+                                    <button onClick={() => handleEdit(link)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit link: ${link.title}`}><Icon name="edit" /></button>
+                                    <button onClick={() => handleDelete(link.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete link: ${link.title}`}><Icon name="trash" /></button>
                                 </td>
                             </tr>
                         ))}

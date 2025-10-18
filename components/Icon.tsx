@@ -7,7 +7,7 @@ interface IconProps {
 }
 
 const Icon: React.FC<IconProps> = ({ name, className, prefix = 'fas' }) => {
-  return <i className={`${prefix} fa-${name} ${className || ''}`}></i>;
+  return <i className={`${prefix} fa-${name} ${className || ''}`} aria-hidden="true"></i>;
 };
 
 export default Icon;

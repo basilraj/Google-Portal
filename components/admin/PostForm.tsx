@@ -17,6 +17,7 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
         type: defaultType,
         publishedDate: new Date().toISOString().split('T')[0],
         examDate: '',
+        imageUrl: '',
     });
 
     useEffect(() => {
@@ -32,6 +33,7 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
                 type: defaultType,
                 publishedDate: new Date().toISOString().split('T')[0],
                 examDate: '',
+                imageUrl: '',
             });
         }
     }, [post, defaultType]);
@@ -39,6 +41,17 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value as any }));
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -78,6 +91,23 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
              <div>
                 <label className="block text-sm font-medium text-gray-700">Content *</label>
                 <textarea name="content" value={formData.content} onChange={handleChange} rows={8} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+             <div>
+                <label className="block text-sm font-medium text-gray-700">Featured Image</label>
+                <input type="file" accept="image/*" onChange={handleImageChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100" />
+                {formData.imageUrl && (
+                    <div className="mt-4 relative w-fit">
+                        <img src={formData.imageUrl} alt="Preview" className="h-auto max-h-48 object-contain rounded-md border" />
+                        <button 
+                            type="button" 
+                            onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
+                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold leading-none hover:bg-red-700"
+                            aria-label="Remove Image"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                )}
             </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

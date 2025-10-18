@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import BlogPostCard from '../components/BlogPostCard';
 import Icon from '../components/Icon';
+import PublicFooter from '../components/PublicFooter';
 
 const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,21 +34,6 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
         </header>
     );
 };
-
-const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => (
-    <footer className="bg-[#1e3c72] text-white text-center py-8 mt-8">
-        <div className="container mx-auto px-4">
-            <div className="flex justify-center flex-wrap gap-x-6 gap-y-2 mb-4">
-                 <a href="/Google-Portal/privacy" onClick={(e) => { e.preventDefault(); navigate('/privacy'); }} className="hover:underline text-sm">Privacy Policy</a>
-                 <a href="/Google-Portal/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="hover:underline text-sm">About Us</a>
-                 <a href="/Google-Portal/blog" onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:underline text-sm">Blog</a>
-                 <a href="/Google-Portal/disclaimer" onClick={(e) => { e.preventDefault(); navigate('/disclaimer'); }} className="hover:underline text-sm">Disclaimer</a>
-                 <a href="/Google-Portal/terms" onClick={(e) => { e.preventDefault(); navigate('/terms'); }} className="hover:underline text-sm">Terms and Conditions</a>
-            </div>
-            <p className="text-xs text-gray-400">&copy; 2025 Divine Computer Job Portal. All Rights Reserved.</p>
-        </div>
-    </footer>
-);
 
 const AdComponent: React.FC<{ code: string }> = ({ code }) => (
     <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />

@@ -113,8 +113,8 @@ const BreakingNewsManagement: React.FC = () => {
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${news.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{news.status}</span>
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                    <button onClick={() => handleEdit(news)} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
-                                    <button onClick={() => handleDelete(news.id)} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
+                                    <button onClick={() => handleEdit(news)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit news: ${news.text}`}><Icon name="edit" /></button>
+                                    <button onClick={() => handleDelete(news.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete news: ${news.text}`}><Icon name="trash" /></button>
                                 </td>
                             </tr>
                         ))}

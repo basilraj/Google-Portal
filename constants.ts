@@ -1,4 +1,5 @@
-import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews } from './types';
+
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings } from './types';
 
 export const INITIAL_JOBS: Job[] = [
     {
@@ -63,13 +64,13 @@ export const INITIAL_QUICK_LINKS: QuickLink[] = [
 ];
 
 export const INITIAL_POSTS: ContentPost[] = [
-    { id: '1', title: 'How to Prepare for SSC CGL 2025', category: 'Preparation Tips', content: '... content ...', status: 'published', type: 'posts', publishedDate: '2025-10-12', createdAt: '2025-10-12T14:00:00Z' },
-    { id: '2', title: 'Top 10 Government Jobs for Graduates', category: 'Career Guidance', content: '... content ...', status: 'published', type: 'posts', publishedDate: '2025-10-10', createdAt: '2025-10-10T15:00:00Z' },
-    { id: '3', title: 'Banking Exams Pattern Changes 2025', category: 'Exam Updates', content: '... content ...', status: 'draft', type: 'posts', publishedDate: '2025-10-08' },
-    { id: '4', title: 'SSC CGL Tier-II Admit Card', category: 'Admit Card', content: '...', status: 'published', type: 'exam-notices', publishedDate: '2025-10-12', examDate: '2025-10-25' },
-    { id: '5', title: 'IBPS PO Prelims 2025', category: 'Admit Card', content: '...', status: 'published', type: 'exam-notices', publishedDate: '2025-10-10', examDate: '2025-11-05' },
-    { id: '6', title: 'SSC MTS Result 2025', category: 'Results', content: '...', status: 'published', type: 'results', publishedDate: '2025-10-13', examDate: '2025-08-15' },
-    { id: '7', title: 'Railway Group D Result 2025', category: 'Results', content: '...', status: 'published', type: 'results', publishedDate: '2025-10-11', examDate: '2025-09-20' },
+    { id: '1', title: 'How to Prepare for SSC CGL 2025', category: 'Preparation Tips', content: "The SSC Combined Graduate Level (CGL) Exam is one of India's most sought-after government exams, opening doors to prestigious careers. Cracking it requires a strategic approach, dedication, and a clear understanding of the syllabus and exam pattern. This guide provides a comprehensive roadmap to help you prepare effectively for the SSC CGL 2025 and secure your dream job in a government department. We will cover section-wise strategies, recommended books, time management tips, and the importance of mock tests.", status: 'published', type: 'posts', publishedDate: '2025-10-12', createdAt: '2025-10-12T14:00:00Z' },
+    { id: '2', title: 'Top 10 Government Jobs for Graduates', category: 'Career Guidance', content: "After graduation, a secure and prestigious government job is a dream for many. The Indian government offers a wide range of opportunities for graduates across various sectors. This article lists the top 10 most sought-after government jobs for graduates, including positions in Civil Services (IAS, IPS), Banking (PO, Clerk), Staff Selection Commission (CGL, CHSL), Railways (NTPC), and Defence. We'll explore the roles, eligibility criteria, and career growth prospects for each.", status: 'published', type: 'posts', publishedDate: '2025-10-10', createdAt: '2025-10-10T15:00:00Z' },
+    { id: '3', title: 'Banking Exams Pattern Changes 2025', category: 'Exam Updates', content: "The Institute of Banking Personnel Selection (IBPS) and other banking recruitment bodies frequently update their exam patterns to select the best candidates. For the 2025-26 season, several key changes have been introduced in the prelims and mains exams for PO and Clerk positions. This post will detail the updated syllabus, new question types, changes in sectional timings, and how you should adapt your preparation strategy to stay ahead of the curve.", status: 'draft', type: 'posts', publishedDate: '2025-10-08' },
+    { id: '4', title: 'SSC CGL Tier-II Admit Card Released', category: 'Admit Card', content: "The Staff Selection Commission (SSC) has released the admit cards for the Combined Graduate Level (CGL) Tier-II Examination 2025. Candidates who have qualified the Tier-I exam can now download their hall tickets from the official regional SSC websites. The exam is scheduled to be conducted from 2025-10-25. Candidates are advised to download their admit card well in advance to avoid any last-minute rush. Please carry a valid photo ID along with your admit card to the examination center.", status: 'published', type: 'exam-notices', publishedDate: '2025-10-12', examDate: '2025-10-25' },
+    { id: '5', title: 'IBPS PO Prelims 2025 Admit Card Out', category: 'Admit Card', content: "The admit cards for the IBPS Probationary Officer (PO) Preliminary Examination 2025 are now available for download. The exam will be held on various dates starting from November 5, 2025. All registered candidates can download their call letters from the official IBPS website. Remember to check the reporting time and exam center details carefully.", status: 'published', type: 'exam-notices', publishedDate: '2025-10-10', examDate: '2025-11-05' },
+    { id: '6', title: 'SSC MTS Final Result 2025 Declared', category: 'Results', content: "The Staff Selection Commission has declared the final result for the Multi-Tasking (Non-Technical) Staff Examination 2025. The result, along with the final cut-off marks, is available on the official SSC website. Candidates can check their results using their roll number. Congratulations to all the successful candidates!", status: 'published', type: 'results', publishedDate: '2025-10-13', examDate: '2025-08-15' },
+    { id: '7', title: 'Railway Group D CBT Result 2025 Announced', category: 'Results', content: "The Railway Recruitment Board (RRB) has announced the results for the Group D CBT (Computer Based Test) conducted in September 2025. The list of shortlisted candidates for the Physical Efficiency Test (PET) has been published on the official websites of the respective RRBs. Candidates can view their scores and check their eligibility for the next stage.", status: 'published', type: 'results', publishedDate: '2025-10-11', examDate: '2025-09-20' },
 ];
 
 export const INITIAL_SUBSCRIBERS: Subscriber[] = [
@@ -84,3 +85,68 @@ export const INITIAL_BREAKING_NEWS: BreakingNews[] = [
     { id: '2', text: 'Railway NTPC Final Result has been declared. Check your result now.', link: '#', status: 'active' },
     { id: '3', text: 'UPSC Civil Services 2026 Prelims Exam Date Announced.', link: '#', status: 'active' },
 ];
+
+export const initialAdSettings: AdSettings = {
+  headerAdEnabled: true,
+  headerAdCode: '<!-- Header Ad Code Here -->',
+  sidebarAdEnabled: true,
+  sidebarAdCode: '<!-- Sidebar Ad Code Here -->',
+  footerAdEnabled: false,
+  footerAdCode: '<!-- Footer Ad Code Here -->',
+  adFrequency: 'medium',
+  adStartTime: '00:00',
+  adEndTime: '23:59',
+  bannerAds: true,
+  squareAds: true,
+  skyscraperAds: false,
+  popupAds: false,
+  adsense: {
+    enabled: false,
+    publisherId: '',
+  },
+  customAds: {
+    enabled: false,
+    rotation: false,
+    codes: [''],
+  },
+  abTests: [
+    {
+      id: '1',
+      placement: 'Header',
+      enabled: false,
+      codeA: '<!-- Header Variation A -->',
+      codeB: '<!-- Header Variation B -->',
+      stats: { impressionsA: 10520, clicksA: 150, impressionsB: 10480, clicksB: 180 },
+    },
+  ],
+  deviceTargeting: {
+    enabled: false,
+    desktopCode: '',
+    mobileCode: '',
+  },
+  geoTargeting: {
+    enabled: false,
+    rules: [],
+  },
+};
+
+export const initialSeoSettings: SEOSettings = {
+    global: {
+        siteTitle: 'Divine Computer Job Portal',
+        metaDescription: 'Find the latest government job notifications, exam results, and admit cards. Your one-stop destination for all government job updates in India.',
+        metaKeywords: 'government jobs, sarkari naukri, job portal, railway jobs, ssc, upsc, banking jobs',
+    },
+    social: {
+        ogTitle: 'Divine Computer Job Portal - Latest Government Jobs',
+        ogDescription: 'Your gateway to a successful career in the public sector. Get daily updates on all government job vacancies.',
+        ogImageUrl: '',
+    },
+    structuredData: {
+        jobPostingSchemaEnabled: true,
+    },
+};
+
+export const initialGeneralSettings: GeneralSettings = {
+    maintenanceMode: false,
+    maintenanceMessage: 'Our website is currently undergoing scheduled maintenance. We should be back shortly. Thank you for your patience.',
+};

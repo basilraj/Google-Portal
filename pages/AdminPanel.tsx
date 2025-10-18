@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
@@ -5,111 +6,106 @@ import Dashboard from '../components/admin/Dashboard';
 import JobManagement from '../components/admin/JobManagement';
 import QuickLinkManagement from '../components/admin/QuickLinkManagement';
 import ContentPostManagement from '../components/admin/ContentPostManagement';
-import SubscriberManagement from '../components/admin/SubscriberManagement';
-import AdManagement from '../components/admin/AdManagement';
-import BreakingNewsManagement from '../components/admin/BreakingNewsManagement';
 import ExamNoticeManagement from '../components/admin/ExamNoticeManagement';
 import ResultManagement from '../components/admin/ResultManagement';
+import SubscriberManagement from '../components/admin/SubscriberManagement';
 import ContactManagement from '../components/admin/ContactManagement';
+import BreakingNewsManagement from '../components/admin/BreakingNewsManagement';
+import AdManagement from '../components/admin/AdManagement';
 import SEOManagement from '../components/admin/SEOManagement';
 import UserProfile from '../components/admin/UserProfile';
+import SettingsManagement from '../components/admin/SettingsManagement';
 
-type AdminTab = 'dashboard' | 'jobs' | 'links' | 'posts' | 'examNotices' | 'results' | 'subscribers' | 'contacts' | 'ads' | 'news' | 'seo' | 'userProfile';
+type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'notices' | 'results' | 'links' | 'subscribers' | 'contacts' | 'news' | 'ads' | 'seo' | 'settings' | 'profile';
 
 const AdminPanel: React.FC = () => {
-    const { logout } = useAuth();
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const { logout } = useAuth();
 
-    const menuItems: { id: AdminTab; name: string; icon: string }[] = [
-        { id: 'dashboard', name: 'Dashboard', icon: 'tachometer-alt' },
-        { id: 'jobs', name: 'Job Management', icon: 'briefcase' },
-        { id: 'links', name: 'Quick Links', icon: 'link' },
-        { id: 'posts', name: 'General Posts', icon: 'file-alt' },
-        { id: 'examNotices', name: 'Exam Notices', icon: 'bell' },
-        { id: 'results', name: 'Results', icon: 'poll' },
-        { id: 'news', name: 'Breaking News', icon: 'newspaper' },
-        { id: 'subscribers', name: 'Subscribers', icon: 'users' },
-        { id: 'contacts', name: 'Contact Messages', icon: 'envelope' },
-        { id: 'ads', name: 'Ad Management', icon: 'ad' },
-        { id: 'seo', name: 'SEO Management', icon: 'search-dollar' },
-        { id: 'userProfile', name: 'User Profile', icon: 'user-cog' },
+    const menuItems: { id: AdminTab; title: string; icon: string; }[] = [
+        { id: 'dashboard', title: 'Dashboard', icon: 'tachometer-alt' },
+        { id: 'jobs', title: 'Job Listings', icon: 'briefcase' },
+        { id: 'posts', title: 'General Posts', icon: 'file-alt' },
+        { id: 'notices', title: 'Exam Notices', icon: 'bell' },
+        { id: 'results', title: 'Results', icon: 'poll' },
+        { id: 'links', title: 'Quick Links', icon: 'link' },
+        { id: 'news', title: 'Breaking News', icon: 'newspaper' },
+        { id: 'subscribers', title: 'Subscribers', icon: 'users' },
+        { id: 'contacts', title: 'Contact Messages', icon: 'envelope' },
+        { id: 'ads', title: 'Ad Management', icon: 'ad' },
+        { id: 'seo', title: 'SEO Settings', icon: 'search-dollar' },
+        { id: 'settings', title: 'General Settings', icon: 'cogs' },
+        { id: 'profile', title: 'Admin Profile', icon: 'user-cog' },
     ];
-
-    const handleTabClick = (tabId: AdminTab) => {
-        setActiveTab(tabId);
-        setIsSidebarOpen(false); // Close sidebar on mobile after navigation
-    };
 
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
             case 'jobs': return <JobManagement />;
-            case 'links': return <QuickLinkManagement />;
             case 'posts': return <ContentPostManagement />;
-            case 'examNotices': return <ExamNoticeManagement />;
+            case 'notices': return <ExamNoticeManagement />;
             case 'results': return <ResultManagement />;
-            case 'news': return <BreakingNewsManagement />;
+            case 'links': return <QuickLinkManagement />;
             case 'subscribers': return <SubscriberManagement />;
             case 'contacts': return <ContactManagement />;
+            case 'news': return <BreakingNewsManagement />;
             case 'ads': return <AdManagement />;
             case 'seo': return <SEOManagement />;
-            case 'userProfile': return <UserProfile />;
+            case 'settings': return <SettingsManagement />;
+            case 'profile': return <UserProfile />;
             default: return <Dashboard setActiveTab={setActiveTab} />;
         }
     };
     
+    const activeTitle = menuItems.find(item => item.id === activeTab)?.title || 'Dashboard';
+
     return (
-        <div className="flex min-h-screen bg-gray-100">
-            {isSidebarOpen && (
-                <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-                    onClick={() => setIsSidebarOpen(false)}
-                ></div>
-            )}
-            <aside className={`w-64 bg-gradient-to-b from-[#1e3c72] to-[#2a5298] text-white flex flex-col fixed h-full z-30 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
-                <div className="p-4 border-b border-white/20">
-                    <h2 className="text-2xl font-bold">SarkariNaukri</h2>
-                    <p className="text-sm opacity-80">Admin Panel</p>
+        <div className="flex h-screen bg-gray-100">
+            {/* Sidebar */}
+            <aside className={`bg-gray-800 text-gray-200 flex flex-col transition-width duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
+                <div className={`flex items-center justify-center h-16 border-b border-gray-700 ${isSidebarOpen ? '' : 'px-2'}`}>
+                    <Icon name="user-shield" className="text-2xl text-indigo-400" />
+                    {isSidebarOpen && <h1 className="text-xl font-bold ml-2">Admin Panel</h1>}
                 </div>
-                <nav className="flex-grow mt-4 overflow-y-auto">
-                    <ul>
-                        {menuItems.map(item => (
-                             <li key={item.id}>
-                                <a href="#" onClick={(e) => { e.preventDefault(); handleTabClick(item.id); }}
-                                   className={`flex items-center px-4 py-3 transition-colors duration-200 border-l-4 ${activeTab === item.id ? 'bg-white/10 border-red-500' : 'border-transparent hover:bg-white/10'}`}>
-                                    <Icon name={item.icon} className="w-6" />
-                                    <span className="ml-3">{item.name}</span>
-                                </a>
-                            </li>
-                        ))}
-                         <li>
-                            <a href="#" onClick={logout} className="flex items-center px-4 py-3 mt-4 border-l-4 border-transparent hover:bg-white/10">
-                                <Icon name="sign-out-alt" className="w-6" />
-                                <span className="ml-3">Logout</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </aside>
-            <main className="flex-1 md:ml-64 p-4 sm:p-6 transition-all duration-300">
-                <header className="bg-white p-4 rounded-lg shadow-sm mb-6 flex justify-between items-center">
-                    <div className="flex items-center">
-                        <button className="text-gray-600 md:hidden mr-4" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-                            <Icon name="bars" className="text-2xl" />
+                <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
+                    {menuItems.map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center p-3 rounded-lg transition-colors ${activeTab === item.id ? 'bg-indigo-600 text-white' : 'hover:bg-gray-700'}`}
+                            title={item.title}
+                        >
+                            <Icon name={item.icon} className="text-lg w-6 text-center" />
+                            {isSidebarOpen && <span className="ml-4 font-semibold">{item.title}</span>}
                         </button>
-                        <h1 className="text-xl sm:text-2xl font-bold text-[#1e3c72] capitalize">{activeTab.replace(/([A-Z])/g, ' $1').trim()}</h1>
+                    ))}
+                </nav>
+                 <div className="p-4 border-t border-gray-700">
+                     <button onClick={logout} className="w-full flex items-center p-3 rounded-lg hover:bg-red-500 hover:text-white transition-colors" title="Logout">
+                         <Icon name="sign-out-alt" className="text-lg w-6 text-center" />
+                         {isSidebarOpen && <span className="ml-4 font-semibold">Logout</span>}
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <header className="bg-white shadow-sm flex items-center justify-between p-4">
+                     <div className="flex items-center gap-4">
+                        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-600 hover:text-indigo-600">
+                            <Icon name="bars" className="text-xl" />
+                        </button>
+                         <h2 className="text-2xl font-bold text-gray-800">{activeTitle}</h2>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">AD</div>
-                        <div className="hidden sm:block">
-                            <div className="font-semibold">Admin User</div>
-                            <small className="text-gray-500">Administrator</small>
-                        </div>
-                    </div>
+                     <a href="/Google-Portal/" target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-2">
+                        View Public Site <Icon name="external-link-alt" />
+                    </a>
                 </header>
-                {renderContent()}
-            </main>
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                    {renderContent()}
+                </main>
+            </div>
         </div>
     );
 };

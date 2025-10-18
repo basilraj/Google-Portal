@@ -1,114 +1,81 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useData } from './contexts/DataContext';
-import AdminPanel from './pages/AdminPanel';
 import PublicWebsite from './pages/PublicWebsite';
 import AdminLoginPage from './pages/AdminLoginPage';
+import AdminPanel from './pages/AdminPanel';
+import MaintenancePage from './pages/MaintenancePage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import AboutUs from './pages/AboutUs';
 import Disclaimer from './pages/Disclaimer';
 import TermsAndConditions from './pages/TermsAndConditions';
 import BlogPage from './pages/BlogPage';
 
-const FullScreenLoader: React.FC = () => (
-  <div className="fixed inset-0 bg-white z-50 flex flex-col justify-center items-center">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
-    <p className="mt-4 text-lg text-gray-700 font-semibold">Loading Portal...</p>
-  </div>
-);
+const basePath = '/Google-Portal';
 
 const App: React.FC = () => {
   const { isLoggedIn } = useAuth();
-  const { loading, seoSettings } = useData();
-  
-  const getRoute = () => {
-    const base = '/Google-Portal/'; 
-    const path = window.location.pathname;
-    if (path.toLowerCase().startsWith(base.toLowerCase())) {
-      return path.substring(base.length - 1);
-    }
-    return path === base ? '/' : path;
-  }
-
-  const [route, setRoute] = useState(getRoute());
-
-  const navigate = (path: string) => {
-    const base = '/Google-Portal';
-    window.history.pushState({}, '', `${base}${path}`);
-    setRoute(path);
-  }
+  const { generalSettings, seoSettings } = useData();
+  const [path, setPath] = useState(window.location.pathname);
 
   useEffect(() => {
-    try {
-      const redirectPath = sessionStorage.getItem('redirectPath');
-      if (redirectPath) {
-        sessionStorage.removeItem('redirectPath');
-        window.history.replaceState(null, '', redirectPath);
-        setRoute(getRoute());
-      }
-    } catch (e) {
-      console.warn('Session storage is not available:', e);
-    }
-
-    const handlePopState = () => {
-      setRoute(getRoute());
+    const onLocationChange = () => {
+      setPath(window.location.pathname);
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
+    window.addEventListener('popstate', onLocationChange);
+    return () => window.removeEventListener('popstate', onLocationChange);
   }, []);
   
+  // Update document title based on SEO settings and current page
   useEffect(() => {
-    const baseTitle = seoSettings.global.siteTitle || 'SarkariNaukri Job Portal';
-    let pageTitle = baseTitle;
+    const route = path.replace(basePath, '') || '/';
+    let title = seoSettings.global.siteTitle;
+    if (route.startsWith('/admin')) title = `Admin Panel | ${title}`;
+    else if (route === '/blog') title = `Blog | ${title}`;
+    else if (route === '/privacy') title = `Privacy Policy | ${title}`;
+    else if (route === '/terms') title = `Terms & Conditions | ${title}`;
+    else if (route === '/about') title = `About Us | ${title}`;
+    else if (route === '/disclaimer') title = `Disclaimer | ${title}`;
+    document.title = title;
+  }, [path, seoSettings.global.siteTitle]);
 
-    switch (route) {
-        case '/privacy':
-            pageTitle = `Privacy Policy | ${baseTitle}`;
-            break;
-        case '/about':
-            pageTitle = `About Us | ${baseTitle}`;
-            break;
-        case '/disclaimer':
-            pageTitle = `Disclaimer | ${baseTitle}`;
-            break;
-        case '/terms':
-            pageTitle = `Terms & Conditions | ${baseTitle}`;
-            break;
-        case '/blog':
-            pageTitle = `Blog | ${baseTitle}`;
-            break;
-        default:
-            if (route.startsWith('/admin')) {
-                pageTitle = `Admin Panel | ${baseTitle}`;
-            }
-            break;
-    }
-    document.title = pageTitle;
-  }, [route, seoSettings.global.siteTitle]);
 
-  if (loading) {
-    return <FullScreenLoader />;
+  const navigate = (newPath: string) => {
+    // Ensure the new path starts with a single slash
+    const sanitizedPath = newPath.startsWith('/') ? newPath : `/${newPath}`;
+    const fullPath = `${basePath}${sanitizedPath}`.replace('//', '/');
+    window.history.pushState({}, '', fullPath);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const route = path.replace(basePath, '') || '/';
+
+  if (generalSettings.maintenanceMode && !route.startsWith('/admin')) {
+      return <MaintenancePage />;
   }
 
   if (route.startsWith('/admin')) {
     return isLoggedIn ? <AdminPanel /> : <AdminLoginPage />;
   }
-
+  
   switch (route) {
+    case '/':
+      return <PublicWebsite navigate={navigate} />;
+    case '/blog':
+      return <BlogPage navigate={navigate} />;
     case '/privacy':
       return <PrivacyPolicy navigate={navigate} />;
     case '/about':
       return <AboutUs navigate={navigate} />;
     case '/disclaimer':
-      return <Disclaimer navigate={navigate} />;
+        return <Disclaimer navigate={navigate} />;
     case '/terms':
-      return <TermsAndConditions navigate={navigate} />;
-    case '/blog':
-      return <BlogPage navigate={navigate} />;
+        return <TermsAndConditions navigate={navigate} />;
     default:
-      return <PublicWebsite navigate={navigate} />;
+        // For gh-pages, a 404 might just be a refresh on a sub-page.
+        // Let's redirect to home. In a real server setup, this would be a 404 page.
+        return <PublicWebsite navigate={navigate} />;
   }
 };
 

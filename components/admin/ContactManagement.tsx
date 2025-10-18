@@ -60,10 +60,10 @@ const ContactManagement: React.FC = () => {
                                 <td data-label="Subject" className="px-6 py-4">{contact.subject}</td>
                                 <td data-label="Submitted" className="px-6 py-4">{new Date(contact.submittedAt).toLocaleString()}</td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                    <button onClick={() => handleViewMessage(contact)} className="text-blue-500 hover:text-blue-700" title="View Message">
+                                    <button onClick={() => handleViewMessage(contact)} className="text-blue-500 hover:text-blue-700" aria-label={`View message from ${contact.name}`}>
                                         <Icon name="eye" />
                                     </button>
-                                    <button onClick={() => handleDelete(contact.id)} className="text-red-500 hover:text-red-700" title="Delete Message">
+                                    <button onClick={() => handleDelete(contact.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete message from ${contact.name}`}>
                                         <Icon name="trash" />
                                     </button>
                                 </td>

@@ -1,8 +1,13 @@
+
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import Icon from '../components/Icon';
-import { ContactSubmission, ContentPost } from '../types';
+// FIX: Add explicit type imports
+import { ContactSubmission, ContentPost, Job } from '../types';
 import Modal from '../components/Modal';
+import Pagination from '../components/admin/Pagination';
+import usePagination from '../hooks/usePagination';
+import PublicFooter from '../components/PublicFooter';
 
 const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,7 +40,8 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
     );
 };
 
-const JobCard: React.FC<{ job: import('../types').Job }> = ({ job }) => {
+// FIX: Update prop type to use imported Job type
+const JobCard: React.FC<{ job: Job }> = ({ job }) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const getBadge = () => {
@@ -76,10 +82,10 @@ const JobCard: React.FC<{ job: import('../types').Job }> = ({ job }) => {
                     {getBadge()}
                     <div className="flex items-center gap-3 text-gray-500">
                         <span className="text-sm font-semibold">Share:</span>
-                        <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" title="Share on Facebook" className="hover:text-blue-600 transition-colors">
+                        <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors">
                             <Icon prefix="fab" name="facebook-f" className="text-lg" />
                         </a>
-                        <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" title="Share on WhatsApp" className="hover:text-green-500 transition-colors">
+                        <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors">
                             <Icon prefix="fab" name="whatsapp" className="text-lg" />
                         </a>
                     </div>
@@ -144,30 +150,27 @@ const BreakingNewsTicker: React.FC = () => {
     );
 };
 
-const JobAlertBanner: React.FC = () => {
-    const [isVisible, setIsVisible] = useState(true);
-
-    if (!isVisible) return null;
-    
-    return (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 relative" role="alert">
-            <p className="font-bold">Job Alert!</p>
-            <p>New vacancies for SSC CGL and Railway Group D have been announced. Apply before the deadline!</p>
-            <button onClick={() => setIsVisible(false)} className="absolute top-0 bottom-0 right-0 px-4 py-3 text-2xl">&times;</button>
-        </div>
-    );
-};
-
-
 const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { jobs, quickLinks, posts, addSubscriber, addContact, adSettings } = useData();
     const [searchQuery, setSearchQuery] = useState('');
+    const [departmentFilter, setDepartmentFilter] = useState('all');
+    const [qualificationFilter, setQualificationFilter] = useState('all');
     const [subscriberEmail, setSubscriberEmail] = useState('');
     const [subscriptionMessage, setSubscriptionMessage] = useState('');
     const [contactForm, setContactForm] = useState<Omit<ContactSubmission, 'id' | 'submittedAt'>>({ name: '', email: '', subject: '', message: ''});
     const [contactMessage, setContactMessage] = useState('');
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
     const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
+
+    const departments = useMemo(() => {
+        const uniqueDepts = new Set(jobs.map(job => job.department));
+        return ['all', ...Array.from(uniqueDepts).sort()];
+    }, [jobs]);
+
+    const qualifications = useMemo(() => {
+        const uniqueQuals = new Set(jobs.map(job => job.qualification));
+        return ['all', ...Array.from(uniqueQuals).sort()];
+    }, [jobs]);
 
     const handleViewPostDetails = (post: ContentPost) => {
         setSelectedPost(post);
@@ -197,14 +200,30 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         setContactForm({ name: '', email: '', subject: '', message: ''});
         setTimeout(() => setContactMessage(''), 8000);
     }
+    
+    const handleClearFilters = () => {
+        setSearchQuery('');
+        setDepartmentFilter('all');
+        setQualificationFilter('all');
+    };
 
     const filteredJobs = useMemo(() => {
         return jobs.filter(job => 
             job.status !== 'expired' &&
-            (job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-             job.department.toLowerCase().includes(searchQuery.toLowerCase()))
+            (searchQuery === '' || 
+             job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+             job.department.toLowerCase().includes(searchQuery.toLowerCase())) &&
+            (departmentFilter === 'all' || job.department === departmentFilter) &&
+            (qualificationFilter === 'all' || job.qualification === qualificationFilter)
         );
-    }, [jobs, searchQuery]);
+    }, [jobs, searchQuery, departmentFilter, qualificationFilter]);
+
+    const { 
+        currentPage: jobsCurrentPage, 
+        totalPages: jobsTotalPages, 
+        paginatedData: paginatedJobs, 
+        goToPage: goToJobsPage 
+    } = usePagination(filteredJobs, { itemsPerPage: 5 });
     
     return (
         <div className="public-website bg-gray-50">
@@ -219,7 +238,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                     <div className="search-box max-w-2xl mx-auto flex gap-2">
                         <input 
                             type="text" 
-                            placeholder="Search jobs by title or department..." 
+                            placeholder="Search jobs by title or keyword..." 
                             className="w-full p-3 rounded-md border-0 text-gray-800"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -228,19 +247,49 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 </div>
             </section>
             
+            <section className="advanced-search bg-white p-6 rounded-lg shadow-md -mt-8 mx-4 md:mx-auto max-w-4xl relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label htmlFor="departmentFilter" className="block text-sm font-medium text-gray-700">Department</label>
+                        <select id="departmentFilter" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                            {departments.map(dept => (
+                                <option key={dept} value={dept}>{dept === 'all' ? 'All Departments' : dept}</option>
+                            ))}
+                        </select>
+                    </div>
+                     <div>
+                        <label htmlFor="qualificationFilter" className="block text-sm font-medium text-gray-700">Qualification</label>
+                        <select id="qualificationFilter" value={qualificationFilter} onChange={(e) => setQualificationFilter(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                            {qualifications.map(qual => (
+                                <option key={qual} value={qual}>{qual === 'all' ? 'All Qualifications' : qual}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <button onClick={handleClearFilters} className="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-md hover:bg-gray-300 transition-colors w-full md:w-auto">
+                        Clear Filters
+                    </button>
+                </div>
+            </section>
+            
             <main className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-12">
                          <section id="latest-jobs">
-                             <JobAlertBanner />
                              <h2 className="text-3xl font-bold text-[#1e3c72] my-6 pb-2 border-b-4 border-purple-500">Latest Job Openings</h2>
                              <div className="space-y-6">
-                                {filteredJobs.length > 0 ? (
-                                    filteredJobs.map(job => <JobCard key={job.id} job={job} />)
+                                {paginatedJobs.length > 0 ? (
+                                    paginatedJobs.map(job => <JobCard key={job.id} job={job} />)
                                 ) : (
                                     <p className="text-gray-500 bg-gray-100 p-4 rounded-md">No jobs found matching your search criteria.</p>
                                 )}
                              </div>
+                             <div className="mt-8">
+                                <Pagination
+                                    currentPage={jobsCurrentPage}
+                                    totalPages={jobsTotalPages}
+                                    onPageChange={goToJobsPage}
+                                />
+                            </div>
                         </section>
                         <section id="exam-notices">
                            <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 pb-2 border-b-4 border-purple-500">Exam Notices & Admit Cards</h2>
@@ -316,35 +365,21 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                     <AdComponent code={adSettings.footerAdCode} />
                 </div>
             )}
-            <footer className="bg-[#1e3c72] text-white py-8 mt-8">
-                <div className="container mx-auto px-4 text-center">
-                    <div className="mb-4 flex justify-center space-x-6">
-                        <a href="#" className="text-white hover:text-blue-500 transition-colors" title="Facebook"><Icon prefix="fab" name="facebook-f" className="text-2xl" /></a>
-                        <a href="#" className="text-white hover:text-pink-500 transition-colors" title="Instagram"><Icon prefix="fab" name="instagram" className="text-2xl" /></a>
-                        <a href="#" className="text-white hover:text-blue-400 transition-colors" title="Telegram"><Icon prefix="fab" name="telegram-plane" className="text-2xl" /></a>
-                        <a href="#" className="text-white hover:text-green-500 transition-colors" title="WhatsApp"><Icon prefix="fab" name="whatsapp" className="text-2xl" /></a>
-                    </div>
-                    <div className="flex justify-center flex-wrap gap-x-6 gap-y-2 mb-4">
-                         <a href="/Google-Portal/privacy" onClick={(e) => { e.preventDefault(); navigate('/privacy'); }} className="hover:underline text-sm">Privacy Policy</a>
-                         <a href="/Google-Portal/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="hover:underline text-sm">About Us</a>
-                         <a href="/Google-Portal/blog" onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:underline text-sm">Blog</a>
-                         <a href="/Google-Portal/disclaimer" onClick={(e) => { e.preventDefault(); navigate('/disclaimer'); }} className="hover:underline text-sm">Disclaimer</a>
-                         <a href="/Google-Portal/terms" onClick={(e) => { e.preventDefault(); navigate('/terms'); }} className="hover:underline text-sm">Terms and Conditions</a>
-                    </div>
-                    <p className="text-xs text-gray-400">&copy; 2025 Divine Computer Job Portal. All Rights Reserved.</p>
-                </div>
-            </footer>
+            <PublicFooter navigate={navigate} />
 
             <Modal isOpen={isPostModalOpen} onClose={() => setIsPostModalOpen(false)} title={selectedPost?.title || 'Details'}>
                 {selectedPost && (
-                    <div className="space-y-4">
-                        <div className="text-sm text-gray-500">
-                            <span>Published: {selectedPost.publishedDate}</span>
-                            {selectedPost.examDate && <span className="ml-4">Exam Date: {selectedPost.examDate}</span>}
+                    <div className="static-content">
+                        {selectedPost.imageUrl && (
+                            <img src={selectedPost.imageUrl} alt={selectedPost.title} className="w-full h-auto max-h-72 object-cover rounded-lg mb-6" />
+                        )}
+                        <div className="text-sm text-gray-500 mb-4">
+                            <span><strong>Published:</strong> {selectedPost.publishedDate}</span>
+                            {selectedPost.examDate && <span className="ml-4"><strong>Exam Date:</strong> {selectedPost.examDate}</span>}
                         </div>
                         <hr/>
-                        <p className="whitespace-pre-wrap bg-gray-50 p-3 rounded-md mt-1">{selectedPost.content}</p>
-                        <div className="flex justify-end pt-4">
+                        <p>{selectedPost.content}</p>
+                        <div className="flex justify-end pt-4 mt-4">
                             <button onClick={() => setIsPostModalOpen(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Close</button>
                         </div>
                     </div>
