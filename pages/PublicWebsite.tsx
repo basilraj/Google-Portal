@@ -1,61 +1,31 @@
-
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import Icon from '../components/Icon';
-// FIX: Add explicit type imports
 import { ContactSubmission, ContentPost, Job } from '../types';
 import Modal from '../components/Modal';
 import Pagination from '../components/admin/Pagination';
 import usePagination from '../hooks/usePagination';
 import PublicFooter from '../components/PublicFooter';
+import { getEffectiveJobStatus } from '../utils/jobUtils';
+import { basePath } from '../App';
+import PublicHeader from '../components/PublicHeader';
 
-const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    return (
-        <header className="bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-lg sticky top-0 z-40">
-            <div className="container mx-auto px-4 py-4 flex justify-between items-center flex-wrap">
-                <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="text-center md:text-left cursor-pointer">
-                    <h1 className="text-2xl font-bold">Divine Computer Job Portal</h1>
-                    <p className="text-sm opacity-90">Your Gateway to Government Jobs</p>
-                </a>
-                <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                    <Icon name={isMenuOpen ? "times" : "bars"} className="text-2xl" />
-                </button>
-                <nav className={`w-full md:w-auto md:flex ${isMenuOpen ? 'block mt-4' : 'hidden'}`}>
-                    <ul className="flex flex-col md:flex-row md:space-x-4">
-                        {['Home', 'Latest Jobs', 'Blog', 'Exam Notices', 'Results', 'Contact Us'].map(item => (
-                             <li key={item} className="w-full">
-                                {item === 'Home' 
-                                 ? <a href="/Google-Portal/" onClick={(e) => { e.preventDefault(); navigate('/'); setIsMenuOpen(false); }} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
-                                 : item === 'Blog' 
-                                 ? <a href="/Google-Portal/blog" onClick={(e) => {e.preventDefault(); navigate('/blog'); setIsMenuOpen(false);}} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
-                                 : <a href={`#${item.toLowerCase().replace(/ /g, '-')}`} onClick={() => setIsMenuOpen(false)} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
-                                }
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-            </div>
-        </header>
-    );
-};
 
-// FIX: Update prop type to use imported Job type
-const JobCard: React.FC<{ job: Job }> = ({ job }) => {
-    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job, navigate }) => {
+    const effectiveStatus = getEffectiveJobStatus(job);
 
     const getBadge = () => {
-        switch (job.status) {
+        switch (effectiveStatus) {
             case 'active': return <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">Active</span>;
             case 'closing-soon': return <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-yellow-600 bg-yellow-200">Closing Soon</span>;
             case 'expired': return <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-red-600 bg-red-200">Expired</span>;
         }
     };
 
-    const shareUrl = window.location.href.split('#')[0]; // Get URL without hash
+    const jobUrl = `${window.location.origin}${basePath}/job/${job.id}`.replace(/([^:]\/)\/+/g, "$1");
     const shareTitle = `Check out this job: ${job.title}`;
-    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
-    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + shareUrl)}`;
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(jobUrl)}&quote=${encodeURIComponent(shareTitle)}`;
+    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + jobUrl)}`;
 
     return (
         <div className="border bg-white p-6 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
@@ -68,13 +38,6 @@ const JobCard: React.FC<{ job: Job }> = ({ job }) => {
                     <span><Icon name="calendar-check" className="mr-2 text-gray-400" />Posted: {job.postedDate}</span>
                     <span><Icon name="calendar-alt" className="mr-2 text-gray-400" />Last Date: {job.lastDate}</span>
                 </div>
-                
-                {isDetailsOpen && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 animate-fade-in">
-                        <h4 className="font-semibold text-gray-800 mb-2">Job Details:</h4>
-                        <p className="text-gray-700 whitespace-pre-wrap">{job.description}</p>
-                    </div>
-                )}
             </div>
 
             <div className="flex flex-wrap justify-between items-center mt-4 pt-4 border-t">
@@ -91,11 +54,11 @@ const JobCard: React.FC<{ job: Job }> = ({ job }) => {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button onClick={() => setIsDetailsOpen(!isDetailsOpen)} className="text-sm font-semibold text-indigo-600 hover:underline">
-                        {isDetailsOpen ? 'Hide Details' : 'More Details'}
+                    <button onClick={() => navigate(`/job/${job.id}`)} className="text-sm font-semibold text-indigo-600 hover:underline">
+                        View Full Details
                     </button>
-                    <a href={job.applyLink} target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:opacity-90 transition-opacity">
-                        Apply Now
+                    <a href={job.applyLink} target="_blank" rel="noopener noreferrer" className={`font-bold py-2 px-4 rounded-md transition-opacity ${effectiveStatus === 'expired' ? 'bg-gray-400 text-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'}`}>
+                        {effectiveStatus === 'expired' ? 'Expired' : 'Apply Now'}
                     </a>
                 </div>
             </div>
@@ -209,7 +172,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
 
     const filteredJobs = useMemo(() => {
         return jobs.filter(job => 
-            job.status !== 'expired' &&
+            getEffectiveJobStatus(job) !== 'expired' &&
             (searchQuery === '' || 
              job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
              job.department.toLowerCase().includes(searchQuery.toLowerCase())) &&
@@ -278,7 +241,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                              <h2 className="text-3xl font-bold text-[#1e3c72] my-6 pb-2 border-b-4 border-purple-500">Latest Job Openings</h2>
                              <div className="space-y-6">
                                 {paginatedJobs.length > 0 ? (
-                                    paginatedJobs.map(job => <JobCard key={job.id} job={job} />)
+                                    paginatedJobs.map(job => <JobCard key={job.id} job={job} navigate={navigate} />)
                                 ) : (
                                     <p className="text-gray-500 bg-gray-100 p-4 rounded-md">No jobs found matching your search criteria.</p>
                                 )}

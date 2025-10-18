@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Job } from '../../types';
@@ -5,6 +6,7 @@ import Icon from '../Icon';
 import Modal from '../Modal';
 import Pagination from './Pagination';
 import usePagination from '../../hooks/usePagination';
+import { getEffectiveJobStatus } from '../../utils/jobUtils';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -281,7 +283,7 @@ const JobManagement: React.FC = () => {
         if (statusFilter === 'all') {
             return sortedJobs;
         }
-        return sortedJobs.filter(job => job.status === statusFilter);
+        return sortedJobs.filter(job => getEffectiveJobStatus(job) === statusFilter);
     }, [sortedJobs, statusFilter]);
     
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(filteredJobs, { itemsPerPage: ITEMS_PER_PAGE });
@@ -479,7 +481,9 @@ const JobManagement: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedData.map(job => (
+                            {paginatedData.map(job => {
+                                const effectiveStatus = getEffectiveJobStatus(job);
+                                return (
                                 <tr key={job.id} className={`bg-white hover:bg-gray-50 ${selectedJobIds.includes(job.id) ? 'bg-indigo-50' : 'border-b'}`}>
                                     <td data-label="Select" className="p-4">
                                         <input
@@ -493,14 +497,14 @@ const JobManagement: React.FC = () => {
                                     <td data-label="Department" className="px-6 py-4">{job.department}</td>
                                     <td data-label="Last Date" className="px-6 py-4">{job.lastDate}</td>
                                     <td data-label="Status" className="px-6 py-4">
-                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === 'active' ? 'bg-green-100 text-green-800' : job.status === 'closing-soon' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{job.status}</span>
+                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${effectiveStatus === 'active' ? 'bg-green-100 text-green-800' : effectiveStatus === 'closing-soon' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{effectiveStatus.replace('-', ' ')}</span>
                                     </td>
                                     <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
                                         <button onClick={() => handleEdit(job)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit job: ${job.title}`}><Icon name="edit" /></button>
                                         <button onClick={() => handleDelete(job.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete job: ${job.title}`}><Icon name="trash" /></button>
                                     </td>
                                 </tr>
-                            ))}
+                            )})}
                         </tbody>
                     </table>
                 </div>

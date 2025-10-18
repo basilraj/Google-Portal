@@ -1,5 +1,5 @@
 
-import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings } from './types';
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings } from './types';
 
 export const INITIAL_JOBS: Job[] = [
     {
@@ -149,4 +149,11 @@ export const initialSeoSettings: SEOSettings = {
 export const initialGeneralSettings: GeneralSettings = {
     maintenanceMode: false,
     maintenanceMessage: 'Our website is currently undergoing scheduled maintenance. We should be back shortly. Thank you for your patience.',
+};
+
+export const initialSocialMediaSettings: SocialMediaSettings = {
+    facebook: 'https://facebook.com',
+    instagram: 'https://instagram.com',
+    telegram: 'https://telegram.org',
+    whatsapp: 'https://whatsapp.com',
 };

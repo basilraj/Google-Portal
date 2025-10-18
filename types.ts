@@ -143,3 +143,10 @@ export interface GeneralSettings {
     maintenanceMode: boolean;
     maintenanceMessage: string;
 }
+
+export interface SocialMediaSettings {
+    facebook: string;
+    instagram: string;
+    telegram: string;
+    whatsapp: string;
+}

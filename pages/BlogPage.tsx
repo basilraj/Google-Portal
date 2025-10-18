@@ -3,37 +3,9 @@ import { useData } from '../contexts/DataContext';
 import BlogPostCard from '../components/BlogPostCard';
 import Icon from '../components/Icon';
 import PublicFooter from '../components/PublicFooter';
-
-const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    return (
-        <header className="bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-lg sticky top-0 z-40">
-            <div className="container mx-auto px-4 py-4 flex justify-between items-center flex-wrap">
-                <a href="/Google-Portal/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="text-center md:text-left cursor-pointer">
-                    <h1 className="text-2xl font-bold">Divine Computer Job Portal</h1>
-                    <p className="text-sm opacity-90">Your Gateway to Government Jobs</p>
-                </a>
-                <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                    <Icon name={isMenuOpen ? "times" : "bars"} className="text-2xl" />
-                </button>
-                <nav className={`w-full md:w-auto md:flex ${isMenuOpen ? 'block mt-4' : 'hidden'}`}>
-                    <ul className="flex flex-col md:flex-row md:space-x-4">
-                         {['Home', 'Latest Jobs', 'Blog', 'Exam Notices', 'Results', 'Contact Us'].map(item => (
-                            <li key={item} className="w-full">
-                                {item === 'Home' 
-                                 ? <a href="/Google-Portal/" onClick={(e) => { e.preventDefault(); navigate('/'); setIsMenuOpen(false); }} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
-                                 : item === 'Blog' 
-                                 ? <a href="/Google-Portal/blog" onClick={(e) => {e.preventDefault(); navigate('/blog'); setIsMenuOpen(false);}} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
-                                 : <a href={`/Google-Portal/#${item.toLowerCase().replace(/ /g, '-')}`} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
-                                }
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-            </div>
-        </header>
-    );
-};
+import Modal from '../components/Modal';
+import { ContentPost } from '../types';
+import PublicHeader from '../components/PublicHeader';
 
 const AdComponent: React.FC<{ code: string }> = ({ code }) => (
     <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />
@@ -42,6 +14,8 @@ const AdComponent: React.FC<{ code: string }> = ({ code }) => (
 const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { posts, adSettings } = useData();
     const [selectedCategory, setSelectedCategory] = useState('All Categories');
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+    const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
     
     const blogPosts = useMemo(() => posts.filter(p => p.type === 'posts' && p.status === 'published')
                                       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()), [posts]);
@@ -58,6 +32,11 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
         return blogPosts.filter(post => post.category === selectedCategory);
     }, [blogPosts, selectedCategory]);
 
+    const handleReadMore = (post: ContentPost) => {
+        setSelectedPost(post);
+        setIsPostModalOpen(true);
+    };
+
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
@@ -70,7 +49,7 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                              <h2 className="text-3xl font-bold text-[#1e3c72] my-6 pb-2 border-b-4 border-purple-500">Blog Posts</h2>
                              <div className="space-y-6">
                                 {filteredBlogPosts.length > 0 ? (
-                                    filteredBlogPosts.map(post => <BlogPostCard key={post.id} post={post} />)
+                                    filteredBlogPosts.map(post => <BlogPostCard key={post.id} post={post} onReadMore={handleReadMore} />)
                                 ) : (
                                     <p className="text-gray-500 bg-gray-100 p-4 rounded-md text-center">No blog posts found for the selected category.</p>
                                 )}
@@ -104,6 +83,25 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                 </div>
             )}
             <PublicFooter navigate={navigate} />
+
+            <Modal isOpen={isPostModalOpen} onClose={() => setIsPostModalOpen(false)} title={selectedPost?.title || 'Blog Post'}>
+                {selectedPost && (
+                    <div className="static-content">
+                        {selectedPost.imageUrl && (
+                            <img src={selectedPost.imageUrl} alt={selectedPost.title} className="w-full h-auto max-h-80 object-cover rounded-lg mb-6" />
+                        )}
+                        <div className="text-sm text-gray-500 mb-4 flex flex-wrap gap-x-4">
+                            <span><strong>Published:</strong> {selectedPost.publishedDate}</span>
+                            <span><strong>Category:</strong> {selectedPost.category}</span>
+                        </div>
+                        <hr className="mb-6"/>
+                        <p className="whitespace-pre-wrap text-left">{selectedPost.content}</p>
+                        <div className="flex justify-end pt-4 mt-6">
+                            <button onClick={() => setIsPostModalOpen(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Close</button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

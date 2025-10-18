@@ -2,7 +2,7 @@ import React from 'react';
 import { ContentPost } from '../types';
 import Icon from './Icon';
 
-const BlogPostCard: React.FC<{ post: ContentPost }> = ({ post }) => {
+const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost) => void; }> = ({ post, onReadMore }) => {
     // Generate share URLs
     const shareUrl = window.location.href.split('#')[0]; // Blog page URL
     const shareTitle = `Read on our blog: ${post.title}`;
@@ -36,7 +36,9 @@ const BlogPostCard: React.FC<{ post: ContentPost }> = ({ post }) => {
                             <Icon prefix="fab" name="whatsapp" className="text-lg" />
                         </a>
                     </div>
-                    {/* A "Read More" link could be added here in the future if a single post view is implemented */}
+                    <button onClick={() => onReadMore(post)} className="text-indigo-600 hover:underline text-sm font-semibold">
+                        Read More &rarr;
+                    </button>
                 </div>
             </div>
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useData } from './contexts/DataContext';
@@ -11,14 +10,44 @@ import AboutUs from './pages/AboutUs';
 import Disclaimer from './pages/Disclaimer';
 import TermsAndConditions from './pages/TermsAndConditions';
 import BlogPage from './pages/BlogPage';
+import JobDetailPage from './pages/JobDetailPage';
 
-const basePath = '/Google-Portal';
+export const basePath = '/Google-Portal';
+
+/**
+ * Determines the initial path for the application.
+ * On static hosts like GitHub Pages, a direct visit to a sub-route (e.g., /admin)
+ * triggers a 404. The 404.html page saves the intended path to sessionStorage
+ * and redirects to the root. This function reads that saved path to restore the
+ * correct view on the initial load.
+ */
+const getInitialPath = () => {
+  try {
+    const redirectPath = sessionStorage.getItem('redirectPath');
+    if (redirectPath) {
+      sessionStorage.removeItem('redirectPath');
+      // If we have a redirect path, use it. Also, update the browser's history
+      // to reflect the correct deep link URL without reloading the page.
+      if (window.location.pathname !== redirectPath) {
+          window.history.replaceState(null, '', redirectPath);
+      }
+      return redirectPath;
+    }
+  } catch (error) {
+    console.warn("Could not access sessionStorage to handle redirect:", error);
+  }
+  // If no redirect path is found, use the current path.
+  return window.location.pathname;
+};
+
 
 const App: React.FC = () => {
   const { isLoggedIn } = useAuth();
   const { generalSettings, seoSettings } = useData();
-  const [path, setPath] = useState(window.location.pathname);
+  const [path, setPath] = useState(getInitialPath);
 
+  // This effect listens for browser navigation events (back/forward buttons)
+  // to keep the component's path state in sync.
   useEffect(() => {
     const onLocationChange = () => {
       setPath(window.location.pathname);
@@ -32,6 +61,7 @@ const App: React.FC = () => {
     const route = path.replace(basePath, '') || '/';
     let title = seoSettings.global.siteTitle;
     if (route.startsWith('/admin')) title = `Admin Panel | ${title}`;
+    else if (route.startsWith('/job/')) title = `Job Details | ${title}`;
     else if (route === '/blog') title = `Blog | ${title}`;
     else if (route === '/privacy') title = `Privacy Policy | ${title}`;
     else if (route === '/terms') title = `Terms & Conditions | ${title}`;
@@ -46,6 +76,7 @@ const App: React.FC = () => {
     const sanitizedPath = newPath.startsWith('/') ? newPath : `/${newPath}`;
     const fullPath = `${basePath}${sanitizedPath}`.replace('//', '/');
     window.history.pushState({}, '', fullPath);
+    // Dispatch a popstate event so the listener in useEffect can update the path state
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
@@ -57,6 +88,11 @@ const App: React.FC = () => {
 
   if (route.startsWith('/admin')) {
     return isLoggedIn ? <AdminPanel /> : <AdminLoginPage />;
+  }
+  
+  if (route.startsWith('/job/')) {
+    const jobId = route.split('/')[2];
+    return <JobDetailPage jobId={jobId} navigate={navigate} />;
   }
   
   switch (route) {
@@ -73,8 +109,9 @@ const App: React.FC = () => {
     case '/terms':
         return <TermsAndConditions navigate={navigate} />;
     default:
-        // For gh-pages, a 404 might just be a refresh on a sub-page.
-        // Let's redirect to home. In a real server setup, this would be a 404 page.
+        // For a deployed SPA on a static host, an unknown path might be a 404.
+        // The 404.html handles this, so if we reach here, it's likely a logic error
+        // or a path that doesn't exist. Safely redirecting home is a good fallback.
         return <PublicWebsite navigate={navigate} />;
   }
 };

@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { useData } from '../contexts/DataContext';
 import Icon from './Icon';
 
 const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const { posts } = useData();
+    const { posts, socialMediaSettings } = useData();
 
     const latestPosts = posts
         .filter(p => p.type === 'posts' && p.status === 'published')
@@ -52,10 +53,10 @@ const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                         <p className="text-xs text-gray-400">&copy; 2025 Divine Computer Job Portal. All Rights Reserved.</p>
                     </div>
                      <div className="flex justify-center space-x-6">
-                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook page" className="text-white hover:text-blue-500 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-2xl" /></a>
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram page" className="text-white hover:text-pink-500 transition-colors"><Icon prefix="fab" name="instagram" className="text-2xl" /></a>
-                        <a href="https://telegram.org" target="_blank" rel="noopener noreferrer" aria-label="Join our Telegram channel" className="text-white hover:text-blue-400 transition-colors"><Icon prefix="fab" name="telegram-plane" className="text-2xl" /></a>
-                        <a href="https://whatsapp.com" target="_blank" rel="noopener noreferrer" aria-label="Contact us on WhatsApp" className="text-white hover:text-green-500 transition-colors"><Icon prefix="fab" name="whatsapp" className="text-2xl" /></a>
+                        {socialMediaSettings.facebook && <a href={socialMediaSettings.facebook} target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook page" className="text-white hover:text-blue-500 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-2xl" /></a>}
+                        {socialMediaSettings.instagram && <a href={socialMediaSettings.instagram} target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram page" className="text-white hover:text-pink-500 transition-colors"><Icon prefix="fab" name="instagram" className="text-2xl" /></a>}
+                        {socialMediaSettings.telegram && <a href={socialMediaSettings.telegram} target="_blank" rel="noopener noreferrer" aria-label="Join our Telegram channel" className="text-white hover:text-blue-400 transition-colors"><Icon prefix="fab" name="telegram-plane" className="text-2xl" /></a>}
+                        {socialMediaSettings.whatsapp && <a href={socialMediaSettings.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="Contact us on WhatsApp" className="text-white hover:text-green-500 transition-colors"><Icon prefix="fab" name="whatsapp" className="text-2xl" /></a>}
                     </div>
                 </div>
             </div>

@@ -22,12 +22,21 @@ const authService = {
     } catch (e) {
         console.error("Failed to parse credentials from storage", e);
     }
+    
     // Set default credentials if none exist or are invalid
-    storage.setItem(ADMIN_CREDS_KEY, JSON.stringify(defaultCredentials));
+    try {
+        storage.setItem(ADMIN_CREDS_KEY, JSON.stringify(defaultCredentials));
+    } catch (e) {
+        console.warn("Could not set default credentials in storage. Using temporary credentials.", e);
+    }
     return defaultCredentials;
   },
   saveCredentials: (creds: AdminCredentials): void => {
-    storage.setItem(ADMIN_CREDS_KEY, JSON.stringify(creds));
+    try {
+      storage.setItem(ADMIN_CREDS_KEY, JSON.stringify(creds));
+    } catch (e) {
+        console.error("Failed to save credentials to storage", e);
+    }
   },
 };
 

@@ -1,7 +1,8 @@
 
+
 import React, { createContext, useContext } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings } from '../types';
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings } from '../types';
 import { 
     INITIAL_JOBS, 
     INITIAL_QUICK_LINKS, 
@@ -11,7 +12,8 @@ import {
     INITIAL_BREAKING_NEWS,
     initialAdSettings,
     initialSeoSettings,
-    initialGeneralSettings
+    initialGeneralSettings,
+    initialSocialMediaSettings
 } from '../constants';
 
 interface DataContextType {
@@ -25,6 +27,7 @@ interface DataContextType {
     adSettings: AdSettings;
     seoSettings: SEOSettings;
     generalSettings: GeneralSettings;
+    socialMediaSettings: SocialMediaSettings;
 
     // Mutators
     addJob: (job: Omit<Job, 'id' | 'createdAt'>) => void;
@@ -54,6 +57,7 @@ interface DataContextType {
     updateAdSettings: (settings: AdSettings) => void;
     updateSEOSettings: (settings: SEOSettings) => void;
     updateGeneralSettings: (settings: GeneralSettings) => void;
+    updateSocialMediaSettings: (settings: SocialMediaSettings) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -70,6 +74,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [adSettings, setAdSettings] = useLocalStorage<AdSettings>('adSettings', initialAdSettings);
     const [seoSettings, setSeoSettings] = useLocalStorage<SEOSettings>('seoSettings', initialSeoSettings);
     const [generalSettings, setGeneralSettings] = useLocalStorage<GeneralSettings>('generalSettings', initialGeneralSettings);
+    const [socialMediaSettings, setSocialMediaSettings] = useLocalStorage<SocialMediaSettings>('socialMediaSettings', initialSocialMediaSettings);
     
     const value: DataContextType = {
         jobs,
@@ -81,6 +86,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         adSettings,
         seoSettings,
         generalSettings,
+        socialMediaSettings,
 
         addJob: (jobData) => setJobs(prev => [{ ...jobData, id: createId(), createdAt: new Date().toISOString() }, ...prev]),
         updateJob: (updatedJob) => setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j)),
@@ -123,6 +129,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateAdSettings: (settings) => setAdSettings(settings),
         updateSEOSettings: (settings) => setSeoSettings(settings),
         updateGeneralSettings: (settings) => setGeneralSettings(settings),
+        updateSocialMediaSettings: (settings) => setSocialMediaSettings(settings),
     };
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
