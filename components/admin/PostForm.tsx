@@ -1,0 +1,100 @@
+import React, { useState, useEffect } from 'react';
+import { ContentPost, PostType } from '../../types';
+
+interface PostFormProps {
+  post?: ContentPost;
+  onSave: (post: Omit<ContentPost, 'id'>, id?: string) => void;
+  onCancel: () => void;
+  defaultType: PostType;
+}
+
+const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType }) => {
+    const [formData, setFormData] = useState<Omit<ContentPost, 'id' | 'createdAt'>>({
+        title: '',
+        category: '',
+        content: '',
+        status: 'published',
+        type: defaultType,
+        publishedDate: new Date().toISOString().split('T')[0],
+        examDate: '',
+    });
+
+    useEffect(() => {
+        if (post) {
+            setFormData({ ...post });
+        } else {
+            // Reset form for new post, ensuring correct default type
+            setFormData({
+                title: '',
+                category: '',
+                content: '',
+                status: 'published',
+                type: defaultType,
+                publishedDate: new Date().toISOString().split('T')[0],
+                examDate: '',
+            });
+        }
+    }, [post, defaultType]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value as any }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { createdAt, ...saveData } = formData as any;
+        onSave(saveData, post?.id);
+    };
+
+    const getTitleForType = (type: PostType) => {
+        switch(type) {
+            case 'exam-notices': return 'Notice Title';
+            case 'results': return 'Result Title';
+            default: return 'Post Title';
+        }
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700">{getTitleForType(formData.type)} *</label>
+                <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Category *</label>
+                    <input type="text" name="category" value={formData.category} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700">Status *</label>
+                    <select name="status" value={formData.status} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white" required>
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+            </div>
+             <div>
+                <label className="block text-sm font-medium text-gray-700">Content *</label>
+                <textarea name="content" value={formData.content} onChange={handleChange} rows={8} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Published Date *</label>
+                    <input type="date" name="publishedDate" value={formData.publishedDate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Exam Date (if applicable)</label>
+                    <input type="date" name="examDate" value={formData.examDate || ''} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+            </div>
+            <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
+                <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
+                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Save</button>
+            </div>
+        </form>
+    );
+};
+
+export default PostForm;

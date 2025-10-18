@@ -1,25 +1,39 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import Icon from '../components/Icon';
-import { ContactSubmission } from '../types';
+import { ContactSubmission, ContentPost } from '../types';
+import Modal from '../components/Modal';
 
-const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => (
-    <header className="bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-lg sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center flex-wrap">
-            <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="text-center md:text-left mb-4 md:mb-0 cursor-pointer">
-                <h1 className="text-2xl font-bold">Divine Computer Job Portal</h1>
-                <p className="text-sm opacity-90">Your Gateway to Government Jobs</p>
-            </a>
-            <nav>
-                <ul className="flex space-x-4 sm:space-x-6">
-                    {['Home', 'Latest Jobs', 'Exam Notices', 'Results', 'Contact Us'].map(item => (
-                        <li key={item}><a href={`#${item.toLowerCase().replace(/ /g, '-')}`} className="hover:bg-white/20 px-3 py-2 rounded-md transition-colors">{item}</a></li>
-                    ))}
-                </ul>
-            </nav>
-        </div>
-    </header>
-);
+const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    return (
+        <header className="bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-lg sticky top-0 z-40">
+            <div className="container mx-auto px-4 py-4 flex justify-between items-center flex-wrap">
+                <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="text-center md:text-left cursor-pointer">
+                    <h1 className="text-2xl font-bold">Divine Computer Job Portal</h1>
+                    <p className="text-sm opacity-90">Your Gateway to Government Jobs</p>
+                </a>
+                <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                    <Icon name={isMenuOpen ? "times" : "bars"} className="text-2xl" />
+                </button>
+                <nav className={`w-full md:w-auto md:flex ${isMenuOpen ? 'block mt-4' : 'hidden'}`}>
+                    <ul className="flex flex-col md:flex-row md:space-x-4">
+                        {['Home', 'Latest Jobs', 'Blog', 'Exam Notices', 'Results', 'Contact Us'].map(item => (
+                             <li key={item} className="w-full">
+                                {item === 'Home' 
+                                 ? <a href="/Google-Portal/" onClick={(e) => { e.preventDefault(); navigate('/'); setIsMenuOpen(false); }} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
+                                 : item === 'Blog' 
+                                 ? <a href="/Google-Portal/blog" onClick={(e) => {e.preventDefault(); navigate('/blog'); setIsMenuOpen(false);}} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
+                                 : <a href={`#${item.toLowerCase().replace(/ /g, '-')}`} onClick={() => setIsMenuOpen(false)} className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full">{item}</a>
+                                }
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            </div>
+        </header>
+    );
+};
 
 const JobCard: React.FC<{ job: import('../types').Job }> = ({ job }) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -83,8 +97,8 @@ const JobCard: React.FC<{ job: import('../types').Job }> = ({ job }) => {
     );
 };
 
-const PostCard: React.FC<{ post: import('../types').ContentPost }> = ({ post }) => (
-    <div className="border bg-white p-4 rounded-lg flex items-center justify-between">
+const PostCard: React.FC<{ post: ContentPost; onViewDetails: (post: ContentPost) => void; }> = ({ post, onViewDetails }) => (
+    <div className="border bg-white p-4 rounded-lg flex items-center justify-between gap-4 flex-wrap">
         <div>
             <h4 className="font-semibold text-gray-800">{post.title}</h4>
             <p className="text-sm text-gray-500">
@@ -92,7 +106,7 @@ const PostCard: React.FC<{ post: import('../types').ContentPost }> = ({ post }) 
                 {post.examDate && ` | Exam: ${post.examDate}`}
             </p>
         </div>
-        <a href="#" className="text-indigo-600 hover:underline text-sm font-semibold">View Details</a>
+        <button onClick={() => onViewDetails(post)} className="text-indigo-600 hover:underline text-sm font-semibold flex-shrink-0">View Details</button>
     </div>
 );
 
@@ -152,6 +166,13 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     const [subscriptionMessage, setSubscriptionMessage] = useState('');
     const [contactForm, setContactForm] = useState<Omit<ContactSubmission, 'id' | 'submittedAt'>>({ name: '', email: '', subject: '', message: ''});
     const [contactMessage, setContactMessage] = useState('');
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+    const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
+
+    const handleViewPostDetails = (post: ContentPost) => {
+        setSelectedPost(post);
+        setIsPostModalOpen(true);
+    };
 
     const handleSubscription = (e: React.FormEvent) => {
         e.preventDefault();
@@ -224,16 +245,16 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                         <section id="exam-notices">
                            <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 pb-2 border-b-4 border-purple-500">Exam Notices & Admit Cards</h2>
                            <div className="space-y-4">
-                                {posts.filter(p => p.type === 'exam-notices' && p.status === 'published').map(post => <PostCard key={post.id} post={post} />)}
+                                {posts.filter(p => p.type === 'exam-notices' && p.status === 'published').map(post => <PostCard key={post.id} post={post} onViewDetails={handleViewPostDetails} />)}
                            </div>
                         </section>
                         <section id="results">
                            <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 pb-2 border-b-4 border-purple-500">Latest Results</h2>
                            <div className="space-y-4">
-                                {posts.filter(p => p.type === 'results' && p.status === 'published').map(post => <PostCard key={post.id} post={post} />)}
+                                {posts.filter(p => p.type === 'results' && p.status === 'published').map(post => <PostCard key={post.id} post={post} onViewDetails={handleViewPostDetails} />)}
                            </div>
                         </section>
-                        <section id="contact-us" className="bg-white p-8 rounded-lg shadow-md">
+                        <section id="contact-us" className="bg-white p-6 md:p-8 rounded-lg shadow-md">
                             <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 pb-2 border-b-4 border-purple-500">Contact Us</h2>
                             <form onSubmit={handleContactSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -295,17 +316,40 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                     <AdComponent code={adSettings.footerAdCode} />
                 </div>
             )}
-            <footer className="bg-[#1e3c72] text-white text-center py-8 mt-8">
-                <div className="container mx-auto px-4">
+            <footer className="bg-[#1e3c72] text-white py-8 mt-8">
+                <div className="container mx-auto px-4 text-center">
+                    <div className="mb-4 flex justify-center space-x-6">
+                        <a href="#" className="text-white hover:text-blue-500 transition-colors" title="Facebook"><Icon prefix="fab" name="facebook-f" className="text-2xl" /></a>
+                        <a href="#" className="text-white hover:text-pink-500 transition-colors" title="Instagram"><Icon prefix="fab" name="instagram" className="text-2xl" /></a>
+                        <a href="#" className="text-white hover:text-blue-400 transition-colors" title="Telegram"><Icon prefix="fab" name="telegram-plane" className="text-2xl" /></a>
+                        <a href="#" className="text-white hover:text-green-500 transition-colors" title="WhatsApp"><Icon prefix="fab" name="whatsapp" className="text-2xl" /></a>
+                    </div>
                     <div className="flex justify-center flex-wrap gap-x-6 gap-y-2 mb-4">
                          <a href="/Google-Portal/privacy" onClick={(e) => { e.preventDefault(); navigate('/privacy'); }} className="hover:underline text-sm">Privacy Policy</a>
                          <a href="/Google-Portal/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="hover:underline text-sm">About Us</a>
+                         <a href="/Google-Portal/blog" onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:underline text-sm">Blog</a>
                          <a href="/Google-Portal/disclaimer" onClick={(e) => { e.preventDefault(); navigate('/disclaimer'); }} className="hover:underline text-sm">Disclaimer</a>
                          <a href="/Google-Portal/terms" onClick={(e) => { e.preventDefault(); navigate('/terms'); }} className="hover:underline text-sm">Terms and Conditions</a>
                     </div>
                     <p className="text-xs text-gray-400">&copy; 2025 Divine Computer Job Portal. All Rights Reserved.</p>
                 </div>
             </footer>
+
+            <Modal isOpen={isPostModalOpen} onClose={() => setIsPostModalOpen(false)} title={selectedPost?.title || 'Details'}>
+                {selectedPost && (
+                    <div className="space-y-4">
+                        <div className="text-sm text-gray-500">
+                            <span>Published: {selectedPost.publishedDate}</span>
+                            {selectedPost.examDate && <span className="ml-4">Exam Date: {selectedPost.examDate}</span>}
+                        </div>
+                        <hr/>
+                        <p className="whitespace-pre-wrap bg-gray-50 p-3 rounded-md mt-1">{selectedPost.content}</p>
+                        <div className="flex justify-end pt-4">
+                            <button onClick={() => setIsPostModalOpen(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Close</button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

@@ -1,33 +1,42 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import StaticPage from '../components/StaticPage';
+import { useData } from '../contexts/DataContext';
 
 const PrivacyPolicy: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
+  const { seoSettings } = useData();
+  useEffect(() => {
+    document.title = `Privacy Policy | ${seoSettings.global.siteTitle}`;
+  }, [seoSettings.global.siteTitle]);
+  
   return (
     <StaticPage title="Privacy Policy" navigate={navigate}>
-      <p>Last updated: October 26, 2025</p>
+      <p className="lead">Last updated: October 26, 2025</p>
       <p>Divine Computer Job Portal ("us", "we", or "our") operates the Divine Computer Job Portal website (the "Service"). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.</p>
       
       <h2>Information Collection and Use</h2>
       <p>We collect several different types of information for various purposes to provide and improve our Service to you.</p>
+      
       <h3>Types of Data Collected</h3>
+      
       <h4>Personal Data</h4>
-      <p>While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you ("Personal Data"). Personally identifiable information may include, but is not limited to:</p>
+      <p>While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you (<strong>"Personal Data"</strong>). Personally identifiable information may include, but is not limited to:</p>
       <ul>
-        <li>Email address</li>
-        <li>First name and last name</li>
+        <li>Email address (for newsletter subscriptions)</li>
+        <li>First name, last name, and subject (when using the contact form)</li>
         <li>Cookies and Usage Data</li>
       </ul>
+
       <h4>Usage Data</h4>
-      <p>We may also collect information on how the Service is accessed and used ("Usage Data"). This Usage Data may include information such as your computer's Internet Protocol address (e.g. IP address), browser type, browser version, the pages of our Service that you visit, the time and date of your visit, the time spent on those pages, unique device identifiers and other diagnostic data.</p>
+      <p>We may also collect information on how the Service is accessed and used (<strong>"Usage Data"</strong>). This Usage Data may include information such as your computer's Internet Protocol address (e.g. IP address), browser type, browser version, the pages of our Service that you visit, the time and date of your visit, the time spent on those pages, unique device identifiers and other diagnostic data.</p>
 
       <h2>Use of Data</h2>
       <p>Divine Computer Job Portal uses the collected data for various purposes:</p>
       <ul>
-        <li>To provide and maintain the Service</li>
+        <li>To provide and maintain our Service</li>
         <li>To notify you about changes to our Service</li>
         <li>To allow you to participate in interactive features of our Service when you choose to do so</li>
         <li>To provide customer care and support</li>
-        <li>To provide analysis or valuable information so that we can improve the Service</li>
+        <li>To gather analysis or valuable information so that we can improve the Service</li>
         <li>To monitor the usage of the Service</li>
         <li>To detect, prevent and address technical issues</li>
       </ul>
@@ -36,7 +45,10 @@ const PrivacyPolicy: React.FC<{ navigate: (path: string) => void }> = ({ navigat
       <p>The security of your data is important to us, but remember that no method of transmission over the Internet, or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.</p>
 
       <h2>Changes to This Privacy Policy</h2>
-      <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. We will let you know via email and/or a prominent notice on our Service, prior to the change becoming effective and update the "last updated" date at the top of this Privacy Policy.</p>
+      <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. We will let you know via a prominent notice on our Service, prior to the change becoming effective and update the "last updated" date at the top of this Privacy Policy. You are advised to review this Privacy Policy periodically for any changes.</p>
+
+      <h2>Contact Us</h2>
+      <p>If you have any questions about this Privacy Policy, please contact us through the contact form on our website.</p>
     </StaticPage>
   );
 };

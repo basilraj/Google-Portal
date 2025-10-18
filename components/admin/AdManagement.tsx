@@ -1,101 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { AdSettings } from '../../types';
+import { AdSettings, ABTest, GeoTargetedAd } from '../../types';
 import Icon from '../Icon';
 
-type NetworkTab = 'adsense' | 'adsterra' | 'custom';
+const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: boolean; onToggle: () => void; }> = ({ title, children, isOpen, onToggle }) => (
+    <div className="border-b">
+        <button
+            type="button"
+            className="w-full flex justify-between items-center p-4 text-left font-semibold text-lg text-gray-800 hover:bg-gray-50"
+            onClick={onToggle}
+        >
+            {title}
+            <Icon name={isOpen ? 'chevron-up' : 'chevron-down'} className="transition-transform" />
+        </button>
+        {isOpen && (
+            <div className="p-6 bg-gray-50 border-t">
+                {children}
+            </div>
+        )}
+    </div>
+);
 
 const AdManagement: React.FC = () => {
     const { adSettings, updateAdSettings } = useData();
     const [formData, setFormData] = useState<AdSettings>(adSettings);
-    const [activeNetworkTab, setActiveNetworkTab] = useState<NetworkTab>('adsense');
-
+    const [activeSection, setActiveSection] = useState<string>('display');
+    
+    // Ensure form data is synced if context data changes
     useEffect(() => {
         setFormData(adSettings);
     }, [adSettings]);
 
+    const handleToggleSection = (section: string) => {
+        setActiveSection(prev => prev === section ? '' : section);
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
-        
-        // Handle nested state for network settings
-        if (name.includes('.')) {
-            const [parent, child] = name.split('.');
+        const [field, subfield] = name.split('.');
+
+        if (subfield) { // Nested state e.g., adsense.enabled
             setFormData(prev => ({
                 ...prev,
-                [parent]: {
-                    ...(prev as any)[parent],
-                    [child]: type === 'checkbox' ? checked : value,
-                }
+                [field]: { ...prev[field as keyof AdSettings] as object, [subfield]: type === 'checkbox' ? checked : value }
             }));
         } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: type === 'checkbox' ? checked : value,
-            }));
+            setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
         }
+    };
+    
+    // FIX: Added missing handleNestedChange function to handle complex state updates.
+    const handleNestedChange = (path: (string | number)[], value: any) => {
+        setFormData(prev => {
+            const newState = JSON.parse(JSON.stringify(prev)); // Deep copy
+            let current: any = newState;
+            for(let i = 0; i < path.length - 1; i++) {
+                current = current[path[i]];
+            }
+            current[path[path.length - 1]] = value;
+            return newState;
+        });
+    };
+
+    const handleAddCustomAd = () => {
+        handleNestedChange(['customAds', 'codes'], [...formData.customAds.codes, '']);
+    };
+    const handleRemoveCustomAd = (index: number) => {
+        handleNestedChange(['customAds', 'codes'], formData.customAds.codes.filter((_, i) => i !== index));
+    };
+
+    const handleAddGeoRule = () => {
+        const newRule: GeoTargetedAd = { id: Date.now().toString(), country: 'IN', code: '' };
+        handleNestedChange(['geoTargeting', 'rules'], [...formData.geoTargeting.rules, newRule]);
+    };
+    const handleRemoveGeoRule = (id: string) => {
+        handleNestedChange(['geoTargeting', 'rules'], formData.geoTargeting.rules.filter(rule => rule.id !== id));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         updateAdSettings(formData);
     };
-    
-    const renderNetworkConfig = () => {
-        switch(activeNetworkTab) {
-            case 'adsense':
-                return (
-                    <div className="space-y-4">
-                        <label className="flex items-center gap-3">
-                             <input type="checkbox" name="adsense.enabled" checked={formData.adsense.enabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-                            <span>Enable Google AdSense</span>
-                        </label>
-                        {formData.adsense.enabled && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Publisher ID</label>
-                            <input type="text" name="adsense.publisherId" value={formData.adsense.publisherId} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="pub-XXXXXXXXXXXXXX" />
-                        </div>
-                        )}
-                    </div>
-                );
-            case 'adsterra':
-                 return (
-                    <div className="space-y-4">
-                         <label className="flex items-center gap-3">
-                             <input type="checkbox" name="adsterra.enabled" checked={formData.adsterra.enabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-                            <span>Enable Adsterra</span>
-                        </label>
-                        {formData.adsterra.enabled && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Zone ID</label>
-                            <input type="text" name="adsterra.zoneId" value={formData.adsterra.zoneId} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Enter your Zone ID" />
-                        </div>
-                        )}
-                    </div>
-                );
-            case 'custom':
-                 return (
-                    <div className="space-y-4">
-                         <label className="flex items-center gap-3">
-                            <input type="checkbox" name="customAds.enabled" checked={formData.customAds.enabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-                            <span>Enable Custom Ads</span>
-                        </label>
-                        {formData.customAds.enabled && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Custom Ad Code (HTML/JS)</label>
-                            <textarea name="customAds.code" value={formData.customAds.code} onChange={handleChange} rows={6} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm" placeholder="Paste your custom ad code here..."/>
-                        </div>
-                        )}
-                    </div>
-                );
-        }
-    }
+
+    const calculateCTR = (clicks: number, impressions: number) => {
+        if (impressions === 0) return '0.00%';
+        return ((clicks / impressions) * 100).toFixed(2) + '%';
+    };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Ad Display Settings */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-bold text-gray-700 mb-4">Ad Display Settings</h2>
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm">
+            
+            <AccordionSection title="Global Display Settings" isOpen={activeSection === 'display'} onToggle={() => handleToggleSection('display')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Ad Frequency</label>
@@ -123,63 +119,151 @@ const AdManagement: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </AccordionSection>
 
-            {/* Ad Previews */}
-             <div className="bg-white p-6 rounded-lg shadow-sm">
-                 <h2 className="text-xl font-bold text-gray-700 mb-2">Ad Previews</h2>
-                 <p className="text-sm text-gray-500 mb-6">See a live preview of your ad selections. Previews will appear/disappear as you check/uncheck the boxes above.</p>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                    <div className="space-y-8">
-                        {formData.bannerAds && (
+            <AccordionSection title="Ad Networks & Placements" isOpen={activeSection === 'networks'} onToggle={() => handleToggleSection('networks')}>
+                 <div className="space-y-6">
+                    {/* Direct Placements */}
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Direct Placements</h3>
+                         <div className="space-y-4">
                             <div>
-                                <h3 className="font-semibold mb-2">Banner Ad</h3>
-                                <div className="h-24 bg-gray-100 border-2 border-dashed flex items-center justify-center text-gray-500 text-sm">Banner Preview (e.g., 728x90)</div>
+                                <label className="block text-sm font-medium text-gray-700">Header Ad Code</label>
+                                <textarea name="headerAdCode" value={formData.headerAdCode} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"/>
                             </div>
-                        )}
-                        {formData.squareAds && (
                             <div>
-                                <h3 className="font-semibold mb-2">Square Ad</h3>
-                                <div className="h-64 w-72 bg-gray-100 border-2 border-dashed flex items-center justify-center text-gray-500 text-sm">Square Preview (e.g., 300x250)</div>
+                                <label className="block text-sm font-medium text-gray-700">Sidebar Ad Code</label>
+                                <textarea name="sidebarAdCode" value={formData.sidebarAdCode} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"/>
                             </div>
-                        )}
-                    </div>
-                    <div className="space-y-8 flex flex-col items-center lg:items-start">
-                        {formData.skyscraperAds && (
                              <div>
-                                <h3 className="font-semibold mb-2">Skyscraper Ad</h3>
-                                <div className="h-[600px] w-40 bg-gray-100 border-2 border-dashed flex items-center justify-center text-gray-500 text-sm text-center">Skyscraper Preview (e.g., 160x600)</div>
+                                <label className="block text-sm font-medium text-gray-700">Footer Ad Code</label>
+                                <textarea name="footerAdCode" value={formData.footerAdCode} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"/>
                             </div>
-                        )}
-                        {formData.popupAds && (
-                            <div className="mt-8">
-                                <h3 className="font-semibold mb-2 text-center">Popup Ad</h3>
-                                <div className="relative w-80 p-6 bg-white border rounded-lg shadow-xl">
-                                    <button type="button" className="absolute top-2 right-2 text-gray-400 text-2xl">&times;</button>
-                                    <h4 className="font-bold text-lg text-center mb-2">Popup Ad Title</h4>
-                                    <p className="text-sm text-gray-600 text-center mb-4">This is a preview of a popup ad.</p>
-                                    <button type="button" className="w-full bg-blue-500 text-white py-2 px-4 rounded-md">Call to Action</button>
+                         </div>
+                    </div>
+                    {/* Custom Ads */}
+                    <div className="border-t pt-6">
+                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Custom Ads Network</h3>
+                         <div className="space-y-4">
+                            <label className="flex items-center gap-3">
+                                <input type="checkbox" checked={formData.customAds.enabled} onChange={e => handleNestedChange(['customAds', 'enabled'], e.target.checked)} className="h-4 w-4 rounded border-gray-300"/>
+                                <span>Enable Custom Ads</span>
+                            </label>
+                            <label className="flex items-center gap-3">
+                                <input type="checkbox" checked={formData.customAds.rotation} onChange={e => handleNestedChange(['customAds', 'rotation'], e.target.checked)} className="h-4 w-4 rounded border-gray-300"/>
+                                <span>Enable Ad Rotation</span>
+                            </label>
+                            {formData.customAds.codes.map((code, index) => (
+                                <div key={index}>
+                                    <label className="block text-sm font-medium text-gray-700">Custom Ad Code #{index + 1}</label>
+                                    <div className="flex items-center gap-2">
+                                        <textarea value={code} onChange={e => handleNestedChange(['customAds', 'codes', index], e.target.value)} rows={3} className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"/>
+                                        <button type="button" onClick={() => handleRemoveCustomAd(index)} className="text-red-500 hover:text-red-700 p-2"><Icon name="trash" /></button>
+                                    </div>
+                                </div>
+                            ))}
+                            <button type="button" onClick={handleAddCustomAd} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle"/> Add Another Ad Code</button>
+                         </div>
+                    </div>
+                 </div>
+            </AccordionSection>
+
+            <AccordionSection title="A/B Testing" isOpen={activeSection === 'abtesting'} onToggle={() => handleToggleSection('abtesting')}>
+                <p className="text-sm text-gray-600 mb-6">Run tests to see which ad variations perform better. The stats below are for demonstration purposes.</p>
+                <div className="space-y-8">
+                    {formData.abTests.map((test, index) => (
+                        <div key={test.id} className="p-4 border rounded-lg bg-white">
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="text-lg font-semibold">{test.placement} Ad Test</h4>
+                                 <label className="flex items-center gap-2 text-sm font-medium">
+                                    <input type="checkbox" checked={test.enabled} onChange={e => handleNestedChange(['abTests', index, 'enabled'], e.target.checked)} className="h-4 w-4 rounded border-gray-300"/>
+                                    Enable Test
+                                </label>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Variation A Code</label>
+                                    <textarea value={test.codeA} onChange={e => handleNestedChange(['abTests', index, 'codeA'], e.target.value)} rows={4} className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Variation B Code</label>
+                                    <textarea value={test.codeB} onChange={e => handleNestedChange(['abTests', index, 'codeB'], e.target.value)} rows={4} className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"/>
                                 </div>
                             </div>
-                        )}
+                            <div className="p-4 bg-gray-50 rounded-md">
+                                <h5 className="font-semibold mb-3">Performance (Simulated)</h5>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div className="font-medium text-gray-500">Metric</div>
+                                    <div className="grid grid-cols-2 gap-4 font-medium text-gray-500"><div className="text-center">Variation A</div><div className="text-center">Variation B</div></div>
+                                    
+                                    <div className="text-gray-800">Impressions</div>
+                                    <div className="grid grid-cols-2 gap-4"><div className="text-center">{test.stats.impressionsA.toLocaleString()}</div><div className="text-center">{test.stats.impressionsB.toLocaleString()}</div></div>
+                                    
+                                    <div className="text-gray-800">Clicks</div>
+                                    <div className="grid grid-cols-2 gap-4"><div className="text-center">{test.stats.clicksA.toLocaleString()}</div><div className="text-center">{test.stats.clicksB.toLocaleString()}</div></div>
+                                    
+                                    <div className="text-gray-800 font-bold">CTR</div>
+                                    <div className="grid grid-cols-2 gap-4 font-bold"><div className="text-center text-green-600">{calculateCTR(test.stats.clicksA, test.stats.impressionsA)}</div><div className="text-center text-green-600">{calculateCTR(test.stats.clicksB, test.stats.impressionsB)}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </AccordionSection>
+
+            <AccordionSection title="Advanced Targeting (Simulation)" isOpen={activeSection === 'targeting'} onToggle={() => handleToggleSection('targeting')}>
+                 <div className="space-y-6">
+                    {/* Device Targeting */}
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Device Targeting</h3>
+                        <label className="flex items-center gap-3 mb-4">
+                            <input type="checkbox" checked={formData.deviceTargeting.enabled} onChange={e => handleNestedChange(['deviceTargeting', 'enabled'], e.target.checked)} className="h-4 w-4 rounded border-gray-300"/>
+                            <span>Enable Device-Specific Ads</span>
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Desktop Ad Code</label>
+                                <textarea value={formData.deviceTargeting.desktopCode} onChange={e => handleNestedChange(['deviceTargeting', 'desktopCode'], e.target.value)} rows={3} className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Mobile Ad Code</label>
+                                <textarea value={formData.deviceTargeting.mobileCode} onChange={e => handleNestedChange(['deviceTargeting', 'mobileCode'], e.target.value)} rows={3} className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"/>
+                            </div>
+                        </div>
                     </div>
-                </div>
-             </div>
+                     {/* Geo Targeting */}
+                    <div className="border-t pt-6">
+                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Geo Targeting</h3>
+                          <label className="flex items-center gap-3 mb-4">
+                            <input type="checkbox" checked={formData.geoTargeting.enabled} onChange={e => handleNestedChange(['geoTargeting', 'enabled'], e.target.checked)} className="h-4 w-4 rounded border-gray-300"/>
+                            <span>Enable Geo-Targeted Ads</span>
+                        </label>
+                        <div className="space-y-4">
+                            {formData.geoTargeting.rules.map((rule, index) => (
+                                <div key={rule.id} className="flex items-end gap-2 p-3 bg-gray-100 rounded-md">
+                                    <div className="w-1/4">
+                                        <label className="block text-sm font-medium text-gray-700">Country</label>
+                                        <select value={rule.country} onChange={e => handleNestedChange(['geoTargeting', 'rules', index, 'country'], e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md">
+                                            <option value="IN">India</option>
+                                            <option value="US">United States</option>
+                                            <option value="GB">United Kingdom</option>
+                                            <option value="CA">Canada</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-grow">
+                                        <label className="block text-sm font-medium text-gray-700">Ad Code</label>
+                                        <textarea value={rule.code} onChange={e => handleNestedChange(['geoTargeting', 'rules', index, 'code'], e.target.value)} rows={2} className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"/>
+                                    </div>
+                                    <button type="button" onClick={() => handleRemoveGeoRule(rule.id)} className="text-red-500 hover:text-red-700 p-2"><Icon name="trash" /></button>
+                                </div>
+                            ))}
+                        </div>
+                        <button type="button" onClick={handleAddGeoRule} className="mt-2 text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle"/> Add Geo Rule</button>
+                    </div>
+                 </div>
+            </AccordionSection>
 
-            {/* Ad Networks Configuration */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-bold text-gray-700 mb-4">Ad Networks Configuration</h2>
-                 <div className="border-b border-gray-200 mb-4">
-                    <nav className="-mb-px flex space-x-6" aria-label="Tabs">
-                        <button type="button" onClick={() => setActiveNetworkTab('adsense')} className={`py-3 px-1 border-b-2 font-medium text-sm ${activeNetworkTab === 'adsense' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>AdSense</button>
-                        <button type="button" onClick={() => setActiveNetworkTab('adsterra')} className={`py-3 px-1 border-b-2 font-medium text-sm ${activeNetworkTab === 'adsterra' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Adsterra</button>
-                        <button type="button" onClick={() => setActiveNetworkTab('custom')} className={`py-3 px-1 border-b-2 font-medium text-sm ${activeNetworkTab === 'custom' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Custom Ads</button>
-                    </nav>
-                </div>
-                <div>{renderNetworkConfig()}</div>
-            </div>
-
-            <div className="flex justify-end mt-6 pt-4 border-t">
+            <div className="flex justify-end mt-6 p-4 border-t bg-gray-50">
                 <button type="submit" className="bg-indigo-600 text-white px-8 py-3 rounded-md hover:bg-indigo-700 text-lg font-semibold flex items-center gap-2">
                     <Icon name="save" /> Save All Ad Settings
                 </button>

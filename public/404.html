@@ -12,7 +12,11 @@
       // The base path MUST match the 'base' property in your vite.config.ts
       const basePath = '/Google-Portal/';
 
-      sessionStorage.setItem('redirectPath', path);
+      try {
+        sessionStorage.setItem('redirectPath', path);
+      } catch (e) {
+        console.warn('Session storage is not available, redirecting without path persistence.');
+      }
       window.location.replace(basePath); 
     </script>
   </head>

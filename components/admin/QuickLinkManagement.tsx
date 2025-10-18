@@ -4,6 +4,18 @@ import { QuickLink } from '../../types';
 import Icon from '../Icon';
 import Modal from '../Modal';
 
+const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
+    <div className="text-center py-16 border-t">
+      <Icon name="link-slash" className="text-5xl text-gray-300 mb-4" />
+      <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
+      {buttonText && onButtonClick && (
+        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+          <Icon name="plus" /> {buttonText}
+        </button>
+      )}
+    </div>
+);
+
 const QuickLinkForm: React.FC<{ link?: QuickLink; onSave: (link: Omit<QuickLink, 'id'>, id?: string) => void; onCancel: () => void }> = ({ link, onSave, onCancel }) => {
     const [formData, setFormData] = useState<Omit<QuickLink, 'id'>>(link ? { ...link } : {
         title: '',
@@ -84,8 +96,9 @@ const QuickLinkManagement: React.FC = () => {
                     <Icon name="plus" /> Add New Link
                 </button>
             </div>
+            {quickLinks.length > 0 ? (
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
+                <table className="w-full text-sm text-left text-gray-500 responsive-table">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th className="px-6 py-3">Title</th>
@@ -96,13 +109,13 @@ const QuickLinkManagement: React.FC = () => {
                     </thead>
                     <tbody>
                         {quickLinks.map(link => (
-                            <tr key={link.id} className="bg-white border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{link.title}</td>
-                                <td className="px-6 py-4 truncate max-w-xs"><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{link.url}</a></td>
-                                <td className="px-6 py-4">
+                            <tr key={link.id} className="bg-white hover:bg-gray-50 border-b">
+                                <td data-label="Title" className="px-6 py-4 font-medium text-gray-900">{link.title}</td>
+                                <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{link.url}</a></td>
+                                <td data-label="Status" className="px-6 py-4">
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${link.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{link.status}</span>
                                 </td>
-                                <td className="px-6 py-4 flex gap-4">
+                                <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
                                     <button onClick={() => handleEdit(link)} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
                                     <button onClick={() => handleDelete(link.id)} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
                                 </td>
@@ -111,6 +124,13 @@ const QuickLinkManagement: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+            ) : (
+                <EmptyState 
+                    message="No quick links have been added yet."
+                    buttonText="Add New Link"
+                    onButtonClick={() => { setEditingLink(undefined); setIsModalOpen(true); }}
+                />
+            )}
              <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingLink ? 'Edit Quick Link' : 'Add New Quick Link'}>
                 <QuickLinkForm link={editingLink} onSave={handleSave} onCancel={() => setIsModalOpen(false)} />
             </Modal>

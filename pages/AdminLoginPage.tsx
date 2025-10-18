@@ -35,7 +35,7 @@ const AdminLoginPage: React.FC = () => {
                         value={username} 
                         onChange={e => setUsername(e.target.value)} 
                         className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="admin"
+                        placeholder="username"
                         required
                     />
                 </div>
@@ -51,7 +51,7 @@ const AdminLoginPage: React.FC = () => {
                         value={password} 
                         onChange={e => setPassword(e.target.value)} 
                         className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="sarkari2025"
+                        placeholder="password"
                         required
                     />
                 </div>
@@ -63,10 +63,6 @@ const AdminLoginPage: React.FC = () => {
                 <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Sign in
                 </button>
-            </div>
-             <div className="text-xs text-center text-gray-500 bg-gray-100 p-2 rounded-md border">
-                <p>Default credentials:</p>
-                <p><strong>Username:</strong> admin / <strong>Password:</strong> sarkari2025</p>
             </div>
         </form>
       </div>

@@ -1,9 +1,12 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useRef } from 'react';
+import { authService } from '../services/database';
+import { AdminCredentials } from '../types';
 
 interface AuthContextType {
   isLoggedIn: boolean;
   login: (user: string, pass: string) => boolean;
   logout: () => void;
+  updateCredentials: (currentPass: string, newUser: string, newPass: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -12,10 +15,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const basePath = '/Google-Portal';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Temporarily true for direct access
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const credentialsRef = useRef<AdminCredentials>(authService.getCredentials());
 
   const login = (user: string, pass: string) => {
-    if (user === 'admin' && pass === 'sarkari2025') {
+    const storedCreds = credentialsRef.current;
+    if (user === storedCreds.username && pass === storedCreds.password) {
       setIsLoggedIn(true);
       // On successful login, redirect to the admin dashboard
       window.history.pushState({}, '', `${basePath}/admin`);
@@ -31,9 +36,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // On logout, redirect to the admin login page
     window.location.href = `${basePath}/admin`;
   };
+  
+  const updateCredentials = (currentPass: string, newUser: string, newPass: string): boolean => {
+    const storedCreds = credentialsRef.current;
+    if (currentPass !== storedCreds.password) {
+        return false; // Incorrect current password
+    }
+
+    const newCredentials = {
+        username: newUser,
+        password: newPass
+    };
+
+    authService.saveCredentials(newCredentials);
+    credentialsRef.current = newCredentials;
+    return true;
+  };
+
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout, updateCredentials }}>
       {children}
     </AuthContext.Provider>
   );

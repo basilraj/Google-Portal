@@ -4,6 +4,18 @@ import { BreakingNews } from '../../types';
 import Icon from '../Icon';
 import Modal from '../Modal';
 
+const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
+    <div className="text-center py-16 border-t">
+      <Icon name="newspaper" className="text-5xl text-gray-300 mb-4" />
+      <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
+      {buttonText && onButtonClick && (
+        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+          <Icon name="plus" /> {buttonText}
+        </button>
+      )}
+    </div>
+);
+
 const NewsForm: React.FC<{ newsItem?: BreakingNews; onSave: (news: Omit<BreakingNews, 'id'>, id?: string) => void; onCancel: () => void }> = ({ newsItem, onSave, onCancel }) => {
     const [formData, setFormData] = useState<Omit<BreakingNews, 'id'>>(newsItem ? { ...newsItem } : {
         text: '', link: '', status: 'active'
@@ -81,8 +93,9 @@ const BreakingNewsManagement: React.FC = () => {
                     <Icon name="plus" /> Add News Item
                 </button>
             </div>
+            {breakingNews.length > 0 ? (
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
+                <table className="w-full text-sm text-left text-gray-500 responsive-table">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th className="px-6 py-3">News Text</th>
@@ -93,13 +106,13 @@ const BreakingNewsManagement: React.FC = () => {
                     </thead>
                     <tbody>
                         {breakingNews.map(news => (
-                            <tr key={news.id} className="bg-white border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{news.text}</td>
-                                <td className="px-6 py-4 truncate max-w-xs"><a href={news.link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{news.link}</a></td>
-                                <td className="px-6 py-4">
+                            <tr key={news.id} className="bg-white hover:bg-gray-50 border-b">
+                                <td data-label="Text" className="px-6 py-4 font-medium text-gray-900">{news.text}</td>
+                                <td data-label="Link" className="px-6 py-4 truncate max-w-xs"><a href={news.link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{news.link}</a></td>
+                                <td data-label="Status" className="px-6 py-4">
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${news.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{news.status}</span>
                                 </td>
-                                <td className="px-6 py-4 flex gap-4">
+                                <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
                                     <button onClick={() => handleEdit(news)} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
                                     <button onClick={() => handleDelete(news.id)} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
                                 </td>
@@ -108,6 +121,13 @@ const BreakingNewsManagement: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+            ) : (
+                <EmptyState 
+                    message="No breaking news items found."
+                    buttonText="Add News Item"
+                    onButtonClick={() => { setEditingNews(undefined); setIsModalOpen(true); }}
+                />
+            )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingNews ? 'Edit News Item' : 'Add News Item'}>
                 <NewsForm newsItem={editingNews} onSave={handleSave} onCancel={() => setIsModalOpen(false)} />
             </Modal>

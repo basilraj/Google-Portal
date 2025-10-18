@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Job, QuickLink, ContentPost, Subscriber, AdSettings, ContactSubmission, BreakingNews } from '../types';
+import { Job, QuickLink, ContentPost, Subscriber, AdSettings, ContactSubmission, BreakingNews, SEOSettings } from '../types';
 import * as db from '../services/database';
 
 interface DataContextType {
+  loading: boolean;
   jobs: Job[];
   addJob: (job: Omit<Job, 'id' | 'status'>) => void;
+  addMultipleJobs: (jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => number;
   updateJob: (job: Job) => void;
   deleteJob: (jobId: string) => void;
+  deleteMultipleJobs: (jobIds: string[]) => void;
   
   quickLinks: QuickLink[];
   addQuickLink: (link: Omit<QuickLink, 'id'>) => void;
@@ -27,16 +30,21 @@ interface DataContextType {
 
   contacts: ContactSubmission[];
   addContact: (contactData: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
+  deleteContact: (contactId: string) => void;
 
   breakingNews: BreakingNews[];
   addNews: (news: Omit<BreakingNews, 'id'>) => void;
   updateNews: (news: BreakingNews) => void;
   deleteNews: (newsId: string) => void;
+
+  seoSettings: SEOSettings;
+  updateSEOSettings: (settings: SEOSettings) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [quickLinks, setQuickLinks] = useState<QuickLink[]>([]);
   const [posts, setPosts] = useState<ContentPost[]>([]);
@@ -44,15 +52,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [adSettings, setAdSettings] = useState<AdSettings>(db.adService.getSettings());
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [breakingNews, setBreakingNews] = useState<BreakingNews[]>([]);
+  const [seoSettings, setSEOSettings] = useState<SEOSettings>(db.seoService.getSettings());
 
 
   useEffect(() => {
-    setJobs(db.jobService.getJobs());
-    setQuickLinks(db.linkService.getLinks());
-    setPosts(db.postService.getPosts());
-    setSubscribers(db.subscriberService.getSubscribers());
-    setContacts(db.contactService.getContacts());
-    setBreakingNews(db.breakingNewsService.getNews());
+    // Simulate async data fetching
+    const timer = setTimeout(() => {
+        setJobs(db.jobService.getJobs());
+        setQuickLinks(db.linkService.getLinks());
+        setPosts(db.postService.getPosts());
+        setSubscribers(db.subscriberService.getSubscribers());
+        setContacts(db.contactService.getContacts());
+        setBreakingNews(db.breakingNewsService.getNews());
+        setLoading(false);
+    }, 500); // 0.5 second delay
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Job Functions
@@ -62,6 +77,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setJobs(updatedJobs);
     db.jobService.saveJobs(updatedJobs);
   };
+  const addMultipleJobs = (jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[]): number => {
+    const newJobs: Job[] = jobsData.map(jobData => ({
+        ...jobData,
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
+        status: 'active',
+        createdAt: new Date().toISOString(),
+    }));
+    const updatedJobs = [...jobs, ...newJobs];
+    setJobs(updatedJobs);
+    db.jobService.saveJobs(updatedJobs);
+    return newJobs.length;
+  };
   const updateJob = (updatedJob: Job) => {
     const updatedJobs = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
     setJobs(updatedJobs);
@@ -69,6 +96,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   const deleteJob = (jobId: string) => {
     const updatedJobs = jobs.filter(j => j.id !== jobId);
+    setJobs(updatedJobs);
+    db.jobService.saveJobs(updatedJobs);
+  };
+  const deleteMultipleJobs = (jobIds: string[]) => {
+    const updatedJobs = jobs.filter(j => !jobIds.includes(j.id));
     setJobs(updatedJobs);
     db.jobService.saveJobs(updatedJobs);
   };
@@ -134,10 +166,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     alert('Ad settings saved!');
   };
 
-  // Contact Form Function
+  // SEO Settings Function
+  const updateSEOSettings = (settings: SEOSettings) => {
+    setSEOSettings(settings);
+    db.seoService.saveSettings(settings);
+    alert('SEO settings saved!');
+  };
+
+  // Contact Form Functions
   const addContact = (contactData: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
     const newContact: ContactSubmission = { ...contactData, id: Date.now().toString(), submittedAt: new Date().toISOString() };
     const updatedContacts = [...contacts, newContact];
+    setContacts(updatedContacts);
+    db.contactService.saveContacts(updatedContacts);
+  };
+  const deleteContact = (contactId: string) => {
+    const updatedContacts = contacts.filter(c => c.id !== contactId);
     setContacts(updatedContacts);
     db.contactService.saveContacts(updatedContacts);
   };
@@ -162,13 +206,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <DataContext.Provider value={{ 
-        jobs, addJob, updateJob, deleteJob,
+        loading,
+        jobs, addJob, addMultipleJobs, updateJob, deleteJob, deleteMultipleJobs,
         quickLinks, addQuickLink, updateQuickLink, deleteQuickLink,
         posts, addPost, updatePost, deletePost,
         subscribers, addSubscriber, deleteSubscriber,
         adSettings, updateAdSettings,
-        contacts, addContact,
-        breakingNews, addNews, updateNews, deleteNews
+        contacts, addContact, deleteContact,
+        breakingNews, addNews, updateNews, deleteNews,
+        seoSettings, updateSEOSettings
     }}>
       {children}
     </DataContext.Provider>

@@ -1,94 +1,32 @@
 import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { ContentPost, PostType } from '../../types';
+import { ContentPost } from '../../types';
 import Icon from '../Icon';
 import Modal from '../Modal';
 import Pagination from './Pagination';
 import usePagination from '../../hooks/usePagination';
+import PostForm from './PostForm';
 
 const ITEMS_PER_PAGE = 10;
 
-const PostForm: React.FC<{ post?: ContentPost; onSave: (post: Omit<ContentPost, 'id'>, id?: string) => void; onCancel: () => void }> = ({ post, onSave, onCancel }) => {
-    const [formData, setFormData] = useState<Omit<ContentPost, 'id' | 'createdAt'>>(post ? { ...post } : {
-        title: '',
-        category: '',
-        content: '',
-        status: 'published',
-        type: 'posts',
-        publishedDate: new Date().toISOString().split('T')[0],
-        examDate: '',
-    });
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value as any }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { createdAt, ...saveData } = formData as any;
-        onSave(saveData, post?.id);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Post Title *</label>
-                <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Category *</label>
-                    <input type="text" name="category" value={formData.category} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-                </div>
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Post Type *</label>
-                    <select name="type" value={formData.type} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white" required>
-                        <option value="posts">General Post</option>
-                        <option value="exam-notices">Exam Notice</option>
-                        <option value="results">Result</option>
-                    </select>
-                </div>
-            </div>
-             <div>
-                <label className="block text-sm font-medium text-gray-700">Content *</label>
-                <textarea name="content" value={formData.content} onChange={handleChange} rows={8} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Published Date *</label>
-                    <input type="date" name="publishedDate" value={formData.publishedDate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Exam Date (if applicable)</label>
-                    <input type="date" name="examDate" value={formData.examDate || ''} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-                </div>
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Status *</label>
-                    <select name="status" value={formData.status} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white" required>
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
-                    </select>
-                </div>
-            </div>
-            <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
-                <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Save Post</button>
-            </div>
-        </form>
-    );
-};
+const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
+    <div className="text-center py-16 border-t">
+      <Icon name="file-alt" className="text-5xl text-gray-300 mb-4" />
+      <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
+      {buttonText && onButtonClick && (
+        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+          <Icon name="plus" /> {buttonText}
+        </button>
+      )}
+    </div>
+);
 
 const ContentPostManagement: React.FC = () => {
     const { posts, addPost, updatePost, deletePost } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<ContentPost | undefined>(undefined);
-    const [filterType, setFilterType] = useState<PostType | 'all'>('all');
 
-    const filteredPosts = posts.filter(p => filterType === 'all' || p.type === filterType);
+    const filteredPosts = posts.filter(p => p.type === 'posts');
     const sortedPosts = [...filteredPosts].sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
 
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedPosts, { itemsPerPage: ITEMS_PER_PAGE });
@@ -116,64 +54,64 @@ const ContentPostManagement: React.FC = () => {
             deletePost(postId);
         }
     };
-    
-    const getTypeLabel = (type: PostType) => {
-        switch(type) {
-            case 'posts': return 'General Post';
-            case 'exam-notices': return 'Exam Notice';
-            case 'results': return 'Result';
-            default: return 'Post';
-        }
-    };
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <h2 className="text-xl font-bold text-gray-700">Content Posts</h2>
+                <h2 className="text-xl font-bold text-gray-700">General Posts</h2>
                 <div className="flex items-center gap-4">
-                     <select onChange={(e) => setFilterType(e.target.value as any)} value={filterType} className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm">
-                        <option value="all">All Types</option>
-                        <option value="posts">General Posts</option>
-                        <option value="exam-notices">Exam Notices</option>
-                        <option value="results">Results</option>
-                    </select>
                     <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
                         <Icon name="plus" /> Add New Post
                     </button>
                 </div>
             </div>
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3">Title</th>
-                            <th className="px-6 py-3">Type</th>
-                            <th className="px-6 py-3">Published Date</th>
-                            <th className="px-6 py-3">Status</th>
-                            <th className="px-6 py-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginatedData.map(post => (
-                            <tr key={post.id} className="bg-white border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{post.title}</td>
-                                <td className="px-6 py-4">{getTypeLabel(post.type)}</td>
-                                <td className="px-6 py-4">{post.publishedDate}</td>
-                                <td className="px-6 py-4">
-                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{post.status}</span>
-                                </td>
-                                <td className="px-6 py-4 flex gap-4">
-                                    <button onClick={() => handleEdit(post)} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
-                                    <button onClick={() => handleDelete(post.id)} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
-                                </td>
+            {paginatedData.length > 0 ? (
+                <>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-gray-500 responsive-table">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3">Title</th>
+                                <th className="px-6 py-3">Category</th>
+                                <th className="px-6 py-3">Published Date</th>
+                                <th className="px-6 py-3">Status</th>
+                                <th className="px-6 py-3">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+                        </thead>
+                        <tbody>
+                            {paginatedData.map(post => (
+                                <tr key={post.id} className="bg-white hover:bg-gray-50 border-b">
+                                    <td data-label="Title" className="px-6 py-4 font-medium text-gray-900">{post.title}</td>
+                                    <td data-label="Category" className="px-6 py-4">{post.category}</td>
+                                    <td data-label="Published" className="px-6 py-4">{post.publishedDate}</td>
+                                    <td data-label="Status" className="px-6 py-4">
+                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{post.status}</span>
+                                    </td>
+                                    <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
+                                        <button onClick={() => handleEdit(post)} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
+                                        <button onClick={() => handleDelete(post.id)} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+                </>
+            ) : (
+                <EmptyState 
+                    message="No general posts found."
+                    buttonText="Add New Post"
+                    onButtonClick={() => { setEditingPost(undefined); setIsModalOpen(true); }}
+                />
+            )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingPost ? 'Edit Post' : 'Add New Post'}>
-                <PostForm post={editingPost} onSave={handleSave} onCancel={() => setIsModalOpen(false)} />
+                <PostForm 
+                    post={editingPost} 
+                    onSave={handleSave} 
+                    onCancel={() => setIsModalOpen(false)}
+                    defaultType="posts"
+                />
             </Modal>
         </div>
     );
