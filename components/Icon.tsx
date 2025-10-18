@@ -1,13 +1,13 @@
-
 import React from 'react';
 
 interface IconProps {
   name: string;
   className?: string;
+  prefix?: 'fas' | 'far' | 'fab'; // fas=solid, far=regular, fab=brands
 }
 
-const Icon: React.FC<IconProps> = ({ name, className }) => {
-  return <i className={`fas fa-${name} ${className || ''}`}></i>;
+const Icon: React.FC<IconProps> = ({ name, className, prefix = 'fas' }) => {
+  return <i className={`${prefix} fa-${name} ${className || ''}`}></i>;
 };
 
 export default Icon;

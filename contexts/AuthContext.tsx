@@ -8,14 +8,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// This must match the 'base' in vite.config.ts
+const basePath = '/Google-Portal';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Temporarily true for direct access
 
   const login = (user: string, pass: string) => {
     if (user === 'admin' && pass === 'sarkari2025') {
       setIsLoggedIn(true);
       // On successful login, redirect to the admin dashboard
-      window.history.pushState({}, '', '/admin');
+      window.history.pushState({}, '', `${basePath}/admin`);
       // Dispatch a popstate event to make the App component re-route
       window.dispatchEvent(new PopStateEvent('popstate'));
       return true;
@@ -26,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setIsLoggedIn(false);
     // On logout, redirect to the admin login page
-    window.location.pathname = '/admin';
+    window.location.href = `${basePath}/admin`;
   };
 
   return (

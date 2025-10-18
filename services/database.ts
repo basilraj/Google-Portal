@@ -1,101 +1,63 @@
-import { Job, QuickLink, ContentPost, Subscriber, AdSettings, ContactSubmission } from '../types';
-import { INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_CONTACTS } from '../constants';
+import { Job, Subscriber, QuickLink, ContentPost, BreakingNews, AdSettings, GeneralSettings } from '../types';
 
-const DB_KEYS = {
-    JOBS: 'sarkari_jobs',
-    LINKS: 'sarkari_links',
-    POSTS: 'sarkari_posts',
-    SUBSCRIBERS: 'sarkari_subscribers',
-    AD_SETTINGS: 'sarkari_ad_settings',
-    CONTACTS: 'sarkari_contacts',
+export const initialJobs: Job[] = [
+  {
+    id: '1',
+    title: 'SSC CGL 2025 Notification',
+    department: 'Staff Selection Commission',
+    postDate: '2025-10-25',
+    lastDate: '2025-11-24',
+    shortInfo: 'Recruitment for various Group B and Group C posts in different ministries/departments of the Government of India.',
+    content: '<h2>SSC CGL 2025: Important Dates</h2><ul><li>Application Begin : 25/10/2025</li><li>Last Date for Apply Online : 24/11/2025</li><li>Pay Exam Fee Last Date : 25/11/2025</li></ul><h2>Application Fee</h2><ul><li>General / OBC : 100/-</li><li>SC / ST / PH : 0/-</li><li>All Category Female : 0/-</li></ul>',
+    tags: ['SSC', 'Graduate', 'Government'],
+    importantLinks: [{ label: 'Apply Online', url: '#' }, { label: 'Download Notification', url: '#' }],
+    isFeatured: true,
+  },
+];
+
+export const initialSubscribers: Subscriber[] = [
+  { id: '1', email: 'test.user@example.com', subscriptionDate: '2025-10-20', status: 'active' },
+];
+
+export const initialQuickLinks: QuickLink[] = [
+  { id: '1', title: 'UPSC Civil Services Result 2024', url: '#', category: 'Result' },
+  { id: '2', title: 'RRB NTPC Admit Card', url: '#', category: 'Admit Card' },
+];
+
+export const initialContentPosts: ContentPost[] = [
+  {
+    id: '1',
+    title: 'How to Prepare for Government Exams',
+    content: '<p>Start by understanding the syllabus...</p>',
+    author: 'Admin',
+    publishDate: '2025-10-15',
+    category: 'Blog',
+    tags: ['Preparation', 'Tips'],
+  },
+];
+
+export const initialBreakingNews: BreakingNews[] = [
+  { id: '1', text: 'SSC CGL 2025 Notification Out! Last date to apply is 24/11/2025.', link: '#', isActive: true },
+];
+
+export const initialAdSettings: AdSettings = {
+  adsense: { enabled: false, publisherId: '' },
+  adsterra: { enabled: false, zoneId: '' },
+  customAds: { enabled: true, code: '<div style="width:100%;height:90px;background:#f0f0f0;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;">Custom Ad Area</div>' },
+  adFrequency: 'medium',
+  adStartTime: '00:00',
+  adEndTime: '23:59',
+  bannerAds: true,
+  squareAds: true,
+  skyscraperAds: false,
+  popupAds: false,
 };
 
-const initialAdSettings: AdSettings = {
-    adFrequency: 'medium',
-    adTypes: { banner: true, square: true, skyscraper: false, popup: false },
-    adScheduling: { start: '00:00', end: '23:59' }
-};
-
-// --- Generic Helper Functions ---
-function getItems<T>(key: string, initialData: T[]): T[] {
-    try {
-        const items = window.localStorage.getItem(key);
-        if (items) {
-            return JSON.parse(items);
-        } else {
-            window.localStorage.setItem(key, JSON.stringify(initialData));
-            return initialData;
-        }
-    } catch (error) {
-        console.error(`Error reading from localStorage key “${key}”:`, error);
-        return initialData;
-    }
-}
-
-function saveItems<T>(key: string, items: T[]) {
-    try {
-        window.localStorage.setItem(key, JSON.stringify(items));
-    } catch (error) {
-        console.error(`Error writing to localStorage key “${key}”:`, error);
-    }
-}
-
-function getObject<T>(key: string, initialData: T): T {
-     try {
-        const item = window.localStorage.getItem(key);
-        if (item) {
-            return JSON.parse(item);
-        } else {
-            window.localStorage.setItem(key, JSON.stringify(initialData));
-            return initialData;
-        }
-    } catch (error) {
-        console.error(`Error reading from localStorage key “${key}”:`, error);
-        return initialData;
-    }
-}
-
-function saveObject<T>(key: string, data: T) {
-     try {
-        window.localStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-        console.error(`Error writing to localStorage key “${key}”:`, error);
-    }
-}
-
-
-// --- Job Service ---
-export const jobService = {
-    getJobs: (): Job[] => getItems<Job>(DB_KEYS.JOBS, INITIAL_JOBS),
-    saveJobs: (jobs: Job[]) => saveItems<Job>(DB_KEYS.JOBS, jobs),
-};
-
-// --- QuickLink Service ---
-export const linkService = {
-    getLinks: (): QuickLink[] => getItems<QuickLink>(DB_KEYS.LINKS, INITIAL_QUICK_LINKS),
-    saveLinks: (links: QuickLink[]) => saveItems<QuickLink>(DB_KEYS.LINKS, links),
-};
-
-// --- ContentPost Service ---
-export const postService = {
-    getPosts: (): ContentPost[] => getItems<ContentPost>(DB_KEYS.POSTS, INITIAL_POSTS),
-    savePosts: (posts: ContentPost[]) => saveItems<ContentPost>(DB_KEYS.POSTS, posts),
-};
-
-// --- Subscriber Service ---
-export const subscriberService = {
-    getSubscribers: (): Subscriber[] => getItems<Subscriber>(DB_KEYS.SUBSCRIBERS, INITIAL_SUBSCRIBERS),
-    saveSubscribers: (subscribers: Subscriber[]) => saveItems<Subscriber>(DB_KEYS.SUBSCRIBERS, subscribers),
-};
-
-// --- Ad Settings Service ---
-export const adService = {
-    getSettings: (): AdSettings => getObject<AdSettings>(DB_KEYS.AD_SETTINGS, initialAdSettings),
-    saveSettings: (settings: AdSettings) => saveObject<AdSettings>(DB_KEYS.AD_SETTINGS, settings),
-};
-
-// --- Contact Service ---
-export const contactService = {
-    getContacts: (): ContactSubmission[] => getItems<ContactSubmission>(DB_KEYS.CONTACTS, INITIAL_CONTACTS),
-    saveContacts: (contacts: ContactSubmission[]) => saveItems<ContactSubmission>(DB_KEYS.CONTACTS, contacts),
+export const initialGeneralSettings: GeneralSettings = {
+  siteTitle: 'Divine Computer Job Portal',
+  siteDescription: 'Your Gateway to Government Jobs',
+  logoUrl: '',
+  faviconUrl: '',
+  contactEmail: 'contact@example.com',
+  footerText: '© 2025 Divine Computer Job Portal. All Rights Reserved.',
 };

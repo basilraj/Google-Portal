@@ -3,32 +3,41 @@ import { useAuth } from './contexts/AuthContext';
 import AdminPanel from './pages/AdminPanel';
 import PublicWebsite from './pages/PublicWebsite';
 import AdminLoginPage from './pages/AdminLoginPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import AboutUs from './pages/AboutUs';
+import Disclaimer from './pages/Disclaimer';
+import TermsAndConditions from './pages/TermsAndConditions';
 
 const App: React.FC = () => {
   const { isLoggedIn } = useAuth();
   
-  // Helper function to get the current route relative to the GitHub Pages base path
   const getRoute = () => {
-    const base = '/Google-Portal/'; // This must match vite.config.ts
+    const base = '/Google-Portal/'; 
     const path = window.location.pathname;
-    // Return the path without the base, but keep the leading slash (e.g., '/admin')
-    return path.startsWith(base) ? path.substring(base.length - 1) : path;
+    if (path.toLowerCase().startsWith(base.toLowerCase())) {
+      // Return path relative to base, including leading slash (e.g., '/admin', '/privacy')
+      return path.substring(base.length - 1);
+    }
+    // For root access, return '/'
+    return path === base ? '/' : path;
   }
 
   const [route, setRoute] = useState(getRoute());
 
+  const navigate = (path: string) => {
+    const base = '/Google-Portal';
+    window.history.pushState({}, '', `${base}${path}`);
+    setRoute(path);
+  }
+
   useEffect(() => {
-    // This effect runs only once on initial load to handle SPA redirects
     const redirectPath = sessionStorage.getItem('redirectPath');
     if (redirectPath) {
       sessionStorage.removeItem('redirectPath');
-      // Update the browser's URL to the path the user originally tried to visit
       window.history.replaceState(null, '', redirectPath);
-      // Update our component's state to render the correct page
       setRoute(getRoute());
     }
 
-    // This listener handles browser back/forward button clicks
     const handlePopState = () => {
       setRoute(getRoute());
     };
@@ -36,13 +45,24 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []); // Empty dependency array ensures this runs only once after mount
+  }, []);
 
   if (route.startsWith('/admin')) {
     return isLoggedIn ? <AdminPanel /> : <AdminLoginPage />;
   }
-  
-  return <PublicWebsite />;
+
+  switch (route) {
+    case '/privacy':
+      return <PrivacyPolicy navigate={navigate} />;
+    case '/about':
+      return <AboutUs navigate={navigate} />;
+    case '/disclaimer':
+      return <Disclaimer navigate={navigate} />;
+    case '/terms':
+      return <TermsAndConditions navigate={navigate} />;
+    default:
+      return <PublicWebsite navigate={navigate} />;
+  }
 };
 
 export default App;

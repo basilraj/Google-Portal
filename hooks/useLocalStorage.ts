@@ -1,10 +1,13 @@
 
+
 import { useState, useEffect } from 'react';
+import storage from '../utils/storage'; // Import the safe storage utility
 
 function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
-      const item = window.localStorage.getItem(key);
+      // Use the safe storage utility instead of window.localStorage
+      const item = storage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       console.error(error);
@@ -16,16 +19,18 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<Re
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      // Use the safe storage utility instead of window.localStorage
+      storage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
       console.error(error);
     }
   };
   
   useEffect(() => {
-    const item = window.localStorage.getItem(key);
+    // Use the safe storage utility instead of window.localStorage
+    const item = storage.getItem(key);
     if (!item) {
-        window.localStorage.setItem(key, JSON.stringify(initialValue));
+        storage.setItem(key, JSON.stringify(initialValue));
     }
   }, [key, initialValue]);
 
