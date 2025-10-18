@@ -8,5 +8,5 @@ export default defineConfig({
   // IMPORTANT: Replace REPO_NAME with the name of your GitHub repository.
   // For example, if your repository URL is https://github.com/your-user/my-job-portal,
   // set base to '/my-job-portal/'
-  base: '/REPO_NAME/',
+  base: '/Google-Portal/',
 })

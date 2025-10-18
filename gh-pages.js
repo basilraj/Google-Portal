@@ -2,7 +2,7 @@
 import ghpages from 'gh-pages';
 
 // IMPORTANT: Replace with your GitHub repository URL.
-const REPO_URL = 'https://github.com/USERNAME/REPO_NAME.git'; 
+const REPO_URL = 'https://github.com/basilraj/Google-Portal.git'; 
 
 console.log('Starting deployment to GitHub Pages...');
 
