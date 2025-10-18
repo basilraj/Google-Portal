@@ -1,46 +1,89 @@
-export interface Job {
-    id: string;
-    title: string;
-    department: string;
-    qualification: string;
-    lastDate: string; // ISO string for date
-    applyLink: string;
-    description: string;
-    status: 'active' | 'expired';
-    createdAt?: string; // ISO string for datetime
-}
+export type PostType = 'posts' | 'exam-notices' | 'results';
 
-export interface JobCategory {
-    id: string;
-    name: string;
+export interface Job {
+  id: string;
+  title: string;
+  department: string;
+  description: string;
+  qualification: string;
+  vacancies: string;
+  postedDate: string;
+  lastDate: string;
+  applyLink: string;
+  status: 'active' | 'closing-soon' | 'expired';
+  createdAt?: string;
 }
 
 export interface QuickLink {
-    id: string;
-    title: string;
-    url: string;
-    category: string;
-    description: string;
-    status: 'active' | 'inactive';
+  id: string;
+  title: string;
+  category: string;
+  url: string;
+  description: string;
+  status: 'active' | 'inactive';
+  createdAt?: string;
 }
 
 export interface ContentPost {
-    id: string;
-    title: string;
-    content: string;
-    category: string;
-    type: 'posts' | 'exam-notices' | 'results';
-    status: 'published' | 'draft';
-    publishedDate: string; // YYYY-MM-DD
-    examDate?: string; // YYYY-MM-DD
-    createdAt?: string; // ISO string for datetime
+  id: string;
+  title: string;
+  category: string;
+  content: string;
+  status: 'published' | 'draft';
+  type: PostType;
+  publishedDate: string;
+  createdAt?: string;
+  examDate?: string;
 }
 
 export interface Subscriber {
-    id: string;
-    email: string;
-    subscriptionDate: string; // YYYY-MM-DD
-    status: 'active' | 'unsubscribed';
+  id: string;
+  email: string;
+  subscriptionDate: string;
+  status: 'active';
+}
+
+export interface AdSettings {
+  // Display Settings
+  adFrequency: 'low' | 'medium' | 'high';
+  bannerAds: boolean;
+  squareAds: boolean;
+  skyscraperAds: boolean;
+  popupAds: boolean;
+  adStartTime: string;
+  adEndTime: string;
+
+  // Network Configurations
+  adsense: {
+    enabled: boolean;
+    publisherId: string;
+  };
+  adsterra: {
+    enabled: boolean;
+    zoneId: string;
+  };
+  customAds: {
+    enabled: boolean;
+    code: string;
+  };
+  
+  // Kept for backward compatibility if needed, but new implementation focuses on networks
+  headerAdCode: string;
+  sidebarAdCode: string;
+  footerAdCode: string;
+  headerAdEnabled: boolean;
+  sidebarAdEnabled: boolean;
+  footerAdEnabled: boolean;
+}
+
+
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  submittedAt: string;
 }
 
 export interface BreakingNews {
@@ -48,26 +91,4 @@ export interface BreakingNews {
     text: string;
     link: string;
     status: 'active' | 'inactive';
-}
-
-export interface AdSettings {
-    adsense: {
-        enabled: boolean;
-        publisherId: string;
-    };
-    adsterra: {
-        enabled: boolean;
-        zoneId: string;
-    };
-    customAds: {
-        enabled: boolean;
-        code: string;
-    };
-    adFrequency: 'low' | 'medium' | 'high';
-    adStartTime: string; // HH:mm
-    adEndTime: string; // HH:mm
-    bannerAds: boolean;
-    squareAds: boolean;
-    skyscraperAds: boolean;
-    popupAds: boolean;
 }

@@ -3,89 +3,81 @@ import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
 import Dashboard from '../components/admin/Dashboard';
 import JobManagement from '../components/admin/JobManagement';
-import JobCategoryManagement from '../components/admin/JobCategoryManagement';
 import QuickLinkManagement from '../components/admin/QuickLinkManagement';
 import ContentPostManagement from '../components/admin/ContentPostManagement';
 import SubscriberManagement from '../components/admin/SubscriberManagement';
 import AdManagement from '../components/admin/AdManagement';
 import BreakingNewsManagement from '../components/admin/BreakingNewsManagement';
 
-type AdminSection = 'dashboard' | 'jobs' | 'categories' | 'quick-links' | 'posts' | 'subscribers' | 'ads' | 'breaking-news';
+type AdminTab = 'dashboard' | 'jobs' | 'links' | 'posts' | 'subscribers' | 'ads' | 'news';
 
 const AdminPanel: React.FC = () => {
     const { logout } = useAuth();
-    const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
+    const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
 
-    const menuItems: { id: AdminSection; name: string; icon: string }[] = [
+    const menuItems: { id: AdminTab; name: string; icon: string }[] = [
         { id: 'dashboard', name: 'Dashboard', icon: 'tachometer-alt' },
-        { id: 'jobs', name: 'Jobs', icon: 'briefcase' },
-        { id: 'categories', name: 'Job Categories', icon: 'tags' },
-        { id: 'quick-links', name: 'Quick Links', icon: 'link' },
+        { id: 'jobs', name: 'Job Management', icon: 'briefcase' },
+        { id: 'links', name: 'Quick Links', icon: 'link' },
         { id: 'posts', name: 'Content Posts', icon: 'file-alt' },
+        { id: 'news', name: 'Breaking News', icon: 'newspaper' },
         { id: 'subscribers', name: 'Subscribers', icon: 'users' },
-        { id: 'breaking-news', name: 'Breaking News', icon: 'newspaper' },
         { id: 'ads', name: 'Ad Management', icon: 'ad' },
     ];
 
-    const renderSection = () => {
-        switch (activeSection) {
+    const renderContent = () => {
+        switch (activeTab) {
             case 'dashboard': return <Dashboard />;
             case 'jobs': return <JobManagement />;
-            case 'categories': return <JobCategoryManagement />;
-            case 'quick-links': return <QuickLinkManagement />;
+            case 'links': return <QuickLinkManagement />;
             case 'posts': return <ContentPostManagement />;
+            case 'news': return <BreakingNewsManagement />;
             case 'subscribers': return <SubscriberManagement />;
-            case 'breaking-news': return <BreakingNewsManagement />;
             case 'ads': return <AdManagement />;
             default: return <Dashboard />;
         }
     };
-
+    
     return (
-        <div className="flex min-h-screen bg-gray-100 font-sans">
-            {/* Sidebar */}
-            <aside className="w-64 bg-[#1e3c72] text-white flex flex-col">
-                <div className="p-4 border-b border-blue-800 text-center">
-                    <h1 className="text-2xl font-bold">Admin Panel</h1>
-                    <p className="text-sm text-blue-200">Sarkari Result</p>
+        <div className="flex min-h-screen bg-gray-100">
+            <aside className="w-64 bg-gradient-to-b from-[#1e3c72] to-[#2a5298] text-white flex flex-col fixed h-full">
+                <div className="p-4 border-b border-white/20">
+                    <h2 className="text-2xl font-bold">SarkariNaukri</h2>
+                    <p className="text-sm opacity-80">Admin Panel</p>
                 </div>
-                <nav className="flex-grow p-2">
-                    <ul className="space-y-1">
+                <nav className="flex-grow mt-4">
+                    <ul>
                         {menuItems.map(item => (
-                            <li key={item.id}>
-                                <button
-                                    onClick={() => setActiveSection(item.id)}
-                                    className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                                        activeSection === item.id ? 'bg-blue-800' : 'hover:bg-blue-700'
-                                    }`}
-                                >
-                                    <Icon name={item.icon} className="w-5" />
-                                    <span>{item.name}</span>
-                                </button>
+                             <li key={item.id}>
+                                <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab(item.id); }}
+                                   className={`flex items-center px-4 py-3 transition-colors duration-200 border-l-4 ${activeTab === item.id ? 'bg-white/10 border-red-500' : 'border-transparent hover:bg-white/10'}`}>
+                                    <Icon name={item.icon} className="w-6" />
+                                    <span className="ml-3">{item.name}</span>
+                                </a>
                             </li>
                         ))}
+                         <li>
+                            <a href="#" onClick={logout} className="flex items-center px-4 py-3 mt-4 border-l-4 border-transparent hover:bg-white/10">
+                                <Icon name="sign-out-alt" className="w-6" />
+                                <span className="ml-3">Logout</span>
+                            </a>
+                        </li>
                     </ul>
                 </nav>
-                <div className="p-4 border-t border-blue-800">
-                    <button
-                        onClick={logout}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium bg-red-600 hover:bg-red-700 transition-colors"
-                    >
-                        <Icon name="sign-out-alt" />
-                        <span>Logout</span>
-                    </button>
-                </div>
             </aside>
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col">
-                <header className="bg-white shadow-sm p-4">
-                    <h2 className="text-2xl font-bold text-gray-800 capitalize">{activeSection.replace('-', ' ')}</h2>
+            <main className="flex-1 ml-64 p-6">
+                <header className="bg-white p-4 rounded-lg shadow-sm mb-6 flex justify-between items-center">
+                    <h1 className="text-2xl font-bold text-[#1e3c72] capitalize">{activeTab.replace('-', ' ')}</h1>
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">AD</div>
+                        <div>
+                            <div className="font-semibold">Admin User</div>
+                            <small className="text-gray-500">Administrator</small>
+                        </div>
+                    </div>
                 </header>
-                <main className="flex-1 p-6 overflow-y-auto">
-                    {renderSection()}
-                </main>
-            </div>
+                {renderContent()}
+            </main>
         </div>
     );
 };

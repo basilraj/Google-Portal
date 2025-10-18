@@ -1,83 +1,86 @@
-import { Job, JobCategory, QuickLink, ContentPost, Subscriber, AdSettings, BreakingNews } from './types';
-
-export const INITIAL_JOB_CATEGORIES: JobCategory[] = [
-    { id: '1', name: 'Latest Jobs' },
-    { id: '2', name: 'Admit Card' },
-    { id: '3', name: 'Results' },
-];
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews } from './types';
 
 export const INITIAL_JOBS: Job[] = [
     {
-        id: 'job1',
-        title: 'SSC CGL 2024 Notification',
-        department: 'Latest Jobs',
-        qualification: 'Bachelor Degree in Any Stream',
-        lastDate: '2024-07-24',
+        id: '1',
+        title: 'Railway Recruitment Board - Assistant Loco Pilot',
+        department: 'Railways',
+        description: 'Assistant Loco Pilot position in Indian Railways. Great opportunity for ITI and 10+2 passed candidates.',
+        qualification: '12th Pass',
+        vacancies: '5,696',
+        postedDate: '2025-10-10',
+        lastDate: '2025-11-15',
         applyLink: '#',
-        description: 'Staff Selection Commission Combined Graduate Level Examination 2024.',
         status: 'active',
-        createdAt: new Date().toISOString(),
+        createdAt: '2025-10-10T10:00:00Z',
     },
     {
-        id: 'job2',
-        title: 'UPSC Civil Services IAS/IFS Admit Card 2024',
-        department: 'Admit Card',
-        qualification: 'Bachelor Degree in Any Stream',
-        lastDate: '2024-06-16',
+        id: '2',
+        title: 'SSC CHSL - Combined Higher Secondary Level',
+        department: 'SSC',
+        description: 'Combined Higher Secondary Level Examination for various government posts.',
+        qualification: '12th Pass',
+        vacancies: '3,712',
+        postedDate: '2025-10-08',
+        lastDate: '2025-11-20',
         applyLink: '#',
-        description: 'Union Public Service Commission Pre Exam Admit Card for IAS / IFS Recruitment 2024.',
         status: 'active',
-        createdAt: new Date().toISOString(),
+        createdAt: '2025-10-08T11:00:00Z',
     },
     {
-        id: 'job3',
-        title: 'NTA NEET UG 2024 Result',
-        department: 'Results',
-        qualification: '10+2 with PCB',
-        lastDate: '2024-05-30',
+        id: '3',
+        title: 'UPSC Civil Services Examination 2026',
+        department: 'UPSC',
+        description: 'Prestigious Civil Services Examination for IAS, IPS, IFS and other central services.',
+        qualification: 'Graduate',
+        vacancies: '1,056',
+        postedDate: '2025-09-25',
+        lastDate: '2025-10-18',
         applyLink: '#',
-        description: 'National Testing Agency has declared the result for NEET UG 2024.',
+        status: 'closing-soon',
+        createdAt: '2025-09-25T09:00:00Z',
+    },
+     {
+        id: '4',
+        title: 'Banking Personnel Selection - Probationary Officer',
+        department: 'Banking',
+        description: 'IBPS PO recruitment for various public sector banks.',
+        qualification: 'Graduate',
+        vacancies: '4,500',
+        postedDate: '2025-10-05',
+        lastDate: '2025-11-10',
+        applyLink: '#',
         status: 'active',
-        createdAt: new Date().toISOString(),
+        createdAt: '2025-10-05T12:00:00Z',
     }
 ];
 
 export const INITIAL_QUICK_LINKS: QuickLink[] = [
-    { id: 'ql1', title: 'Check PAN-Aadhaar Link Status', url: '#', category: 'General', description: '', status: 'active' },
-    { id: 'ql2', title: 'Pay Examination Fee Online', url: '#', category: 'General', description: '', status: 'active' },
+    { id: '1', title: 'Banking Jobs', category: 'Category', url: '#', description: '', status: 'active' },
+    { id: '2', title: 'Railway Jobs', category: 'Category', url: '#', description: '', status: 'active' },
+    { id: '3', title: 'SSC Jobs', category: 'Category', url: '#', description: '', status: 'active' },
+    { id: '4', title: 'Defence Jobs', category: 'Category', url: '#', description: '', status: 'active' },
 ];
 
 export const INITIAL_POSTS: ContentPost[] = [
-    {
-        id: 'post1',
-        title: 'How to Prepare for SSC CGL in 3 Months',
-        content: 'A comprehensive guide on cracking the SSC CGL exam with a 3-month preparation strategy.',
-        category: 'Preparation Tips',
-        type: 'posts',
-        status: 'published',
-        publishedDate: '2024-05-10',
-        createdAt: new Date().toISOString(),
-    }
+    { id: '1', title: 'How to Prepare for SSC CGL 2025', category: 'Preparation Tips', content: '... content ...', status: 'published', type: 'posts', publishedDate: '2025-10-12', createdAt: '2025-10-12T14:00:00Z' },
+    { id: '2', title: 'Top 10 Government Jobs for Graduates', category: 'Career Guidance', content: '... content ...', status: 'published', type: 'posts', publishedDate: '2025-10-10', createdAt: '2025-10-10T15:00:00Z' },
+    { id: '3', title: 'Banking Exams Pattern Changes 2025', category: 'Exam Updates', content: '... content ...', status: 'draft', type: 'posts', publishedDate: '2025-10-08' },
+    { id: '4', title: 'SSC CGL Tier-II Admit Card', category: 'Admit Card', content: '...', status: 'published', type: 'exam-notices', publishedDate: '2025-10-12', examDate: '2025-10-25' },
+    { id: '5', title: 'IBPS PO Prelims 2025', category: 'Admit Card', content: '...', status: 'published', type: 'exam-notices', publishedDate: '2025-10-10', examDate: '2025-11-05' },
+    { id: '6', title: 'SSC MTS Result 2025', category: 'Results', content: '...', status: 'published', type: 'results', publishedDate: '2025-10-13', examDate: '2025-08-15' },
+    { id: '7', title: 'Railway Group D Result 2025', category: 'Results', content: '...', status: 'published', type: 'results', publishedDate: '2025-10-11', examDate: '2025-09-20' },
 ];
 
 export const INITIAL_SUBSCRIBERS: Subscriber[] = [
-    { id: 'sub1', email: 'testuser@example.com', subscriptionDate: '2024-01-15', status: 'active' },
+    { id: '1', email: 'subscriber1@example.com', subscriptionDate: '2025-10-01', status: 'active' },
+    { id: '2', email: 'subscriber2@example.com', subscriptionDate: '2025-10-02', status: 'active' },
 ];
+
+export const INITIAL_CONTACTS: ContactSubmission[] = [];
 
 export const INITIAL_BREAKING_NEWS: BreakingNews[] = [
-    { id: 'news1', text: 'UPSSSC PET 2024 Online Form Starting Soon.', link: '#', status: 'active' },
-    { id: 'news2', text: 'Railway RPF Constable / SI Exam Date Declared.', link: '#', status: 'active' },
+    { id: '1', text: 'SSC CGL 2025 Notification Released. Last date to apply is Nov 20, 2025.', link: '#', status: 'active' },
+    { id: '2', text: 'Railway NTPC Final Result has been declared. Check your result now.', link: '#', status: 'active' },
+    { id: '3', text: 'UPSC Civil Services 2026 Prelims Exam Date Announced.', link: '#', status: 'active' },
 ];
-
-export const INITIAL_AD_SETTINGS: AdSettings = {
-    adsense: { enabled: false, publisherId: '' },
-    adsterra: { enabled: false, zoneId: '' },
-    customAds: { enabled: false, code: '' },
-    adFrequency: 'medium',
-    adStartTime: '00:00',
-    adEndTime: '23:59',
-    bannerAds: true,
-    squareAds: true,
-    skyscraperAds: false,
-    popupAds: false,
-};

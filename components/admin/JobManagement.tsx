@@ -8,26 +8,29 @@ import usePagination from '../../hooks/usePagination';
 
 const ITEMS_PER_PAGE = 10;
 
-const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string) => void; onCancel: () => void }> = ({ job, onSave, onCancel }) => {
-    const { jobCategories } = useData();
+const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id'>, id?: string) => void; onCancel: () => void }> = ({ job, onSave, onCancel }) => {
     const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(job ? { ...job } : {
         title: '',
-        department: jobCategories[0]?.name || '',
-        qualification: '',
-        lastDate: new Date().toISOString().split('T')[0],
-        applyLink: '',
+        department: '',
         description: '',
-        status: 'active'
+        qualification: '',
+        vacancies: '',
+        postedDate: new Date().toISOString().split('T')[0],
+        lastDate: '',
+        applyLink: '',
+        status: 'active',
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value as any }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData, job?.id);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { createdAt, ...saveData } = formData as any;
+        onSave(saveData, job?.id);
     };
 
     return (
@@ -37,35 +40,44 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
                 <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Department/Category *</label>
-                    <select name="department" value={formData.department} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white" required>
-                        {jobCategories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-                    </select>
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700">Department *</label>
+                    <input type="text" name="department" value={formData.department} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
                 </div>
-                <div>
+                 <div>
                     <label className="block text-sm font-medium text-gray-700">Qualification *</label>
                     <input type="text" name="qualification" value={formData.qualification} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+                <label className="block text-sm font-medium text-gray-700">Description *</label>
+                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700">Number of Vacancies *</label>
+                    <input type="text" name="vacancies" value={formData.vacancies} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Apply Link *</label>
+                    <input type="url" name="applyLink" value={formData.applyLink} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                </div>
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Posted Date *</label>
+                    <input type="date" name="postedDate" value={formData.postedDate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Last Date to Apply *</label>
                     <input type="date" name="lastDate" value={formData.lastDate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Application Link *</label>
-                    <input type="url" name="applyLink" value={formData.applyLink} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-                </div>
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-            </div>
-             <div>
                 <label className="block text-sm font-medium text-gray-700">Status *</label>
                 <select name="status" value={formData.status} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white" required>
                     <option value="active">Active</option>
+                    <option value="closing-soon">Closing Soon</option>
                     <option value="expired">Expired</option>
                 </select>
             </div>
@@ -81,18 +93,27 @@ const JobManagement: React.FC = () => {
     const { jobs, addJob, updateJob, deleteJob } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingJob, setEditingJob] = useState<Job | undefined>(undefined);
+    const [statusFilter, setStatusFilter] = useState<'all' | Job['status']>('all');
 
-    const sortedJobs = useMemo(() =>
+
+    const sortedJobs = useMemo(() => 
         [...jobs].sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()),
     [jobs]);
+    
+    const filteredJobs = useMemo(() => {
+        if (statusFilter === 'all') {
+            return sortedJobs;
+        }
+        return sortedJobs.filter(job => job.status === statusFilter);
+    }, [sortedJobs, statusFilter]);
+    
+    const { currentPage, totalPages, paginatedData, goToPage } = usePagination(filteredJobs, { itemsPerPage: ITEMS_PER_PAGE });
 
-    const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedJobs, { itemsPerPage: ITEMS_PER_PAGE });
-
-    const handleSave = (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string) => {
+    const handleSave = (jobData: Omit<Job, 'id'>, id?: string) => {
         if (id) {
             const originalJob = jobs.find(j => j.id === id);
             if (originalJob) {
-                updateJob({ ...originalJob, ...jobData, id });
+                 updateJob({ ...originalJob, ...jobData, id });
             }
         } else {
             addJob(jobData);
@@ -107,18 +128,30 @@ const JobManagement: React.FC = () => {
     };
 
     const handleDelete = (jobId: string) => {
-        if (window.confirm('Are you sure you want to delete this job posting?')) {
+        if (window.confirm('Are you sure you want to delete this job?')) {
             deleteJob(jobId);
         }
     };
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-700">Job Postings</h2>
-                <button onClick={() => { setEditingJob(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
-                    <Icon name="plus" /> Add New Job
-                </button>
+            <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+                <h2 className="text-xl font-bold text-gray-700">Job Listings</h2>
+                <div className="flex items-center gap-4">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                        className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                    >
+                        <option value="all">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="closing-soon">Closing Soon</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                    <button onClick={() => { setEditingJob(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                        <Icon name="plus" /> Add New Job
+                    </button>
+                </div>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left text-gray-500">
@@ -136,9 +169,9 @@ const JobManagement: React.FC = () => {
                             <tr key={job.id} className="bg-white border-b hover:bg-gray-50">
                                 <td className="px-6 py-4 font-medium text-gray-900">{job.title}</td>
                                 <td className="px-6 py-4">{job.department}</td>
-                                <td className="px-6 py-4">{new Date(job.lastDate).toLocaleDateString()}</td>
+                                <td className="px-6 py-4">{job.lastDate}</td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{job.status}</span>
+                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === 'active' ? 'bg-green-100 text-green-800' : job.status === 'closing-soon' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{job.status}</span>
                                 </td>
                                 <td className="px-6 py-4 flex gap-4">
                                     <button onClick={() => handleEdit(job)} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
