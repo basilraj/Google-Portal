@@ -1,10 +1,17 @@
+
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { EmailNotification } from '../../types';
-import Icon from '../Icon';
-import Modal from '../Modal';
-import Pagination from './Pagination';
-import usePagination from '../../hooks/usePagination';
+// Fix: Add .tsx extension to local module import.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module import.
+import { EmailNotification } from '../../types.ts';
+// Fix: Add .tsx extension to local module import.
+import Icon from '../Icon.tsx';
+// Fix: Add .tsx extension to local module import.
+import Modal from '../Modal.tsx';
+// Fix: Add .tsx extension to local module import.
+import Pagination from './Pagination.tsx';
+// Fix: Add .ts extension to local module import.
+import usePagination from '../../hooks/usePagination.ts';
 
 const ITEMS_PER_PAGE = 10;
 

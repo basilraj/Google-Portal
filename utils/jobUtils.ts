@@ -1,5 +1,7 @@
 
-import { Job, JobStatus } from '../types';
+
+// Fix: Add .ts extension to local module import.
+import { Job, JobStatus } from '../types.ts';
 
 /**
  * Determines the effective status of a job.

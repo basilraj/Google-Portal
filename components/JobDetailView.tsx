@@ -34,9 +34,9 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
       <div className="flex flex-wrap justify-between items-center mt-8 pt-6 border-t">
         <div className="flex items-center gap-3 text-gray-500 mb-4 sm:mb-0">
           <span className="text-sm font-semibold">Share this job:</span>
-          <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-xl" /></a>
-          <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors"><Icon prefix="fab" name="whatsapp" className="text-xl" /></a>
-          <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors"><Icon prefix="fab" name="telegram-plane" className="text-xl" /></a>
+          <a href={facebookShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-xl" /></a>
+          <a href={whatsappShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors"><Icon prefix="fab" name="whatsapp" className="text-xl" /></a>
+          <a href={telegramShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors"><Icon prefix="fab" name="telegram-plane" className="text-xl" /></a>
         </div>
         <a href={job.applyLink} target="_blank" rel="nofollow noopener noreferrer" className="font-bold py-3 px-6 rounded-md bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90">
           Apply Now

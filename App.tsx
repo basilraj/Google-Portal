@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useAuth } from './contexts/AuthContext.tsx';
@@ -15,6 +16,7 @@ import Disclaimer from './pages/Disclaimer.tsx';
 import TermsAndConditions from './pages/TermsAndConditions.tsx';
 import BlogPage from './pages/BlogPage.tsx';
 import JobDetailPage from './pages/JobDetailPage.tsx';
+// Fix: Add .tsx extension to import to fix module resolution error.
 import BlogDetailPage from './pages/BlogDetailPage.tsx';
 import TelegramFAB from './components/TelegramFAB.tsx';
 

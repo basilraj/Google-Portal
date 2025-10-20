@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { useData } from '../contexts/DataContext';
-import Icon from './Icon';
+import { useData } from '../contexts/DataContext.tsx';
+import Icon from './Icon.tsx';
 
 const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { posts, socialMediaSettings } = useData();

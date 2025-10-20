@@ -1,22 +1,23 @@
-
 import React, { useEffect } from 'react';
-import { useData } from '../contexts/DataContext';
-import Icon from '../components/Icon';
-import PublicFooter from '../components/PublicFooter';
-import { basePath } from '../App';
-import PublicHeader from '../components/PublicHeader';
+import { useData } from '../contexts/DataContext.tsx';
+import Icon from '../components/Icon.tsx';
+import PublicFooter from '../components/PublicFooter.tsx';
+import PublicHeader from '../components/PublicHeader.tsx';
+import { basePath } from '../App.tsx';
 
 const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => void }> = ({ postId, navigate }) => {
     const { posts, seoSettings, generalSettings } = useData();
-    const post = posts.find(p => p.id === postId);
+    const post = posts.find(p => p.id === postId && p.type === 'posts');
     const canonicalUrl = `${window.location.origin}${basePath}/blog/${postId}`.replace(/([^:]\/)\/+/g, "$1");
 
     useEffect(() => {
         document.querySelectorAll('[data-seo-managed]').forEach(el => el.remove());
 
         if (post) {
-            document.title = `${post.title} | ${seoSettings.global.siteTitle}`;
-            const metaDescription = post.content.substring(0, 155).replace(/\s+/g, ' ').trim() + '...';
+            const seoTitle = post.seoTitle || post.title;
+            const seoDescription = post.seoDescription || post.content.substring(0, 160) + (post.content.length > 160 ? '...' : '');
+
+            document.title = `${seoTitle} | ${seoSettings.global.siteTitle}`;
 
             const head = document.head;
             const createMeta = (attrs: { [key: string]: string }) => {
@@ -32,48 +33,50 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
                 head.appendChild(link);
             };
 
-            // Standard Meta
-            createMeta({ name: 'description', content: metaDescription });
-            
-            // Open Graph
-            createMeta({ property: 'og:title', content: post.title });
-            createMeta({ property: 'og:description', content: metaDescription });
+            // Standard & Social Meta
+            createMeta({ name: 'description', content: seoDescription });
+            createMeta({ property: 'og:title', content: seoTitle });
+            createMeta({ property: 'og:description', content: seoDescription });
             createMeta({ property: 'og:url', content: canonicalUrl });
             createMeta({ property: 'og:type', content: 'article' });
             createMeta({ property: 'og:site_name', content: generalSettings.siteTitle });
-            if (post.imageUrl) createMeta({ property: 'og:image', content: post.imageUrl });
-
-            // Twitter Card
-            createMeta({ name: 'twitter:card', content: post.imageUrl ? 'summary_large_image' : 'summary' });
-            createMeta({ name: 'twitter:title', content: post.title });
-            createMeta({ name: 'twitter:description', content: metaDescription });
-            if (post.imageUrl) createMeta({ name: 'twitter:image', content: post.imageUrl });
+            if (post.imageUrl || seoSettings.social.ogImageUrl) {
+                createMeta({ property: 'og:image', content: post.imageUrl || seoSettings.social.ogImageUrl });
+            }
+            createMeta({ name: 'twitter:card', content: 'summary_large_image' });
+            createMeta({ name: 'twitter:title', content: seoTitle });
+            createMeta({ name: 'twitter:description', content: seoDescription });
+             if (post.imageUrl || seoSettings.social.ogImageUrl) {
+                createMeta({ name: 'twitter:image', content: post.imageUrl || seoSettings.social.ogImageUrl });
+            }
 
             // Canonical URL
             createLink({ rel: 'canonical', href: canonicalUrl });
-
+            
             // Structured Data
             const articleSchema = {
-                "@context": "https://schema.org",
-                "@type": "BlogPosting",
+                 "@context": "https://schema.org",
+                "@type": "Article",
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": canonicalUrl
+                },
                 "headline": post.title,
-                "description": metaDescription,
-                "image": post.imageUrl || '',
-                "datePublished": post.publishedDate,
-                "dateModified": post.publishedDate,
-                "author": { "@type": "Organization", "name": "Jobtica" },
+                "description": seoDescription,
+                "image": post.imageUrl || seoSettings.social.ogImageUrl,
+                "author": {
+                    "@type": "Organization",
+                    "name": generalSettings.siteTitle
+                },
                 "publisher": {
                     "@type": "Organization",
-                    "name": "Jobtica",
+                    "name": generalSettings.siteTitle,
                     "logo": {
                         "@type": "ImageObject",
                         "url": generalSettings.siteIconUrl
                     }
                 },
-                 "mainEntityOfPage": {
-                    "@type": "WebPage",
-                    "@id": canonicalUrl
-                }
+                "datePublished": post.publishedDate
             };
             
             const breadcrumbSchema = {
@@ -105,14 +108,11 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
         } else {
             document.title = `Post Not Found | ${seoSettings.global.siteTitle}`;
         }
-
-        window.scrollTo(0, 0);
         
         return () => {
             document.querySelectorAll('[data-seo-managed]').forEach(el => el.remove());
         };
-    }, [post, seoSettings, generalSettings, canonicalUrl]);
-
+    }, [post, seoSettings, generalSettings, postId, canonicalUrl]);
 
     if (!post) {
         return (
@@ -120,7 +120,7 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
                 <PublicHeader navigate={navigate} />
                 <main className="flex-grow container mx-auto px-4 py-12">
                     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto text-center">
-                        <Icon name="file-alt" className="text-5xl text-red-400 mb-4" />
+                        <Icon name="exclamation-circle" className="text-5xl text-red-400 mb-4" />
                         <h1 className="text-3xl font-bold text-[#1e3c72] mb-6">Post Not Found</h1>
                         <p className="text-gray-600 mb-6">The blog post you are looking for does not exist or may have been removed.</p>
                         <button onClick={() => navigate('/blog')} className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
@@ -132,11 +132,6 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
             </div>
         );
     }
-    
-    const postUrl = `${window.location.origin}${basePath}/blog/${post.id}`.replace(/([^:]\/)\/+/g, "$1");
-    const shareTitle = `Read on our blog: ${post.title}`;
-    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}&quote=${encodeURIComponent(shareTitle)}`;
-    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + postUrl)}`;
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
@@ -144,54 +139,29 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
              <nav aria-label="Breadcrumb" className="bg-gray-100 border-b">
                 <div className="container mx-auto px-4">
                     <ol className="flex items-center space-x-2 text-sm text-gray-500 py-3">
-                        <li>
-                            <a href={`${basePath}/`} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-indigo-600 flex items-center gap-2">
-                               <Icon name="home" /> Home
-                            </a>
-                        </li>
-                        <li>
-                            <Icon name="chevron-right" className="text-xs" />
-                        </li>
-                        <li>
-                            <a href={`${basePath}/blog`} onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:text-indigo-600">
-                                Blog
-                            </a>
-                        </li>
-                         <li>
-                            <Icon name="chevron-right" className="text-xs" />
-                        </li>
-                        <li className="font-semibold text-gray-700 truncate" aria-current="page">
-                            {post.title}
-                        </li>
+                        <li><a href={`${basePath}/`} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-indigo-600">Home</a></li>
+                        <li><Icon name="chevron-right" className="text-xs" /></li>
+                        <li><a href={`${basePath}/blog`} onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:text-indigo-600">Blog</a></li>
+                        <li><Icon name="chevron-right" className="text-xs" /></li>
+                        <li className="font-semibold text-gray-700 truncate" aria-current="page">{post.title}</li>
                     </ol>
                 </div>
             </nav>
             <main className="flex-grow container mx-auto px-4 py-12">
-                <article className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+                 <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
                     {post.imageUrl && (
-                        <img src={post.imageUrl} alt={post.title} loading="lazy" className="w-full aspect-video object-cover rounded-lg mb-6" />
+                        <img src={post.imageUrl} alt={post.title} className="w-full h-auto max-h-96 object-cover rounded-lg mb-6" loading="lazy" />
                     )}
-                    <h1 className="text-4xl font-bold text-[#1e3c72] mb-4">{post.title}</h1>
-                    <div className="text-sm text-gray-600 mb-6 border-b pb-4 flex flex-wrap gap-x-6 gap-y-2">
+                    <h1 className="text-3xl font-bold text-[#1e3c72] mb-4">{post.title}</h1>
+                    <div className="text-sm text-gray-600 mb-6 border-b pb-4">
                         <span><Icon name="calendar-alt" className="mr-2 text-gray-400" />Published on {post.publishedDate}</span>
-                        <span><Icon name="tag" className="mr-2 text-gray-400" />{post.category}</span>
+                        <span className="ml-4"><Icon name="tag" className="mr-2 text-gray-400" />{post.category}</span>
                     </div>
 
                     <div className="static-content">
                         <p className="whitespace-pre-wrap">{post.content}</p>
                     </div>
-
-                    <div className="flex flex-wrap justify-between items-center mt-8 pt-6 border-t">
-                        <div className="flex items-center gap-3 text-gray-500 mb-4 sm:mb-0">
-                            <span className="text-sm font-semibold">Share this post:</span>
-                            <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-xl" /></a>
-                            <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors"><Icon prefix="fab" name="whatsapp" className="text-xl" /></a>
-                        </div>
-                         <button onClick={() => navigate('/blog')} className="font-semibold py-3 px-6 rounded-md bg-gray-200 text-gray-800 hover:bg-gray-300">
-                            &larr; Back to Blog
-                        </button>
-                    </div>
-                </article>
+                </div>
             </main>
             <PublicFooter navigate={navigate} />
         </div>

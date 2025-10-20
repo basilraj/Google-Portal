@@ -58,7 +58,7 @@ const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => voi
                 "@context": "https://schema.org",
                 "@type": "JobPosting",
                 "title": job.title,
-                "description": `<p>${job.description.replace(/\n/g, ' ')}</p>`,
+                "description": job.description,
                 "identifier": {
                     "@type": "PropertyValue",
                     "name": generalSettings.siteTitle,

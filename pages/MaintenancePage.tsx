@@ -1,7 +1,9 @@
 
 import React, { useEffect } from 'react';
-import { useData } from '../contexts/DataContext';
-import Icon from '../components/Icon';
+// Fix: Add .tsx extension to local module import.
+import { useData } from '../contexts/DataContext.tsx';
+// Fix: Add .tsx extension to local module import.
+import Icon from '../components/Icon.tsx';
 
 const MaintenancePage: React.FC = () => {
     const { generalSettings, seoSettings } = useData();

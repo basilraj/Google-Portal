@@ -7,11 +7,28 @@ import PublicHeader from '../components/PublicHeader.tsx';
 import PublicFooter from '../components/PublicFooter.tsx';
 import { slugify } from '../utils/slugify.ts';
 
-const AdComponent: React.FC<{ code: string }> = ({ code }) => (
-    <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />
-);
+const AdComponent: React.FC<{ code: string; placement: 'header' | 'sidebar' | 'footer' }> = ({ code, placement }) => {
+    const isPlaceholder = code.trim().startsWith('<!--') && code.trim().endsWith('-->');
 
-const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = ({ job, onView }) => (
+    if (isPlaceholder) {
+        const dimensions = {
+            header: { width: '728px', height: '90px', text: '728x90 Ad Space' },
+            sidebar: { width: '300px', height: '250px', text: '300x250 Ad Space' },
+            footer: { width: '728px', height: '90px', text: '728x90 Ad Space' },
+        };
+        const style = dimensions[placement];
+
+        return (
+            <div className="my-6 flex items-center justify-center bg-gray-200 border-2 border-dashed border-gray-400 rounded-md mx-auto" style={{ maxWidth: style.width, height: style.height }}>
+                <span className="text-gray-500 font-semibold">{style.text}</span>
+            </div>
+        );
+    }
+    
+    return <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />;
+};
+
+const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.memo(({ job, onView }) => (
     <div className="border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
         <div className="p-5 flex-grow">
             <h3 className="text-lg font-bold text-[#1e3c72] leading-tight mb-2">{job.title}</h3>
@@ -23,27 +40,44 @@ const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = ({ job, 
             </div>
         </div>
         <div className="p-4 bg-gray-50 border-t">
-            <button onClick={() => onView(slugify(job.title))} className="w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-700">View Details</button>
+            <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} className="w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-700 block">View Details</a>
         </div>
     </div>
-);
+));
 
-const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; typeLabel: string }> = ({ post, navigate, typeLabel }) => (
-    <div className="flex items-start gap-4">
-        <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-md flex flex-col items-center justify-center font-bold text-center leading-none">
-            <span className="text-lg">{new Date(post.publishedDate).getDate()}</span>
-            <span className="text-xs uppercase">{new Date(post.publishedDate).toLocaleString('default', { month: 'short' })}</span>
+const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; typeLabel: string }> = React.memo(({ post, navigate, typeLabel }) => {
+    const getButtonText = (title: string) => {
+        const lowerTitle = title.toLowerCase();
+        if (lowerTitle.includes('admit card')) return 'Get Admit Card';
+        if (lowerTitle.includes('result')) return 'Check Result';
+        return 'Get Exam Notice';
+    };
+
+    return (
+    <div className="flex items-center justify-between gap-4 border-b pb-3 mb-3 last:border-b-0 last:pb-0 last:mb-0">
+        <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-md flex flex-col items-center justify-center font-bold text-center leading-none flex-shrink-0">
+                <span className="text-lg">{new Date(post.publishedDate).getDate()}</span>
+                <span className="text-xs uppercase">{new Date(post.publishedDate).toLocaleString('default', { month: 'short' })}</span>
+            </div>
+            <div>
+                <span className="text-xs font-semibold text-purple-600 uppercase">{typeLabel}</span>
+                <p className="font-semibold text-gray-800 leading-tight">{post.title}</p>
+            </div>
         </div>
-        <div>
-            <span className="text-xs font-semibold text-purple-600 uppercase">{typeLabel}</span>
-            <a href={post.detailsUrl || '#'} onClick={(e) => { if(!post.detailsUrl) { e.preventDefault(); navigate(`/post/${post.id}`) } }} className="block font-semibold text-gray-800 hover:text-indigo-700 leading-tight">{post.title}</a>
-        </div>
+        {post.detailsUrl ? (
+            <a href={post.detailsUrl} target="_blank" rel="nofollow noopener noreferrer" className="flex-shrink-0 text-sm bg-purple-500 text-white px-3 py-2 rounded-md hover:bg-purple-600 font-semibold transition-colors whitespace-nowrap">
+                {getButtonText(post.title)}
+            </a>
+        ) : (
+            <button onClick={() => navigate(`/post/${post.id}`)} className="flex-shrink-0 text-sm text-indigo-600 hover:underline font-semibold whitespace-nowrap">View Details</button>
+        )}
     </div>
-);
+)});
 
 
 const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const { jobs, posts, quickLinks, breakingNews, adSettings, addSubscriber, seoSettings } = useData();
+    const { jobs, posts, quickLinks, breakingNews, adSettings, addSubscriber, seoSettings, trackSponsoredAdClick } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All Departments');
     const [email, setEmail] = useState('');
@@ -67,6 +101,8 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     const latestNotices = useMemo(() => posts.filter(p => p.type === 'exam-notices' && p.status === 'published').slice(0, 5), [posts]);
     const latestResults = useMemo(() => posts.filter(p => p.type === 'results' && p.status === 'published').slice(0, 5), [posts]);
     const activeBreakingNews = useMemo(() => breakingNews.filter(n => n.status === 'active'), [breakingNews]);
+    const activeSidebarSponsoredAd = useMemo(() => adSettings.sponsoredAds.find(ad => ad.placement === 'sidebar-top' && ad.status === 'active'), [adSettings.sponsoredAds]);
+
 
     const handleSubscribe = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,7 +123,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
-            {adSettings.headerAdEnabled && <AdComponent code={adSettings.headerAdCode} />}
+            {adSettings.headerAdEnabled && <AdComponent code={adSettings.headerAdCode} placement="header" />}
             
             {activeBreakingNews.length > 0 && (
                 <div className="bg-yellow-400 text-black overflow-hidden">
@@ -137,18 +173,34 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                         </section>
                     </div>
                     <aside className="space-y-8 sticky top-24 h-fit">
+                        {activeSidebarSponsoredAd && (
+                            <div className="widget bg-white p-0 rounded-lg shadow-md overflow-hidden">
+                                <a 
+                                    href={activeSidebarSponsoredAd.destinationUrl} 
+                                    target="_blank" 
+                                    rel="nofollow noopener noreferrer sponsored"
+                                    onClick={() => trackSponsoredAdClick(activeSidebarSponsoredAd.id)}
+                                >
+                                    <img 
+                                        src={activeSidebarSponsoredAd.imageUrl} 
+                                        alt="Sponsored Ad" 
+                                        className="w-full h-auto" 
+                                    />
+                                </a>
+                            </div>
+                        )}
                         <div className="widget bg-white p-6 rounded-lg shadow-md">
                             <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Quick Links</h3>
                             <ul className="space-y-2 text-sm">
                                 {quickLinks.filter(l => l.status === 'active').map(link => (
                                     <li key={link.id} className="flex items-start">
                                         <Icon name="link" className="text-purple-500 mt-1 mr-2"/>
-                                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-indigo-700">{link.title}</a>
+                                        <a href={link.url} target="_blank" rel="nofollow noopener noreferrer" className="text-gray-700 hover:text-indigo-700">{link.title}</a>
                                     </li>
                                 ))}
                             </ul>
                         </div>
-                         {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} />}
+                         {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} placement="sidebar" />}
                     </aside>
                 </div>
 
@@ -182,7 +234,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
 
             {adSettings.footerAdEnabled && (
                 <div className="container mx-auto px-4">
-                    <AdComponent code={adSettings.footerAdCode} />
+                    <AdComponent code={adSettings.footerAdCode} placement="footer" />
                 </div>
             )}
             <PublicFooter navigate={navigate} />

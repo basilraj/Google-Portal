@@ -1,7 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { SocialMediaSettings } from '../../types';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module import.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module import.
+import { SocialMediaSettings } from '../../types.ts';
+// Fix: Add .tsx extension to local module import.
+import Icon from '../Icon.tsx';
 
 const SocialMediaManagement: React.FC = () => {
     const { socialMediaSettings, updateSocialMediaSettings } = useData();

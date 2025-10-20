@@ -1,9 +1,16 @@
+
 import React, { useState } from 'react';
+// Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module import.
 import { ActivityLog } from '../../types.ts';
+// Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
+// Fix: Add .tsx extension to local module import.
 import Pagination from './Pagination.tsx';
+// Fix: Add .ts extension to local module import.
 import usePagination from '../../hooks/usePagination.ts';
+// Fix: Add .tsx extension to local module import.
 import ConfirmationModal from './ConfirmationModal.tsx';
 
 const ITEMS_PER_PAGE = 15;

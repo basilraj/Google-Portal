@@ -1,6 +1,9 @@
+
 import React from 'react';
-import Modal from '../Modal';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module import.
+import Modal from '../Modal.tsx';
+// Fix: Add .tsx extension to local module import.
+import Icon from '../Icon.tsx';
 
 interface ConfirmationModalProps {
   isOpen: boolean;

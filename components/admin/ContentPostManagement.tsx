@@ -102,7 +102,7 @@ const ContentPostManagement: React.FC = () => {
         }
     };
 
-    const handleSave = (postData: Omit<ContentPost, 'id'>, id?: string) => {
+    const handleSave = (postData: Omit<ContentPost, 'id' | 'createdAt'>, id?: string) => {
         if (id) {
              const originalPost = posts.find(p => p.id === id);
              if (originalPost) {
@@ -110,7 +110,7 @@ const ContentPostManagement: React.FC = () => {
                 showNotification(`Post '${postData.title}' updated.`);
              }
         } else {
-            addPost(postData);
+            addPost({ ...postData, type: 'posts' });
             showNotification(`Post '${postData.title}' created.`);
         }
         setIsModalOpen(false);

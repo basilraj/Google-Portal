@@ -1,5 +1,7 @@
+
 import React from 'react';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module import.
+import Icon from '../Icon.tsx';
 
 interface PaginationProps {
   currentPage: number;

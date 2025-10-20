@@ -1,90 +1,59 @@
-
-import React, { useState, useEffect } from 'react';
-// Fix: Add .ts extension to local module imports.
-import { ContentPost, PostType } from '../../types.ts';
+import React, { useState, useEffect, useRef } from 'react';
+import { ContentPost } from '../../types.ts';
+import Icon from '../Icon.tsx';
 
 interface PostFormProps {
-  post?: ContentPost;
-  onSave: (post: Omit<ContentPost, 'id'>, id?: string) => void;
-  onCancel: () => void;
-  defaultType: PostType;
+    post?: ContentPost;
+    onSave: (post: Omit<ContentPost, 'id' | 'createdAt'>, id?: string) => void;
+    onCancel: () => void;
+    defaultType: 'posts' | 'exam-notices' | 'results';
 }
 
 const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType }) => {
-    const [formData, setFormData] = useState<Omit<ContentPost, 'id' | 'createdAt'>>({
+    const [formData, setFormData] = useState<Omit<ContentPost, 'id' | 'createdAt'>>(post ? { ...post } : {
         title: '',
-        category: '',
+        category: 'General',
         content: '',
         status: 'published',
         type: defaultType,
         publishedDate: new Date().toISOString().split('T')[0],
         examDate: '',
-        imageUrl: '',
         detailsUrl: '',
+        imageUrl: '',
+        seoTitle: '',
+        seoDescription: '',
     });
+    const [isSeoOpen, setIsSeoOpen] = useState(false);
+
+    const titleInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (post) {
-            setFormData({ ...post });
-        } else {
-            // Reset form for new post, ensuring correct default type
-            setFormData({
-                title: '',
-                category: '',
-                content: '',
-                status: 'published',
-                type: defaultType,
-                publishedDate: new Date().toISOString().split('T')[0],
-                examDate: '',
-                imageUrl: '',
-                detailsUrl: '',
-            });
-        }
-    }, [post, defaultType]);
+        titleInputRef.current?.focus();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value as any }));
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { createdAt, ...saveData } = formData as any;
-        onSave(saveData, post?.id);
+        const { id, createdAt, ...dataToSave } = formData as ContentPost;
+        onSave(dataToSave, post?.id);
     };
-
-    const getTitleForType = (type: PostType) => {
-        switch(type) {
-            case 'exam-notices': return 'Notice Title';
-            case 'results': return 'Result Title';
-            default: return 'Post Title';
-        }
-    }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-                <label className="block text-sm font-medium text-gray-700">{getTitleForType(formData.type)} *</label>
-                <input type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                <label className="block text-sm font-medium text-gray-700">Title *</label>
+                <input ref={titleInputRef} type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Category *</label>
                     <input type="text" name="category" value={formData.category} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
                 </div>
-                 <div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700">Status *</label>
                     <select name="status" value={formData.status} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white" required>
                         <option value="published">Published</option>
@@ -92,51 +61,81 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
                     </select>
                 </div>
             </div>
-             <div>
-                <label className="block text-sm font-medium text-gray-700">Content *</label>
-                <textarea name="content" value={formData.content} onChange={handleChange} rows={8} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Content</label>
+                <textarea name="content" value={formData.content} onChange={handleChange} rows={6} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
             </div>
-            {(formData.type === 'exam-notices' || formData.type === 'results') && (
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Details URL (Optional)</label>
-                    <input 
-                        type="url" 
-                        name="detailsUrl" 
-                        value={formData.detailsUrl || ''} 
-                        onChange={handleChange} 
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
-                        placeholder="https://example.com/admit-card-or-result-link"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Direct link for users to get the notice, admit card, or result.</p>
-                </div>
-            )}
-             <div>
-                <label className="block text-sm font-medium text-gray-700">Featured Image</label>
-                <input type="file" accept="image/*" onChange={handleImageChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100" />
-                {formData.imageUrl && (
-                    <div className="mt-4 relative w-fit">
-                        <img src={formData.imageUrl} alt="Preview" className="h-auto max-h-48 object-contain rounded-md border" />
-                        <button 
-                            type="button" 
-                            onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
-                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold leading-none hover:bg-red-700"
-                            aria-label="Remove Image"
-                        >
-                            &times;
-                        </button>
-                    </div>
-                )}
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
+                <input type="url" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Published Date *</label>
                     <input type="date" name="publishedDate" value={formData.publishedDate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Exam Date (if applicable)</label>
-                    <input type="date" name="examDate" value={formData.examDate || ''} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
-                </div>
+                {(defaultType === 'exam-notices') && (
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Exam Date (Optional)</label>
+                        <input type="date" name="examDate" value={formData.examDate} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                    </div>
+                )}
             </div>
+             {(defaultType === 'exam-notices' || defaultType === 'results') && (
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Details URL (e.g., PDF link)</label>
+                    <input type="url" name="detailsUrl" value={formData.detailsUrl} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+             )}
+
+            {/* SEO Section for General Posts */}
+            {defaultType === 'posts' && (
+                <div className="border rounded-md">
+                    <button
+                        type="button"
+                        className="w-full flex justify-between items-center p-3 text-left font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-t-md"
+                        onClick={() => setIsSeoOpen(!isSeoOpen)}
+                    >
+                        <span><Icon name="search" className="mr-2" /> SEO Settings (Optional)</span>
+                        <Icon name={isSeoOpen ? 'chevron-up' : 'chevron-down'} className="transition-transform" />
+                    </button>
+                    {isSeoOpen && (
+                        <div className="p-4 space-y-4 border-t">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">SEO Title</label>
+                                <input
+                                    type="text"
+                                    name="seoTitle"
+                                    value={formData.seoTitle}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    maxLength={70}
+                                />
+                                <div className="text-xs text-gray-500 mt-1 flex justify-between">
+                                    <span>Overrides the main title in search results. Recommended: 50-60 characters.</span>
+                                    <span>{formData.seoTitle?.length || 0} / 70</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Meta Description</label>
+                                <textarea
+                                    name="seoDescription"
+                                    value={formData.seoDescription}
+                                    onChange={handleChange}
+                                    rows={3}
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    maxLength={160}
+                                />
+                                <div className="text-xs text-gray-500 mt-1 flex justify-between">
+                                    <span>A brief summary for search results. Recommended: 150-160 characters.</span>
+                                    <span>{formData.seoDescription?.length || 0} / 160</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+            
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Save</button>

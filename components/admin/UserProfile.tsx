@@ -1,15 +1,18 @@
+
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module import.
+import { useAuth } from '../../contexts/AuthContext.tsx';
+// Fix: Add .tsx extension to local module import.
+import Icon from '../Icon.tsx';
 
 const UserProfile: React.FC = () => {
-    const { updateCredentials } = useAuth();
+    const { updateCredentials, userEmail } = useAuth();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage(null);
 
@@ -18,7 +21,7 @@ const UserProfile: React.FC = () => {
             return;
         }
 
-        const success = updateCredentials(currentPassword, newUsername, newPassword);
+        const success = await updateCredentials(currentPassword, newUsername, newPassword);
 
         if (success) {
             setMessage({ type: 'success', text: 'Credentials updated successfully!' });
@@ -35,6 +38,15 @@ const UserProfile: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm max-w-lg mx-auto">
             <h2 className="text-xl font-bold text-gray-700 mb-4">Update Admin Credentials</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Admin Email (for OTP)</label>
+                    <input
+                        type="email"
+                        value={userEmail || ''}
+                        disabled
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                    />
+                </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Current Password *</label>
                     <input

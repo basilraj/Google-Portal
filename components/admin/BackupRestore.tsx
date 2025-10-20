@@ -1,7 +1,11 @@
+
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { BackupData } from '../../types';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module import.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module import.
+import { BackupData } from '../../types.ts';
+// Fix: Add .tsx extension to local module import.
+import Icon from '../Icon.tsx';
 
 const BackupRestore: React.FC = () => {
     const { createBackup, restoreBackup } = useData();
