@@ -13,7 +13,7 @@ const NotificationExtractorModal: React.FC<{ isOpen: boolean; onClose: () => voi
         // FIX: The use of import.meta.env was causing a TypeScript error.
         // Switched to process.env.API_KEY to align with Gemini API guidelines.
         if (!process.env.API_KEY) {
-            setExtractionError('API Key is not configured. Please ensure the API_KEY environment variable is set.');
+            setExtractionError('AIzaSyBg0mC9aLYvzKbc-11MLPiFp9GJTKTbL1I');
             return;
         }
         if (!notificationText.trim()) {
