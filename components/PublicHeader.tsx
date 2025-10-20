@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Icon from './Icon';
 import { basePath } from '../App';
@@ -41,11 +42,11 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                         <img 
                             src={generalSettings.siteIconUrl}
                             alt="Jobtica Logo" 
-                            className="h-12 w-auto"
+                            className="h-16 w-auto"
                         />
                     ) : (
-                        <div className="h-12 w-12 bg-white/20 rounded-md flex items-center justify-center">
-                            <Icon name="briefcase" className="text-2xl text-white" />
+                        <div className="h-16 w-16 bg-white/20 rounded-md flex items-center justify-center">
+                            <Icon name="briefcase" className="text-3xl text-white" />
                         </div>
                     )}
                 </a>

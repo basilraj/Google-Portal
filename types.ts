@@ -134,6 +134,7 @@ export interface GeneralSettings {
     maintenanceMode: boolean;
     maintenanceMessage: string;
     emailNotificationsEnabled: boolean;
+    adminEmail: string;
 }
 
 export interface SocialMediaSettings {

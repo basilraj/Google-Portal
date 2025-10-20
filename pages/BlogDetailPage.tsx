@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import Icon from '../components/Icon';
@@ -6,17 +7,112 @@ import { basePath } from '../App';
 import PublicHeader from '../components/PublicHeader';
 
 const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => void }> = ({ postId, navigate }) => {
-    const { posts, seoSettings } = useData();
+    const { posts, seoSettings, generalSettings } = useData();
     const post = posts.find(p => p.id === postId);
+    const canonicalUrl = `${window.location.origin}${basePath}/blog/${postId}`.replace(/([^:]\/)\/+/g, "$1");
 
     useEffect(() => {
+        document.querySelectorAll('[data-seo-managed]').forEach(el => el.remove());
+
         if (post) {
             document.title = `${post.title} | ${seoSettings.global.siteTitle}`;
+            const metaDescription = post.content.substring(0, 155).replace(/\s+/g, ' ').trim() + '...';
+
+            const head = document.head;
+            const createMeta = (attrs: { [key: string]: string }) => {
+                const meta = document.createElement('meta');
+                Object.keys(attrs).forEach(key => meta.setAttribute(key, attrs[key]));
+                meta.setAttribute('data-seo-managed', 'true');
+                head.appendChild(meta);
+            };
+            const createLink = (attrs: { [key: string]: string }) => {
+                const link = document.createElement('link');
+                Object.keys(attrs).forEach(key => link.setAttribute(key, attrs[key]));
+                link.setAttribute('data-seo-managed', 'true');
+                head.appendChild(link);
+            };
+
+            // Standard Meta
+            createMeta({ name: 'description', content: metaDescription });
+            
+            // Open Graph
+            createMeta({ property: 'og:title', content: post.title });
+            createMeta({ property: 'og:description', content: metaDescription });
+            createMeta({ property: 'og:url', content: canonicalUrl });
+            createMeta({ property: 'og:type', content: 'article' });
+            createMeta({ property: 'og:site_name', content: generalSettings.siteTitle });
+            if (post.imageUrl) createMeta({ property: 'og:image', content: post.imageUrl });
+
+            // Twitter Card
+            createMeta({ name: 'twitter:card', content: post.imageUrl ? 'summary_large_image' : 'summary' });
+            createMeta({ name: 'twitter:title', content: post.title });
+            createMeta({ name: 'twitter:description', content: metaDescription });
+            if (post.imageUrl) createMeta({ name: 'twitter:image', content: post.imageUrl });
+
+            // Canonical URL
+            createLink({ rel: 'canonical', href: canonicalUrl });
+
+            // Structured Data
+            const articleSchema = {
+                "@context": "https://schema.org",
+                "@type": "BlogPosting",
+                "headline": post.title,
+                "description": metaDescription,
+                "image": post.imageUrl || '',
+                "datePublished": post.publishedDate,
+                "dateModified": post.publishedDate,
+                "author": { "@type": "Organization", "name": "Jobtica" },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Jobtica",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": generalSettings.siteIconUrl
+                    }
+                },
+                 "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": canonicalUrl
+                }
+            };
+            
+            const breadcrumbSchema = {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [{
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": `${window.location.origin}${basePath}/`.replace(/([^:]\/)\/+/g, "$1")
+                }, {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Blog",
+                    "item": `${window.location.origin}${basePath}/blog`.replace(/([^:]\/)\/+/g, "$1")
+                }, {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": post.title
+                }]
+            };
+
+            const script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.setAttribute('data-seo-managed', 'true');
+            script.innerHTML = JSON.stringify([articleSchema, breadcrumbSchema]);
+            head.appendChild(script);
+
         } else {
             document.title = `Post Not Found | ${seoSettings.global.siteTitle}`;
         }
-        window.scrollTo(0, 0); // Scroll to top on page load
-    }, [post, seoSettings.global.siteTitle]);
+
+        window.scrollTo(0, 0);
+        
+        return () => {
+            document.querySelectorAll('[data-seo-managed]').forEach(el => el.remove());
+        };
+    }, [post, seoSettings, generalSettings, canonicalUrl]);
+
 
     if (!post) {
         return (
@@ -45,10 +141,35 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
             <PublicHeader navigate={navigate} />
+             <nav aria-label="Breadcrumb" className="bg-gray-100 border-b">
+                <div className="container mx-auto px-4">
+                    <ol className="flex items-center space-x-2 text-sm text-gray-500 py-3">
+                        <li>
+                            <a href={`${basePath}/`} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-indigo-600 flex items-center gap-2">
+                               <Icon name="home" /> Home
+                            </a>
+                        </li>
+                        <li>
+                            <Icon name="chevron-right" className="text-xs" />
+                        </li>
+                        <li>
+                            <a href={`${basePath}/blog`} onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:text-indigo-600">
+                                Blog
+                            </a>
+                        </li>
+                         <li>
+                            <Icon name="chevron-right" className="text-xs" />
+                        </li>
+                        <li className="font-semibold text-gray-700 truncate" aria-current="page">
+                            {post.title}
+                        </li>
+                    </ol>
+                </div>
+            </nav>
             <main className="flex-grow container mx-auto px-4 py-12">
-                <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+                <article className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
                     {post.imageUrl && (
-                        <img src={post.imageUrl} alt={post.title} className="w-full aspect-video object-cover rounded-lg mb-6" />
+                        <img src={post.imageUrl} alt={post.title} loading="lazy" className="w-full aspect-video object-cover rounded-lg mb-6" />
                     )}
                     <h1 className="text-4xl font-bold text-[#1e3c72] mb-4">{post.title}</h1>
                     <div className="text-sm text-gray-600 mb-6 border-b pb-4 flex flex-wrap gap-x-6 gap-y-2">
@@ -70,7 +191,7 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
                             &larr; Back to Blog
                         </button>
                     </div>
-                </div>
+                </article>
             </main>
             <PublicFooter navigate={navigate} />
         </div>

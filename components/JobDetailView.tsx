@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Job } from '../types';
 import Icon from './Icon';
@@ -16,7 +17,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
   const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(jobUrl)}&text=${encodeURIComponent(shareTitle)}`;
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+    <article className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-[#1e3c72] mb-4">{job.title}</h1>
       <div className="text-sm text-gray-600 mb-6 border-b pb-4 flex flex-wrap gap-x-6 gap-y-2">
         <span><Icon name="building" className="mr-2 text-gray-400" />{job.department}</span>
@@ -27,7 +28,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
       </div>
 
       <div className="static-content">
-        <h3>Job Description</h3>
+        <h2>Job Description</h2>
         <p className="whitespace-pre-wrap">{job.description}</p>
       </div>
 
@@ -42,7 +43,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
           Apply Now
         </a>
       </div>
-    </div>
+    </article>
   );
 };
 

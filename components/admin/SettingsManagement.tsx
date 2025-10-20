@@ -24,6 +24,22 @@ const GeneralSettingsManagement: React.FC = () => {
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                alert("File is too large. Please upload an image under 2MB.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, siteIconUrl: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await updateGeneralSettings(formData);
@@ -34,15 +50,32 @@ const GeneralSettingsManagement: React.FC = () => {
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Website Title</label>
-                    <input type="text" name="siteTitle" value={formData.siteTitle} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
-                    <p className="text-xs text-gray-500 mt-1">Used in the admin panel and as a fallback.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Website Title</label>
+                        <input type="text" name="siteTitle" value={formData.siteTitle} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+                        <p className="text-xs text-gray-500 mt-1">Used in the admin panel and as a fallback.</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Administrator Email</label>
+                        <input type="email" name="adminEmail" value={formData.adminEmail} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+                        <p className="text-xs text-gray-500 mt-1">Email for receiving OTPs and system notifications.</p>
+                    </div>
                 </div>
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Website Icon URL</label>
-                    <input type="text" name="siteIconUrl" value={formData.siteIconUrl} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="/logo.png"/>
-                     <p className="text-xs text-gray-500 mt-1">Provide a relative or absolute URL to the site icon.</p>
+
+                <div className="pt-6 border-t">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Website Branding</h3>
+                     <div className="flex items-start gap-4">
+                        {formData.siteIconUrl && (
+                             <img src={formData.siteIconUrl} alt="Site Icon Preview" className="h-16 w-auto object-contain rounded-md border p-1 bg-gray-50" />
+                        )}
+                        <div className="flex-grow">
+                             <label className="block text-sm font-medium text-gray-700">Upload New Icon</label>
+                            <input type="file" accept="image/png, image/jpeg, image/gif, image/svg+xml" onChange={handleImageChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100" />
+                            <p className="text-xs text-gray-500 mt-1">Or paste an image URL below. Recommended: Square PNG.</p>
+                             <input type="text" name="siteIconUrl" value={formData.siteIconUrl} onChange={handleChange} className="mt-2 block w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="/logo.png or https://..."/>
+                        </div>
+                     </div>
                 </div>
 
                 <div className="pt-6 border-t">

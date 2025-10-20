@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
 import Icon from '../components/Icon';
 import Dashboard from '../components/admin/Dashboard';
 import JobManagement from '../components/admin/JobManagement';
@@ -43,6 +44,7 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, tabName, activeTab, setA
 const AdminPanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
     const { logout } = useAuth();
+    const { generalSettings } = useData();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const renderContent = () => {
@@ -87,7 +89,13 @@ const AdminPanel: React.FC = () => {
             {/* Sidebar */}
             <aside className={`bg-indigo-800 text-white flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
                 <div className={`p-4 flex ${isSidebarOpen ? 'justify-between' : 'justify-center'} items-center`}>
-                    {isSidebarOpen && <h1 className="text-xl font-bold">Admin Panel</h1>}
+                    {isSidebarOpen ? (
+                        generalSettings.siteIconUrl ? (
+                            <img src={generalSettings.siteIconUrl} alt="Site Logo" className="h-10 w-auto" />
+                        ) : (
+                            <h1 className="text-xl font-bold">Admin Panel</h1>
+                        )
+                    ) : null}
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-md hover:bg-indigo-700">
                         <Icon name={isSidebarOpen ? 'chevron-left' : 'chevron-right'} />
                     </button>
