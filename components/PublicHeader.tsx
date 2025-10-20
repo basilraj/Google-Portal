@@ -32,7 +32,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
             }}
             className={isMobile
                 ? "block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-100"
-                : "text-lg font-semibold text-blue-900 hover:text-indigo-600 px-3 py-2 rounded-md transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-indigo-600 after:scale-x-0 after:origin-bottom-left after:transition-transform after:duration-300 hover:after:scale-x-100"
+                : "text-lg font-medium text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-indigo-600 after:scale-x-0 after:origin-bottom-left after:transition-transform after:duration-300 hover:after:scale-x-100"
             }
         >
             {name}
