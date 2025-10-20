@@ -41,7 +41,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
 
     return (
         <header className={`bg-white sticky top-0 z-40 transition-shadow duration-300 border-b ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
-            <div className="mx-auto px-4 max-w-7xl">
+            <div className="mx-auto px-4 w-full max-w-7xl">
                 <div className="flex items-center justify-between h-24">
                     <div className="flex items-center">
                         <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="flex-shrink-0 flex items-center gap-4">

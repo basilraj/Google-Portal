@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-// Fix: Explicitly import the 'process' object to resolve type errors with process.cwd().
+// Fix: Explicitly import the 'process' object to provide type context for process.cwd().
 import process from 'process';
 
 // Since we can't use dynamic imports easily in this context, we will manually copy the data.
