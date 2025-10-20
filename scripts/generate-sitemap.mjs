@@ -1,7 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-// Fix: Use import.meta.url to derive the project root path reliably,
-// avoiding `process.cwd()` which could cause a type error in some environments.
 import { fileURLToPath } from 'url';
 
 // Since we can't use dynamic imports easily in this context, we will manually copy the data.
