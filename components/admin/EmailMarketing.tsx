@@ -9,7 +9,7 @@ import usePagination from '../../hooks/usePagination';
 const ITEMS_PER_PAGE = 5;
 
 const EmailMarketing: React.FC = () => {
-    const { customEmails, sendCustomEmail, deleteCustomEmail, subscribers } = useData();
+    const { customEmails, sendCustomEmail, deleteCustomEmail, subscribers, smtpSettings } = useData();
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,6 +41,13 @@ const EmailMarketing: React.FC = () => {
             {/* Email Composer */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h2 className="text-xl font-bold text-gray-700 mb-4">Compose Email Campaign</h2>
+                {!smtpSettings.configured && (
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                        <p className="text-sm text-yellow-700">
+                            <strong>Warning:</strong> Email server is not configured. Emails will be simulated and added to history but <strong className="font-semibold">will not be sent</strong>.
+                        </p>
+                    </div>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Email Subject</label>

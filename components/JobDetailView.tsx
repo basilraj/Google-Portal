@@ -2,13 +2,14 @@ import React from 'react';
 import { Job } from '../types';
 import Icon from './Icon';
 import { basePath } from '../App';
+import { slugify } from '../utils/slugify';
 
 interface JobDetailViewProps {
   job: Job;
 }
 
 const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
-  const jobUrl = `${window.location.origin}${basePath}/job/${job.id}`.replace(/([^:]\/)\/+/g, "$1");
+  const jobUrl = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
   const shareTitle = `Check out this job: ${job.title}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(jobUrl)}&quote=${encodeURIComponent(shareTitle)}`;
   const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + jobUrl)}`;

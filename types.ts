@@ -1,9 +1,4 @@
-// FIX: Removed self-import of types which caused declaration conflicts.
-
-
-
 export type JobStatus = 'active' | 'closing-soon' | 'expired';
-export type LinkStatus = 'active' | 'inactive';
 export type PostStatus = 'published' | 'draft';
 export type PostType = 'posts' | 'exam-notices' | 'results';
 
@@ -15,7 +10,7 @@ export interface Job {
   qualification: string;
   vacancies: string;
   postedDate: string; // YYYY-MM-DD
-  lastDate: string;   // YYYY-MM-DD
+  lastDate: string; // YYYY-MM-DD
   applyLink: string;
   status: JobStatus;
   createdAt: string; // ISO 8601
@@ -27,7 +22,7 @@ export interface QuickLink {
   category: string;
   url: string;
   description: string;
-  status: LinkStatus;
+  status: 'active' | 'inactive';
 }
 
 export interface ContentPost {
@@ -39,7 +34,7 @@ export interface ContentPost {
   type: PostType;
   publishedDate: string; // YYYY-MM-DD
   createdAt?: string; // ISO 8601
-  examDate?: string;    // YYYY-MM-DD
+  examDate?: string; // YYYY-MM-DD
   imageUrl?: string;
 }
 
@@ -47,7 +42,7 @@ export interface Subscriber {
   id: string;
   email: string;
   subscriptionDate: string; // YYYY-MM-DD
-  status: 'active';
+  status: 'active' | 'inactive';
 }
 
 export interface ContactSubmission {
@@ -63,83 +58,79 @@ export interface BreakingNews {
   id: string;
   text: string;
   link: string;
-  status: LinkStatus;
-}
-
-export interface ABTestStats {
-    impressionsA: number;
-    clicksA: number;
-    impressionsB: number;
-    clicksB: number;
-}
-
-export interface ABTest {
-    id: string;
-    placement: string;
-    enabled: boolean;
-    codeA: string;
-    codeB: string;
-    stats: ABTestStats;
+  status: 'active' | 'inactive';
 }
 
 export interface GeoTargetedAd {
     id: string;
-    country: string;
+    country: string; // e.g., 'IN', 'US'
     code: string;
 }
-
+  
+export interface ABTest {
+    id: string;
+    placement: string; // e.g., 'Header', 'Sidebar'
+    enabled: boolean;
+    codeA: string;
+    codeB: string;
+    stats: {
+        impressionsA: number;
+        clicksA: number;
+        impressionsB: number;
+        clicksB: number;
+    };
+}
+  
 export interface AdSettings {
+    adFrequency: 'low' | 'medium' | 'high';
+    adStartTime: string; // HH:mm
+    adEndTime: string;   // HH:mm
+    bannerAds: boolean;
+    squareAds: boolean;
+    skyscraperAds: boolean;
+    popupAds: boolean;
     headerAdEnabled: boolean;
     headerAdCode: string;
     sidebarAdEnabled: boolean;
     sidebarAdCode: string;
     footerAdEnabled: boolean;
     footerAdCode: string;
-    adFrequency: 'low' | 'medium' | 'high';
-    adStartTime: string;
-    adEndTime: string;
-    bannerAds: boolean;
-    squareAds: boolean;
-    skyscraperAds: boolean;
-    popupAds: boolean;
-    adsense: {
-        enabled: boolean;
-        publisherId: string;
-    };
     customAds: {
-        enabled: boolean;
-        rotation: boolean;
-        codes: string[];
+      enabled: boolean;
+      rotation: boolean;
+      codes: string[];
     };
     abTests: ABTest[];
     deviceTargeting: {
-        enabled: boolean;
-        desktopCode: string;
-        mobileCode: string;
+      enabled: boolean;
+      desktopCode: string;
+      mobileCode: string;
     };
     geoTargeting: {
-        enabled: boolean;
-        rules: GeoTargetedAd[];
+      enabled: boolean;
+      rules: GeoTargetedAd[];
     };
 }
 
 export interface SEOSettings {
     global: {
-        siteTitle: string;
-        metaDescription: string;
-        metaKeywords: string;
+      siteTitle: string;
+      metaDescription: string;
+      metaKeywords: string;
     };
     social: {
-        ogTitle: string;
-        ogDescription: string;
-        ogImageUrl: string;
+      ogTitle: string;
+      ogDescription: string;
+      ogImageUrl: string;
     };
     structuredData: {
-        jobPostingSchemaEnabled: boolean;
+      jobPostingSchemaEnabled: boolean;
     };
 }
 
 export interface GeneralSettings {
+    siteTitle: string;
+    siteIconUrl: string;
     maintenanceMode: boolean;
     maintenanceMessage: string;
     emailNotificationsEnabled: boolean;
@@ -149,31 +140,37 @@ export interface SocialMediaSettings {
     facebook: string;
     instagram: string;
     telegram: string;
-    whatsapp: string;
     telegramGroup: string;
     telegramGroupIcon: string;
-}
-
-export interface AdminCredentials {
-  username: string;
-  password: string;
+    whatsapp: string;
 }
 
 export interface EmailNotification {
-  id: string;
-  recipient: string; // Subscriber's email
-  subject: string;
-  body: string;
-  sentAt: string; // ISO 8601
-  jobId: string; // To link back to the job
+    id: string;
+    recipient: string;
+    subject: string;
+    body: string;
+    sentAt: string; // ISO 8601
+    jobId?: string;
 }
 
 export interface CustomEmail {
-  id: string;
-  recipients: 'all' | string[]; // 'all' for all subscribers, or an array of emails
-  subject: string;
-  body: string;
-  sentAt: string; // ISO 8601
+    id: string;
+    recipients: 'all' | string[]; // 'all' or array of emails
+    subject: string;
+    body: string;
+    sentAt: string; // ISO 8601
+}
+
+export interface SMTPSettings {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  fromEmail: string;
+  fromName: string;
+  secure: boolean;
+  configured: boolean;
 }
 
 export interface BackupData {
@@ -189,4 +186,5 @@ export interface BackupData {
     socialMediaSettings: SocialMediaSettings;
     emailNotifications: EmailNotification[];
     customEmails: CustomEmail[];
+    smtpSettings: SMTPSettings;
 }

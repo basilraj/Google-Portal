@@ -1,37 +1,23 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { AdminCredentials } from '../types';
 
 interface AuthContextType {
   isLoggedIn: boolean;
-  login: (username: string, password: string) => boolean;
+  login: (username: string, password_provided: string) => boolean;
   logout: () => void;
-  updateCredentials: (currentPassword: string, newUsername: string, newPass: string) => boolean;
+  updateCredentials: (currentPassword_provided: string, newUsername_provided: string, newPassword_provided: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const defaultAdminCredentials: AdminCredentials = {
-  username: 'admin',
-  password: 'password123',
-};
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [credentials, setCredentials] = useLocalStorage<AdminCredentials>('admin-credentials', defaultAdminCredentials);
+  const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('isLoggedIn', false);
+  const [username, setUsername] = useLocalStorage<string>('adminUsername', 'admin');
+  const [password, setPassword] = useLocalStorage<string>('adminPassword', 'password');
 
-  // Check login status on initial load from sessionStorage
-  useEffect(() => {
-    const loggedInStatus = sessionStorage.getItem('isLoggedIn');
-    if (loggedInStatus === 'true') {
-        setIsLoggedIn(true);
-    }
-  }, []);
-
-  const login = (username: string, password: string): boolean => {
-    if (username === credentials.username && password === credentials.password) {
+  const login = (username_provided: string, password_provided: string): boolean => {
+    if (username_provided === username && password_provided === password) {
       setIsLoggedIn(true);
-      sessionStorage.setItem('isLoggedIn', 'true');
       return true;
     }
     return false;
@@ -39,20 +25,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     setIsLoggedIn(false);
-    sessionStorage.removeItem('isLoggedIn');
   };
 
-  const updateCredentials = (currentPassword: string, newUsername: string, newPass: string): boolean => {
-    if (currentPassword === credentials.password) {
-      setCredentials({ username: newUsername, password: newPass });
+  const updateCredentials = (currentPassword_provided: string, newUsername_provided: string, newPassword_provided: string): boolean => {
+    if (currentPassword_provided === password) {
+      setUsername(newUsername_provided);
+      setPassword(newPassword_provided);
       return true;
     }
     return false;
   };
 
-  const value = { isLoggedIn, login, logout, updateCredentials };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ isLoggedIn, login, logout, updateCredentials }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

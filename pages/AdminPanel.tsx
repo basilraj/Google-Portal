@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
@@ -6,118 +5,135 @@ import Dashboard from '../components/admin/Dashboard';
 import JobManagement from '../components/admin/JobManagement';
 import QuickLinkManagement from '../components/admin/QuickLinkManagement';
 import ContentPostManagement from '../components/admin/ContentPostManagement';
-import ExamNoticeManagement from '../components/admin/ExamNoticeManagement';
-import ResultManagement from '../components/admin/ResultManagement';
 import SubscriberManagement from '../components/admin/SubscriberManagement';
 import ContactManagement from '../components/admin/ContactManagement';
 import BreakingNewsManagement from '../components/admin/BreakingNewsManagement';
-import AdManagement from '../components/admin/AdManagement';
-import SEOManagement from '../components/admin/SEOManagement';
-import UserProfile from '../components/admin/UserProfile';
 import SettingsManagement from '../components/admin/SettingsManagement';
-import SocialMediaManagement from '../components/admin/SocialMediaManagement';
-import NotificationHistory from '../components/admin/NotificationHistory';
-import EmailMarketing from '../components/admin/EmailMarketing';
+import UserProfile from '../components/admin/UserProfile';
+import ExamNoticeManagement from '../components/admin/ExamNoticeManagement';
+import ResultManagement from '../components/admin/ResultManagement';
 import BackupRestore from '../components/admin/BackupRestore';
+import EmailMarketing from '../components/admin/EmailMarketing';
+import NotificationHistory from '../components/admin/NotificationHistory';
 
-type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'notices' | 'results' | 'links' | 'subscribers' | 'contacts' | 'news' | 'ads' | 'seo' | 'settings' | 'profile' | 'social' | 'notifications' | 'email' | 'backup';
+type AdminTab = 'dashboard' | 'jobs' | 'quick-links' | 'posts' | 'exam-notices' | 'results' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'notification-history' | 'settings' | 'profile' | 'backup';
+
+interface NavItemProps {
+    label: string;
+    icon: string;
+    tabName: AdminTab;
+    activeTab: AdminTab;
+    setActiveTab: (tab: AdminTab) => void;
+    isSidebarOpen: boolean;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ label, icon, tabName, activeTab, setActiveTab, isSidebarOpen }) => (
+    <button
+        onClick={() => setActiveTab(tabName)}
+        title={label}
+        className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            activeTab === tabName ? 'bg-indigo-700 text-white' : 'text-gray-300 hover:bg-indigo-500 hover:text-white'
+        } ${!isSidebarOpen && 'justify-center'}`}
+    >
+        <Icon name={icon} className="w-5" />
+        {isSidebarOpen && <span>{label}</span>}
+    </button>
+);
 
 const AdminPanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { logout } = useAuth();
-
-    const menuItems: { id: AdminTab; title: string; icon: string; }[] = [
-        { id: 'dashboard', title: 'Dashboard', icon: 'tachometer-alt' },
-        { id: 'jobs', title: 'Job Listings', icon: 'briefcase' },
-        { id: 'posts', title: 'General Posts', icon: 'file-alt' },
-        { id: 'notices', title: 'Exam Notices', icon: 'bell' },
-        { id: 'results', title: 'Results', icon: 'poll' },
-        { id: 'links', title: 'Quick Links', icon: 'link' },
-        { id: 'news', title: 'Breaking News', icon: 'newspaper' },
-        { id: 'subscribers', title: 'Subscribers', icon: 'users' },
-        { id: 'email', title: 'Email Marketing', icon: 'paper-plane' },
-        { id: 'notifications', title: 'Notification History', icon: 'history' },
-        { id: 'contacts', title: 'Contact Messages', icon: 'envelope' },
-        { id: 'social', title: 'Social Media', icon: 'share-alt' },
-        { id: 'ads', title: 'Ad Management', icon: 'ad' },
-        { id: 'seo', title: 'SEO Settings', icon: 'search-dollar' },
-        { id: 'settings', title: 'General Settings', icon: 'cogs' },
-        { id: 'backup', title: 'Backup & Restore', icon: 'database' },
-        { id: 'profile', title: 'Admin Profile', icon: 'user-cog' },
-    ];
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
             case 'jobs': return <JobManagement />;
+            case 'quick-links': return <QuickLinkManagement />;
             case 'posts': return <ContentPostManagement />;
-            case 'notices': return <ExamNoticeManagement />;
+            case 'exam-notices': return <ExamNoticeManagement />;
             case 'results': return <ResultManagement />;
-            case 'links': return <QuickLinkManagement />;
+            case 'breaking-news': return <BreakingNewsManagement />;
             case 'subscribers': return <SubscriberManagement />;
-            case 'email': return <EmailMarketing />;
-            case 'notifications': return <NotificationHistory />;
             case 'contacts': return <ContactManagement />;
-            case 'news': return <BreakingNewsManagement />;
-            case 'social': return <SocialMediaManagement />;
-            case 'ads': return <AdManagement />;
-            case 'seo': return <SEOManagement />;
+            case 'email-marketing': return <EmailMarketing />;
+            case 'notification-history': return <NotificationHistory />;
             case 'settings': return <SettingsManagement />;
-            case 'backup': return <BackupRestore />;
             case 'profile': return <UserProfile />;
+            case 'backup': return <BackupRestore />;
             default: return <Dashboard setActiveTab={setActiveTab} />;
         }
     };
     
-    const activeTitle = menuItems.find(item => item.id === activeTab)?.title || 'Dashboard';
+    const tabTitles: Record<AdminTab, string> = {
+        dashboard: 'Dashboard',
+        jobs: 'Job Management',
+        'quick-links': 'Quick Links',
+        posts: 'General Posts',
+        'exam-notices': 'Exam Notices',
+        results: 'Results',
+        'breaking-news': 'Breaking News',
+        subscribers: 'Subscribers',
+        contacts: 'Contact Submissions',
+        'email-marketing': 'Email Marketing',
+        'notification-history': 'Notification History',
+        settings: 'Settings',
+        profile: 'User Profile',
+        backup: 'Backup & Restore',
+    };
 
     return (
         <div className="flex h-screen bg-gray-100">
             {/* Sidebar */}
-            <aside className={`bg-gray-800 text-gray-200 flex flex-col transition-width duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
-                <div className={`flex items-center justify-center h-16 border-b border-gray-700 ${isSidebarOpen ? '' : 'px-2'}`}>
-                    <Icon name="user-shield" className="text-2xl text-indigo-400" />
-                    {isSidebarOpen && <h1 className="text-xl font-bold ml-2">Admin Panel</h1>}
+            <aside className={`bg-indigo-800 text-white flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
+                <div className={`p-4 flex ${isSidebarOpen ? 'justify-between' : 'justify-center'} items-center`}>
+                    {isSidebarOpen && <h1 className="text-xl font-bold">Admin Panel</h1>}
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-md hover:bg-indigo-700">
+                        <Icon name={isSidebarOpen ? 'chevron-left' : 'chevron-right'} />
+                    </button>
                 </div>
-                <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
-                    {menuItems.map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center p-3 rounded-lg transition-colors ${activeTab === item.id ? 'bg-indigo-600 text-white' : 'hover:bg-gray-700'}`}
-                            title={item.title}
-                        >
-                            <Icon name={item.icon} className="text-lg w-6 text-center" />
-                            {isSidebarOpen && <span className="ml-4 font-semibold">{item.title}</span>}
-                        </button>
-                    ))}
+                <nav className="flex-1 px-2 py-2 space-y-1 overflow-y-auto">
+                    <NavItem label="Dashboard" icon="tachometer-alt" tabName="dashboard" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen} />
+                    <hr className="my-2 border-indigo-700" />
+                    {!isSidebarOpen && <div className="h-4" />}
+                    <NavItem label="Jobs" icon="briefcase" tabName="jobs" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Posts" icon="file-alt" tabName="posts" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen} />
+                    <NavItem label="Exam Notices" icon="bell" tabName="exam-notices" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Results" icon="poll" tabName="results" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Quick Links" icon="link" tabName="quick-links" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Breaking News" icon="newspaper" tabName="breaking-news" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <hr className="my-2 border-indigo-700" />
+                     {!isSidebarOpen && <div className="h-4" />}
+                    <NavItem label="Subscribers" icon="users" tabName="subscribers" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Contacts" icon="inbox" tabName="contacts" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Email" icon="envelope" tabName="email-marketing" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Notifications" icon="history" tabName="notification-history" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <hr className="my-2 border-indigo-700" />
+                     {!isSidebarOpen && <div className="h-4" />}
+                    <NavItem label="Settings" icon="cogs" tabName="settings" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <NavItem label="Backup" icon="save" tabName="backup" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
                 </nav>
-                 <div className="p-4 border-t border-gray-700">
-                     <button onClick={logout} className="w-full flex items-center p-3 rounded-lg hover:bg-red-500 hover:text-white transition-colors" title="Logout">
-                         <Icon name="sign-out-alt" className="text-lg w-6 text-center" />
-                         {isSidebarOpen && <span className="ml-4 font-semibold">Logout</span>}
+                <div className="p-2 border-t border-indigo-700">
+                    <NavItem label="Profile" icon="user-circle" tabName="profile" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                    <button
+                        onClick={logout}
+                        title="Logout"
+                        className={`w-full flex items-center gap-3 px-4 py-2 mt-1 text-sm font-medium rounded-md text-gray-300 hover:bg-red-600 hover:text-white ${!isSidebarOpen && 'justify-center'}`}
+                    >
+                        <Icon name="sign-out-alt" className="w-5" />
+                        {isSidebarOpen && <span>Logout</span>}
                     </button>
                 </div>
             </aside>
-
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="bg-white shadow-sm flex items-center justify-between p-4">
-                     <div className="flex items-center gap-4">
-                        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-600 hover:text-indigo-600">
-                            <Icon name="bars" className="text-xl" />
-                        </button>
-                         <h2 className="text-2xl font-bold text-gray-800">{activeTitle}</h2>
-                    </div>
-                     <a href="/" target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-2">
-                        View Public Site <Icon name="external-link-alt" />
-                    </a>
+            <main className="flex-1 flex flex-col overflow-hidden">
+                <header className="bg-white shadow-sm p-4">
+                    <h2 className="text-2xl font-bold text-gray-800">{tabTitles[activeTab]}</h2>
                 </header>
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                <div className="flex-1 p-6 overflow-y-auto">
                     {renderContent()}
-                </main>
-            </div>
+                </div>
+            </main>
         </div>
     );
 };

@@ -4,10 +4,11 @@ import Icon from '../components/Icon';
 import PublicFooter from '../components/PublicFooter';
 import PublicHeader from '../components/PublicHeader';
 import JobDetailView from '../components/JobDetailView';
+import { slugify } from '../utils/slugify';
 
-const JobDetailPage: React.FC<{ jobId: string; navigate: (path: string) => void }> = ({ jobId, navigate }) => {
+const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => void }> = ({ jobSlug, navigate }) => {
     const { jobs, seoSettings } = useData();
-    const job = jobs.find(j => j.id === jobId);
+    const job = jobs.find(j => slugify(j.title) === jobSlug);
 
     useEffect(() => {
         if (job) {

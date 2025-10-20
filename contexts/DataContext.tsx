@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
-import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification, CustomEmail, BackupData } from '../types';
-import { INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, INITIAL_CONTACTS, INITIAL_EMAIL_NOTIFICATIONS, INITIAL_CUSTOM_EMAILS } from '../constants';
+import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification, CustomEmail, BackupData, SMTPSettings } from '../types';
+import { INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, INITIAL_CONTACTS, INITIAL_EMAIL_NOTIFICATIONS, INITIAL_CUSTOM_EMAILS, initialSmtpSettings } from '../constants';
 import { getEffectiveJobStatus } from '../utils/jobUtils';
 import useLocalStorage from '../hooks/useLocalStorage';
 
@@ -18,6 +18,7 @@ interface DataContextType {
     socialMediaSettings: SocialMediaSettings;
     emailNotifications: EmailNotification[];
     customEmails: CustomEmail[];
+    smtpSettings: SMTPSettings;
     loading: boolean;
     error: string | null;
 
@@ -58,6 +59,7 @@ interface DataContextType {
     updateSEOSettings: (settings: SEOSettings) => Promise<void>;
     updateGeneralSettings: (settings: GeneralSettings) => Promise<void>;
     updateSocialMediaSettings: (settings: SocialMediaSettings) => Promise<void>;
+    updateSmtpSettings: (settings: SMTPSettings) => Promise<void>;
 
     // Email
     sendCustomEmail: (subject: string, body: string) => Promise<void>;
@@ -93,6 +95,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [socialMediaSettings, setSocialMediaSettings] = usePersistentState<SocialMediaSettings>('socialMediaSettings', initialSocialMediaSettings);
     const [emailNotifications, setEmailNotifications] = usePersistentState<EmailNotification[]>('emailNotifications', INITIAL_EMAIL_NOTIFICATIONS);
     const [customEmails, setCustomEmails] = usePersistentState<CustomEmail[]>('customEmails', INITIAL_CUSTOM_EMAILS);
+    const [smtpSettings, setSmtpSettings] = usePersistentState<SMTPSettings>('smtpSettings', initialSmtpSettings);
 
     useEffect(() => {
         setLoading(false);
@@ -154,6 +157,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const updateSEOSettings = async (settings: SEOSettings) => { await simulateApiCall(); setSeoSettings(settings); };
     const updateGeneralSettings = async (settings: GeneralSettings) => { await simulateApiCall(); setGeneralSettings(settings); };
     const updateSocialMediaSettings = async (settings: SocialMediaSettings) => { await simulateApiCall(); setSocialMediaSettings(settings); };
+    const updateSmtpSettings = async (settings: SMTPSettings) => { await simulateApiCall(); setSmtpSettings(settings); };
 
     const sendCustomEmail = async (subject: string, body: string) => {
         await simulateApiCall();
@@ -167,7 +171,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (window.confirm("Are you sure you want to clear all notification history? This cannot be undone.")) setEmailNotifications([]);
     };
 
-    const createBackup = useCallback((): BackupData => ({ jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails }), [jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails]);
+    const createBackup = useCallback((): BackupData => ({ jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails, smtpSettings }), [jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails, smtpSettings]);
 
     const restoreBackup = (data: BackupData): boolean => {
         try {
@@ -176,15 +180,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setContacts(data.contacts); setBreakingNews(data.breakingNews); setAdSettings(data.adSettings);
             setSeoSettings(data.seoSettings); setGeneralSettings(data.generalSettings); setSocialMediaSettings(data.socialMediaSettings);
             setEmailNotifications(data.emailNotifications); setCustomEmails(data.customEmails);
+            setSmtpSettings(data.smtpSettings || initialSmtpSettings);
             return true;
         } catch (e) { console.error("Restore failed:", e); return false; }
     };
 
     const value = {
-        jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails, loading, error,
+        jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails, smtpSettings, loading, error,
         addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs, addQuickLink, updateQuickLink, deleteQuickLink, addPost, updatePost, deletePost, deleteMultiplePosts,
         addSubscriber, deleteSubscriber, addContact, deleteContact, addNews, updateNews, deleteNews, updateAdSettings, updateSEOSettings, updateGeneralSettings, updateSocialMediaSettings,
-        sendCustomEmail, deleteCustomEmail, deleteEmailNotification, clearAllEmailNotifications, createBackup, restoreBackup
+        updateSmtpSettings, sendCustomEmail, deleteCustomEmail, deleteEmailNotification, clearAllEmailNotifications, createBackup, restoreBackup
     };
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

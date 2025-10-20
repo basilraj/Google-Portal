@@ -7,6 +7,7 @@ import Pagination from '../components/admin/Pagination';
 import usePagination from '../hooks/usePagination';
 import PublicFooter from '../components/PublicFooter';
 import { getEffectiveJobStatus } from '../utils/jobUtils';
+import { slugify } from '../utils/slugify';
 import { basePath } from '../App';
 import PublicHeader from '../components/PublicHeader';
 
@@ -22,7 +23,7 @@ const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job
         }
     };
 
-    const jobUrl = `${window.location.origin}${basePath}/job/${job.id}`.replace(/([^:]\/)\/+/g, "$1");
+    const jobUrl = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
     const shareTitle = `Check out this job: ${job.title}`;
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(jobUrl)}&quote=${encodeURIComponent(shareTitle)}`;
     const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + jobUrl)}`;
@@ -58,7 +59,7 @@ const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <a href={`${basePath}/job/${job.id}`} onClick={(e) => { e.preventDefault(); navigate(`/job/${job.id}`); }} className="text-sm font-semibold text-indigo-600 hover:underline">
+                    <a href={`${basePath}/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); navigate(`/job/${slugify(job.title)}`); }} className="text-sm font-semibold text-indigo-600 hover:underline">
                         View Full Details
                     </a>
                     <a href={job.applyLink} target="_blank" rel="noopener noreferrer" className={`font-bold py-2 px-4 rounded-md transition-opacity ${effectiveStatus === 'expired' ? 'bg-gray-400 text-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'}`}>
@@ -223,7 +224,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         totalPages: jobsTotalPages, 
         paginatedData: paginatedJobs, 
         goToPage: goToJobsPage 
-    } = usePagination(filteredJobs, { itemsPerPage: 5 });
+    } = usePagination(filteredJobs, { itemsPerPage: 10 });
     
     return (
         <div className="public-website bg-gray-50">

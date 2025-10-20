@@ -3,71 +3,77 @@ import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
 
 const AdminLoginPage: React.FC = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { login } = useAuth();
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const { login } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!login(username, password)) {
-      setError('Invalid username or password.');
-    }
-  };
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        const success = login(username, password);
+        if (!success) {
+            setError('Invalid username or password.');
+        }
+    };
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
-        <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900">Admin Panel Access</h2>
-            <p className="mt-2 text-sm text-gray-600">Sign in to manage the job portal</p>
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+                <div className="text-center">
+                    <Icon name="user-shield" className="text-5xl text-indigo-600 mx-auto" />
+                    <h2 className="mt-4 text-3xl font-extrabold text-gray-900">
+                        Admin Panel Login
+                    </h2>
+                </div>
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <div className="rounded-md shadow-sm -space-y-px">
+                        <div>
+                            <label htmlFor="username-address" className="sr-only">Username</label>
+                            <input
+                                id="username-address"
+                                name="username"
+                                type="text"
+                                autoComplete="username"
+                                required
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                                placeholder="Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="sr-only">Password</label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autoComplete="current-password"
+                                required
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {error && (
+                        <p className="text-sm text-red-600 text-center">{error}</p>
+                    )}
+
+                    <div>
+                        <button
+                            type="submit"
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            Sign in
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Username</label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Icon name="user" className="text-gray-400" />
-                    </div>
-                    <input 
-                        type="text" 
-                        value={username} 
-                        onChange={e => setUsername(e.target.value)} 
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="username"
-                        required
-                    />
-                </div>
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Password</label>
-                 <div className="mt-1 relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Icon name="lock" className="text-gray-400" />
-                    </div>
-                    <input 
-                        type="password" 
-                        value={password} 
-                        onChange={e => setPassword(e.target.value)} 
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="password"
-                        required
-                    />
-                </div>
-            </div>
-            
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            
-            <div>
-                <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Sign in
-                </button>
-            </div>
-        </form>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default AdminLoginPage;

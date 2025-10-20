@@ -75,8 +75,8 @@ const App: React.FC = () => {
     }
     
     if (route.startsWith('/job/')) {
-      const jobId = path.split('/')[2];
-      return <JobDetailPage jobId={jobId} navigate={navigate} />;
+      const jobSlug = path.split('/')[2];
+      return <JobDetailPage jobSlug={jobSlug} navigate={navigate} />;
     }
 
     if (route.startsWith('/blog/')) {

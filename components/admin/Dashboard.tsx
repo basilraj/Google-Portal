@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import Icon from '../Icon';
 
@@ -69,6 +69,24 @@ const QuickActionButton: React.FC<{ label: string; icon: string; onClick: () => 
 
 const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTab }) => {
     const { jobs, posts, subscribers, adSettings, generalSettings } = useData();
+    const [dbStatus, setDbStatus] = useState<{ status: 'checking' | 'ok' | 'error'; message: string }>({ status: 'checking', message: 'Checking...' });
+
+    useEffect(() => {
+        const checkDbStatus = async () => {
+            try {
+                const response = await fetch(`/api/health`);
+                if (response.ok) {
+                    setDbStatus({ status: 'ok', message: 'Connection successful' });
+                } else {
+                    const data = await response.json();
+                    setDbStatus({ status: 'error', message: data.message || 'Connection failed' });
+                }
+            } catch (error) {
+                setDbStatus({ status: 'error', message: 'Could not connect to health check endpoint' });
+            }
+        };
+        checkDbStatus();
+    }, []);
 
     // Simulated data for charts
     const jobsLast7Days = [
@@ -119,6 +137,12 @@ const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTa
                      <h3 className="text-xl font-bold text-gray-700 mb-4">System Health</h3>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <span className="text-gray-600">Database Status</span>
+                            {dbStatus.status === 'checking' && <span className="font-semibold text-gray-600 flex items-center gap-2"><Icon name="spinner" className="animate-spin" /> Checking...</span>}
+                            {dbStatus.status === 'ok' && <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Operational</span>}
+                            {dbStatus.status === 'error' && <span className="font-semibold text-red-600 flex items-center gap-2" title={dbStatus.message}><Icon name="times-circle" /> Error</span>}
+                        </div>
+                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                             <span className="text-gray-600">API Status</span>
                             <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Operational</span>
                         </div>

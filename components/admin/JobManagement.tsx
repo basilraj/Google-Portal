@@ -7,6 +7,7 @@ import Pagination from './Pagination';
 import usePagination from '../../hooks/usePagination';
 import { getEffectiveJobStatus } from '../../utils/jobUtils';
 import JobDetailView from '../JobDetailView';
+import { slugify } from '../../utils/slugify';
 import ConfirmationModal from './ConfirmationModal';
 import NotificationExtractorModal from './NotificationExtractorModal';
 import { basePath } from '../../App';
@@ -359,12 +360,12 @@ const JobManagement: React.FC = () => {
 
                     if (options?.createNews) {
                         const newsText = `'${newJob.title}' has been announced. Last date to apply is ${newJob.lastDate}.`;
-                        const newsLink = `${basePath}/job/${newJob.id}`.replace('//', '/');
+                        const newsLink = `${basePath}/job/${slugify(newJob.title)}`.replace('//', '/');
                         await addNews({ text: newsText, link: newsLink, status: 'active' });
                     }
 
                     if (options?.createLink) {
-                        const linkUrl = `${basePath}/job/${newJob.id}`.replace('//', '/');
+                        const linkUrl = `${basePath}/job/${slugify(newJob.title)}`.replace('//', '/');
                         await addQuickLink({ title: newJob.title, category: newJob.department, url: linkUrl, description: '', status: 'active' });
                     }
                 }
