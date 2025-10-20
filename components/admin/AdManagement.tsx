@@ -25,32 +25,12 @@ const AdManagement: React.FC = () => {
     const { adSettings, updateAdSettings } = useData();
     const [formData, setFormData] = useState<AdSettings>(adSettings);
     const [activeSection, setActiveSection] = useState<string>('display');
-    const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+    const [message, setMessage] = useState('');
     
     // Ensure local form data is synced if context data changes externally
     useEffect(() => {
         setFormData(adSettings);
     }, [adSettings]);
-    
-    // Auto-save with debounce when formData changes
-    useEffect(() => {
-        // Prevent saving on the initial render when formData is first set
-        if (JSON.stringify(formData) === JSON.stringify(adSettings)) {
-            return;
-        }
-
-        setSaveState('saving');
-        const handler = setTimeout(() => {
-            updateAdSettings(formData);
-            setSaveState('saved');
-            setTimeout(() => setSaveState('idle'), 2000); // Reset to idle
-        }, 1200); // 1.2-second debounce timer
-
-        return () => {
-            clearTimeout(handler); // Cleanup timeout on unmount or if formData changes again
-        };
-    }, [formData, updateAdSettings, adSettings]);
-
 
     const handleToggleSection = (section: string) => {
         setActiveSection(prev => prev === section ? '' : section);
@@ -102,31 +82,20 @@ const AdManagement: React.FC = () => {
         if (impressions === 0) return '0.00%';
         return ((clicks / impressions) * 100).toFixed(2) + '%';
     };
-
-    const SaveStatusIndicator: React.FC = () => {
-        let content;
-        switch(saveState) {
-            case 'saving':
-                content = <><Icon name="spinner" className="animate-spin" /> Saving...</>;
-                break;
-            case 'saved':
-                content = <><Icon name="check-circle" /> All changes saved</>;
-                break;
-            default:
-                return null;
-        }
-        return (
-            <div className="text-sm text-gray-500 font-medium flex items-center gap-2 transition-opacity">
-                {content}
-            </div>
-        );
+    
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await updateAdSettings(formData);
+        setMessage('Ad settings saved successfully!');
+        window.scrollTo(0, 0);
+        setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-sm">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm">
             <div className="p-4 border-b flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-700">Ad Settings</h2>
-                <SaveStatusIndicator />
+                {message && <div className="text-sm text-green-600 font-medium flex items-center gap-2"><Icon name="check-circle" /> {message}</div>}
             </div>
             
             <AccordionSection title="Global Display Settings" isOpen={activeSection === 'display'} onToggle={() => handleToggleSection('display')}>
@@ -309,7 +278,13 @@ const AdManagement: React.FC = () => {
                     </div>
                  </div>
             </AccordionSection>
-        </div>
+
+             <div className="flex justify-end mt-6 p-4 border-t bg-gray-50">
+                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 text-base font-semibold flex items-center gap-2">
+                    <Icon name="save" /> Save Ad Settings
+                </button>
+            </div>
+        </form>
     );
 };
 

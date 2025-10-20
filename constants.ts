@@ -135,12 +135,12 @@ export const initialAdSettings: AdSettings = {
 
 export const initialSeoSettings: SEOSettings = {
     global: {
-        siteTitle: 'Divine Computer Jobs',
+        siteTitle: 'Jobtica',
         metaDescription: 'Find the latest government job notifications, exam results, and admit cards. Your one-stop destination for all government job updates in India.',
-        metaKeywords: 'divine computer jobs, government jobs, sarkari naukri, job portal, railway jobs, ssc, upsc, banking jobs',
+        metaKeywords: 'jobtica, government jobs, sarkari naukri, job portal, railway jobs, ssc, upsc, banking jobs',
     },
     social: {
-        ogTitle: 'Divine Computer Jobs - Latest Government Jobs',
+        ogTitle: 'Jobtica - Latest Government Jobs',
         ogDescription: 'Your gateway to a successful career in the public sector. Get daily updates on all government job vacancies.',
         ogImageUrl: '',
     },

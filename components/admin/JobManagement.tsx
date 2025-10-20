@@ -9,6 +9,7 @@ import { getEffectiveJobStatus } from '../../utils/jobUtils';
 import JobDetailView from '../JobDetailView';
 import ConfirmationModal from './ConfirmationModal';
 import NotificationExtractorModal from './NotificationExtractorModal';
+import { basePath } from '../../App';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -27,7 +28,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
     </div>
 );
 
-const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string) => void; onCancel: () => void; isLoading: boolean; }> = ({ job, onSave, onCancel, isLoading }) => {
+const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; }) => void; onCancel: () => void; isLoading: boolean; }> = ({ job, onSave, onCancel, isLoading }) => {
     const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(job ? { ...job } : {
         title: '',
         department: '',
@@ -40,6 +41,9 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
         status: 'active',
     });
     
+    const [createNews, setCreateNews] = useState(true);
+    const [createLink, setCreateLink] = useState(true);
+
     const titleInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -57,7 +61,7 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
         e.preventDefault();
         // Explicitly destructure id and createdAt to create a clean object for saving.
         const { id, createdAt, ...dataToSave } = formData as Job;
-        onSave(dataToSave, job?.id);
+        onSave(dataToSave, job?.id, !job ? { createNews, createLink } : undefined);
     };
 
     return (
@@ -108,6 +112,23 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
                     <option value="expired">Expired</option>
                 </select>
             </div>
+
+            {!job && (
+                <div className="pt-4 border-t">
+                    <h3 className="text-md font-medium text-gray-800 mb-2">Automated Actions</h3>
+                    <div className="space-y-2 text-sm text-gray-600">
+                        <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
+                            <input type="checkbox" checked={createNews} onChange={e => setCreateNews(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                            <span>Create a "Breaking News" item for this job</span>
+                        </label>
+                        <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
+                            <input type="checkbox" checked={createLink} onChange={e => setCreateLink(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                            <span>Create a "Quick Link" for this job</span>
+                        </label>
+                    </div>
+                </div>
+            )}
+
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
                 <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 w-28 text-center disabled:opacity-75" disabled={isLoading}>
@@ -251,7 +272,7 @@ const parseCsvLine = (line: string): string[] => {
 
 
 const JobManagement: React.FC = () => {
-    const { jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs } = useData();
+    const { jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs, addNews, addQuickLink } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingJob, setEditingJob] = useState<Job | undefined>(undefined);
     const [statusFilter, setStatusFilter] = useState<'all' | Job['status']>('all');
@@ -322,7 +343,7 @@ const JobManagement: React.FC = () => {
         setSelectedJobIds([]);
     }, [currentPage, statusFilter, sortKey, sortDirection]);
 
-    const handleSave = async (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string) => {
+    const handleSave = async (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; }) => {
         setIsLoading(true);
         try {
             if (id) {
@@ -332,8 +353,21 @@ const JobManagement: React.FC = () => {
                     showNotification(`Job '${jobData.title}' updated successfully!`);
                 }
             } else {
-                await addJob(jobData);
-                showNotification(`Job '${jobData.title}' added successfully!`);
+                const newJob = await addJob(jobData);
+                if (newJob) {
+                    showNotification(`Job '${jobData.title}' added successfully!`);
+
+                    if (options?.createNews) {
+                        const newsText = `'${newJob.title}' has been announced. Last date to apply is ${newJob.lastDate}.`;
+                        const newsLink = `${basePath}/job/${newJob.id}`.replace('//', '/');
+                        await addNews({ text: newsText, link: newsLink, status: 'active' });
+                    }
+
+                    if (options?.createLink) {
+                        const linkUrl = `${basePath}/job/${newJob.id}`.replace('//', '/');
+                        await addQuickLink({ title: newJob.title, category: newJob.department, url: linkUrl, description: '', status: 'active' });
+                    }
+                }
             }
             setIsModalOpen(false);
             setEditingJob(undefined);
