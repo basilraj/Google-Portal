@@ -10,7 +10,6 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
         { name: 'Home', path: '/' },
         { name: 'Blog', path: '/blog' },
         { name: 'About Us', path: '/about' },
-        { name: 'Contact', path: '/contact' },
     ];
 
     return (
@@ -25,20 +24,23 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                 </div>
             </div>
             <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center py-4">
+                <div className="flex justify-between items-center py-3">
                     <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="flex items-center gap-3">
-                        {generalSettings.siteIconUrl && <img src={generalSettings.siteIconUrl} alt="Site Logo" className="h-10 w-auto" />}
-                        <span className="text-2xl font-bold text-[#1e3c72]">{generalSettings.siteTitle}</span>
+                        {generalSettings.siteIconUrl ? 
+                            <img src={generalSettings.siteIconUrl} alt="Site Logo" className="h-16 w-auto" />
+                            :
+                             <span className="text-3xl font-bold text-[#1e3c72]">{generalSettings.siteTitle}</span>
+                        }
                     </a>
                     
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-6">
+                    <nav className="hidden md:flex items-center gap-8">
                         {navLinks.map(link => (
                             <a 
                                 key={link.name} 
                                 href={link.path} 
                                 onClick={(e) => { e.preventDefault(); navigate(link.path); }}
-                                className="text-gray-600 font-semibold hover:text-indigo-600"
+                                className="text-lg font-bold text-blue-900 hover:text-indigo-600 transition-colors"
                             >
                                 {link.name}
                             </a>
@@ -46,7 +48,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                     </nav>
 
                     {/* Mobile Menu Button */}
-                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-2xl text-gray-700">
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-3xl text-gray-700">
                         <Icon name={isMenuOpen ? 'times' : 'bars'} />
                     </button>
                 </div>
@@ -61,7 +63,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                                 key={link.name} 
                                 href={link.path} 
                                 onClick={(e) => { e.preventDefault(); navigate(link.path); setIsMenuOpen(false); }}
-                                className="text-gray-700 font-semibold py-2 hover:bg-gray-100 rounded-md text-center"
+                                className="text-gray-700 font-semibold py-3 hover:bg-gray-100 rounded-md text-center text-lg"
                             >
                                 {link.name}
                             </a>

@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+
+import React from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
 import Icon from '../Icon.tsx';
@@ -71,24 +72,6 @@ const QuickActionButton: React.FC<{ label: string; icon: string; onClick: () => 
 
 const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTab }) => {
     const { jobs, posts, subscribers, adSettings, generalSettings } = useData();
-    const [dbStatus, setDbStatus] = useState<{ status: 'checking' | 'ok' | 'error'; message: string }>({ status: 'checking', message: 'Checking...' });
-
-    useEffect(() => {
-        const checkDbStatus = async () => {
-            try {
-                const response = await fetch(`/api/health`);
-                if (response.ok) {
-                    setDbStatus({ status: 'ok', message: 'Connection successful' });
-                } else {
-                    const data = await response.json();
-                    setDbStatus({ status: 'error', message: data.message || 'Connection failed' });
-                }
-            } catch (error) {
-                setDbStatus({ status: 'error', message: 'Could not connect to health check endpoint' });
-            }
-        };
-        checkDbStatus();
-    }, []);
 
     // Simulated data for charts
     const jobsLast7Days = [
@@ -107,10 +90,10 @@ const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTa
         <div className="space-y-6">
             {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Active Jobs" value={jobs.length} icon="briefcase" color="bg-indigo-500" onClick={() => setActiveTab('jobs')} />
+                <StatCard title="Active Jobs" value={jobs.filter(j => j.status !== 'expired').length} icon="briefcase" color="bg-indigo-500" onClick={() => setActiveTab('jobs')} />
                 <StatCard title="Total Posts" value={posts.length} icon="file-alt" color="bg-green-500" onClick={() => setActiveTab('posts')} />
                 <StatCard title="Subscribers" value={subscribers.length} icon="users" color="bg-yellow-500" onClick={() => setActiveTab('subscribers')} />
-                <StatCard title="Active Ads" value={totalActiveAds} icon="ad" color="bg-red-500" onClick={() => setActiveTab('ads')} />
+                <StatCard title="Active Ads" value={totalActiveAds} icon="ad" color="bg-red-500" onClick={() => setActiveTab('settings')} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -138,15 +121,9 @@ const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTa
                  <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
                      <h3 className="text-xl font-bold text-gray-700 mb-4">System Health</h3>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                            <span className="text-gray-600">Database Status</span>
-                            {dbStatus.status === 'checking' && <span className="font-semibold text-gray-600 flex items-center gap-2"><Icon name="spinner" className="animate-spin" /> Checking...</span>}
-                            {dbStatus.status === 'ok' && <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Operational</span>}
-                            {dbStatus.status === 'error' && <span className="font-semibold text-red-600 flex items-center gap-2" title={dbStatus.message}><Icon name="times-circle" /> Error</span>}
-                        </div>
                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                             <span className="text-gray-600">API Status</span>
-                            <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Operational</span>
+                            <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Client-Side</span>
                         </div>
                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                             <span className="text-gray-600">Email Notifications</span>
@@ -170,7 +147,7 @@ const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTa
                         </div>
                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                             <span className="text-gray-600">Last Backup</span>
-                             <span className="font-semibold text-gray-800">Today (Automatic)</span>
+                             <span className="font-semibold text-gray-800">N/A (Manual)</span>
                         </div>
                      </div>
                 </div>
