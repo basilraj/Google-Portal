@@ -166,15 +166,17 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         setIsPostModalOpen(true);
     };
 
-    const handleSubscription = (e: React.FormEvent) => {
+    const handleSubscription = async (e: React.FormEvent) => {
         e.preventDefault();
         if (subscriberEmail) {
-            const success = addSubscriber(subscriberEmail);
+            const success = await addSubscriber(subscriberEmail);
             if(success) {
                 setSubscriptionMessage('Thank you for subscribing!');
                 setSubscriberEmail('');
-                setTimeout(() => setSubscriptionMessage(''), 5000);
+            } else {
+                setSubscriptionMessage('You are already subscribed!');
             }
+            setTimeout(() => setSubscriptionMessage(''), 5000);
         }
     }
 

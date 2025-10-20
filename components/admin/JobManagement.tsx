@@ -121,7 +121,7 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
 const BulkUploadModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onUpload: (file: File) => void;
+    onUpload: (file: File) => Promise<void>;
     errorMessages: string[];
     isLoading: boolean;
 }> = ({ isOpen, onClose, onUpload, errorMessages, isLoading }) => {
@@ -133,9 +133,9 @@ const BulkUploadModal: React.FC<{
         }
     };
 
-    const handleUpload = () => {
+    const handleUpload = async () => {
         if (file) {
-            onUpload(file);
+            await onUpload(file);
         }
     };
 
@@ -322,23 +322,26 @@ const JobManagement: React.FC = () => {
         setSelectedJobIds([]);
     }, [currentPage, statusFilter, sortKey, sortDirection]);
 
-    const handleSave = (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string) => {
+    const handleSave = async (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string) => {
         setIsLoading(true);
-        setTimeout(() => { // Simulate async operation
+        try {
             if (id) {
                 const originalJob = jobs.find(j => j.id === id);
                 if (originalJob) {
-                     updateJob({ ...originalJob, ...jobData, id });
-                     showNotification(`Job '${jobData.title}' updated successfully!`);
+                    await updateJob({ ...originalJob, ...jobData, id });
+                    showNotification(`Job '${jobData.title}' updated successfully!`);
                 }
             } else {
-                addJob(jobData);
+                await addJob(jobData);
                 showNotification(`Job '${jobData.title}' added successfully!`);
             }
             setIsModalOpen(false);
             setEditingJob(undefined);
+        } catch (error) {
+            showNotification('An error occurred while saving the job.', 'error');
+        } finally {
             setIsLoading(false);
-        }, 500);
+        }
     };
 
     const handleEdit = (job: Job) => {
@@ -358,105 +361,97 @@ const JobManagement: React.FC = () => {
         openConfirmationModal(
             'Confirm Deletion',
             <>Are you sure you want to delete the job: <strong>"{jobToDelete.title}"</strong>? This action cannot be undone.</>,
-            () => {
+            async () => {
                 setIsLoading(true);
-                setTimeout(() => {
-                    deleteJob(jobId);
+                try {
+                    await deleteJob(jobId);
                     showNotification(`Job '${jobToDelete.title}' deleted successfully.`);
+                } catch (error) {
+                    showNotification('An error occurred while deleting the job.', 'error');
+                } finally {
                     setIsLoading(false);
                     setIsConfirmModalOpen(false);
-                }, 500);
+                }
             }
         );
     };
     
-    const handleBulkUpload = (file: File) => {
+    const handleBulkUpload = async (file: File) => {
         setBulkUploadErrors([]);
         setIsLoading(true);
-        setTimeout(() => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target?.result as string;
-                if (!text) {
-                    setBulkUploadErrors(['File is empty or could not be read.']);
-                    showNotification('Upload failed: File is empty.', 'error');
-                    setIsLoading(false);
-                    return;
-                }
+        try {
+            const text = await file.text();
+            if (!text) {
+                setBulkUploadErrors(['File is empty or could not be read.']);
+                showNotification('Upload failed: File is empty.', 'error');
+                return;
+            }
 
-                const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
-                if (lines.length <= 1) {
-                    setBulkUploadErrors(['CSV file must contain a header and at least one data row.']);
-                    showNotification('Upload failed: CSV is missing data.', 'error');
-                    setIsLoading(false);
-                    return;
-                }
-                
-                const errors: string[] = [];
-                const jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[] = [];
-                const headerLine = lines[0];
-                const headers = parseCsvLine(headerLine).map(h => h.trim());
-                
-                const requiredHeaders = ['title', 'department', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
-                if (JSON.stringify(headers) !== JSON.stringify(requiredHeaders)) {
-                     const errorMsg = `Invalid CSV header. Expected: ${requiredHeaders.join(',')}`;
-                     setBulkUploadErrors([errorMsg]);
-                     showNotification(errorMsg, 'error');
-                     setIsLoading(false);
-                     return;
-                }
-
-                lines.slice(1).forEach((line, index) => {
-                    const rowNum = index + 2;
-                    const values = parseCsvLine(line);
-
-                    if (values.length !== headers.length) {
-                        errors.push(`Line ${rowNum}: Incorrect number of columns. Expected ${headers.length}, found ${values.length}.`);
-                        return; // Skip this row
-                    }
-
-                    const jobEntry = headers.reduce((obj, header, i) => {
-                        obj[header as keyof typeof obj] = values[i];
-                        return obj;
-                    }, {} as any);
-                    
-                    // Validation
-                    if (!jobEntry.title) errors.push(`Line ${rowNum}: 'title' is required.`);
-                    if (!jobEntry.department) errors.push(`Line ${rowNum}: 'department' is required.`);
-                    if (!jobEntry.postedDate) errors.push(`Line ${rowNum}: 'postedDate' is required.`);
-                    if (jobEntry.postedDate && isNaN(new Date(jobEntry.postedDate).getTime())) {
-                        errors.push(`Line ${rowNum}: Invalid format for 'postedDate'. Please use YYYY-MM-DD.`);
-                    }
-                    if (!jobEntry.lastDate) errors.push(`Line ${rowNum}: 'lastDate' is required.`);
-                    if (jobEntry.lastDate && isNaN(new Date(jobEntry.lastDate).getTime())) {
-                        errors.push(`Line ${rowNum}: Invalid format for 'lastDate'. Please use YYYY-MM-DD.`);
-                    }
-
-                    if (errors.length === 0) {
-                        jobsData.push(jobEntry);
-                    }
-                });
-                
-                if (errors.length > 0) {
-                    setBulkUploadErrors(errors);
-                    showNotification('Upload failed. Please check the errors below the upload button.', 'error');
-                    setIsLoading(false);
-                } else {
-                    const addedCount = addMultipleJobs(jobsData);
-                    showNotification(`${addedCount} jobs uploaded successfully.`);
-                    setIsBulkUploadModalOpen(false);
-                    setIsLoading(false);
-                }
-            };
-            reader.onerror = () => {
-                 const errorMsg = 'Failed to read the file.';
+            const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
+            if (lines.length <= 1) {
+                setBulkUploadErrors(['CSV file must contain a header and at least one data row.']);
+                showNotification('Upload failed: CSV is missing data.', 'error');
+                return;
+            }
+            
+            const errors: string[] = [];
+            const jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[] = [];
+            const headerLine = lines[0];
+            const headers = parseCsvLine(headerLine).map(h => h.trim());
+            
+            const requiredHeaders = ['title', 'department', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
+            if (JSON.stringify(headers) !== JSON.stringify(requiredHeaders)) {
+                 const errorMsg = `Invalid CSV header. Expected: ${requiredHeaders.join(',')}`;
                  setBulkUploadErrors([errorMsg]);
                  showNotification(errorMsg, 'error');
-                 setIsLoading(false);
-            };
-            reader.readAsText(file);
-        }, 500);
+                 return;
+            }
+
+            lines.slice(1).forEach((line, index) => {
+                const rowNum = index + 2;
+                const values = parseCsvLine(line);
+
+                if (values.length !== headers.length) {
+                    errors.push(`Line ${rowNum}: Incorrect number of columns. Expected ${headers.length}, found ${values.length}.`);
+                    return;
+                }
+
+                const jobEntry = headers.reduce((obj, header, i) => {
+                    obj[header as keyof typeof obj] = values[i];
+                    return obj;
+                }, {} as any);
+                
+                if (!jobEntry.title) errors.push(`Line ${rowNum}: 'title' is required.`);
+                if (!jobEntry.department) errors.push(`Line ${rowNum}: 'department' is required.`);
+                if (!jobEntry.postedDate || isNaN(new Date(jobEntry.postedDate).getTime())) {
+                    errors.push(`Line ${rowNum}: Invalid or missing 'postedDate'. Use YYYY-MM-DD.`);
+                }
+                if (!jobEntry.lastDate || isNaN(new Date(jobEntry.lastDate).getTime())) {
+                    errors.push(`Line ${rowNum}: Invalid or missing 'lastDate'. Use YYYY-MM-DD.`);
+                }
+
+                if (errors.length === 0) {
+                    jobsData.push(jobEntry);
+                }
+            });
+            
+            if (errors.length > 0) {
+                setBulkUploadErrors(errors);
+                showNotification('Upload failed. Please check the errors below the upload button.', 'error');
+            } else {
+                const addedCount = await addMultipleJobs(jobsData);
+                showNotification(`${addedCount} jobs uploaded successfully.`);
+                setIsBulkUploadModalOpen(false);
+            }
+        } catch (error) {
+            const errorMsg = 'Failed to read the file.';
+            setBulkUploadErrors([errorMsg]);
+            showNotification(errorMsg, 'error');
+        } finally {
+            setIsLoading(false);
+        }
     };
+
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -483,16 +478,19 @@ const JobManagement: React.FC = () => {
         openConfirmationModal(
             'Confirm Bulk Deletion',
             <>Are you sure you want to delete <strong>{selectedJobIds.length}</strong> selected job(s)? This action cannot be undone.</>,
-            () => {
+            async () => {
                 setIsLoading(true);
-                setTimeout(() => {
+                try {
                     const count = selectedJobIds.length;
-                    deleteMultipleJobs(selectedJobIds);
+                    await deleteMultipleJobs(selectedJobIds);
                     setSelectedJobIds([]);
                     showNotification(`${count} job(s) deleted successfully.`);
+                } catch (error) {
+                    showNotification('An error occurred during bulk deletion.', 'error');
+                } finally {
                     setIsLoading(false);
                     setIsConfirmModalOpen(false);
-                }, 500);
+                }
             }
         );
     };
