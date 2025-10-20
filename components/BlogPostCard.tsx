@@ -1,7 +1,9 @@
+
 import React from 'react';
-import { ContentPost } from '../types';
-import Icon from './Icon';
-import { basePath } from '../App';
+// Fix: Add .ts extension to local module imports.
+import { ContentPost } from '../types.ts';
+import Icon from './Icon.tsx';
+import { basePath } from '../App.tsx';
 
 const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost) => void; }> = ({ post, onReadMore }) => {
     // Generate share URLs

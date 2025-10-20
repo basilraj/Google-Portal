@@ -1,9 +1,4 @@
-
 export type JobStatus = 'active' | 'closing-soon' | 'expired';
-export type PostStatus = 'published' | 'draft';
-export type PostType = 'posts' | 'exam-notices' | 'results';
-export type LinkStatus = 'active' | 'inactive';
-export type NewsStatus = 'active' | 'inactive';
 
 export interface Job {
   id: string;
@@ -16,7 +11,7 @@ export interface Job {
   lastDate: string; // YYYY-MM-DD
   applyLink: string;
   status: JobStatus;
-  createdAt: string; // ISO 8601
+  createdAt?: string; // ISO string
 }
 
 export interface QuickLink {
@@ -25,18 +20,20 @@ export interface QuickLink {
   category: string;
   url: string;
   description: string;
-  status: LinkStatus;
+  status: 'active' | 'inactive';
 }
+
+export type PostType = 'posts' | 'exam-notices' | 'results';
 
 export interface ContentPost {
   id: string;
   title: string;
   category: string;
   content: string;
-  status: PostStatus;
+  status: 'published' | 'draft';
   type: PostType;
   publishedDate: string; // YYYY-MM-DD
-  createdAt: string; // ISO 8601
+  createdAt?: string; // ISO string
   examDate?: string; // YYYY-MM-DD
   imageUrl?: string;
   detailsUrl?: string;
@@ -55,50 +52,60 @@ export interface ContactSubmission {
   email: string;
   subject: string;
   message: string;
-  submittedAt: string; // ISO 8601
+  submittedAt: string; // ISO string
 }
 
 export interface BreakingNews {
   id: string;
   text: string;
   link: string;
-  status: NewsStatus;
+  status: 'active' | 'inactive';
 }
+
+export interface SponsoredAd {
+  id: string;
+  imageUrl: string;
+  destinationUrl: string;
+  placement: 'sidebar-top' | 'header' | 'footer';
+  status: 'active' | 'inactive';
+  clicks: number;
+}
+
 
 export interface ABTest {
   id: string;
-  placement: 'header' | 'sidebar' | 'footer';
+  placement: string;
   enabled: boolean;
   codeA: string;
   codeB: string;
   stats: {
     impressionsA: number;
-    clicksA: number;
     impressionsB: number;
+    clicksA: number;
     clicksB: number;
   };
 }
 
 export interface GeoTargetedAd {
   id: string;
-  country: string; // e.g., 'IN', 'US'
+  country: string;
   code: string;
 }
 
 export interface AdSettings {
-  adFrequency: 'low' | 'medium' | 'high';
-  adStartTime: string; // HH:mm
-  adEndTime: string;   // HH:mm
-  bannerAds: boolean;
-  squareAds: boolean;
-  skyscraperAds: boolean;
-  popupAds: boolean;
   headerAdEnabled: boolean;
   headerAdCode: string;
   sidebarAdEnabled: boolean;
   sidebarAdCode: string;
   footerAdEnabled: boolean;
   footerAdCode: string;
+  adFrequency: 'low' | 'medium' | 'high';
+  adStartTime: string;
+  adEndTime: string;
+  bannerAds: boolean;
+  squareAds: boolean;
+  skyscraperAds: boolean;
+  popupAds: boolean;
   customAds: {
     enabled: boolean;
     rotation: boolean;
@@ -114,6 +121,7 @@ export interface AdSettings {
     enabled: boolean;
     rules: GeoTargetedAd[];
   };
+  sponsoredAds: SponsoredAd[];
 }
 
 export interface SEOSettings {
@@ -150,20 +158,25 @@ export interface SocialMediaSettings {
 }
 
 export interface EmailNotification {
-    id: string;
-    recipient: string;
-    subject: string;
-    body: string;
-    sentAt: string; // ISO 8601
-    jobId?: string;
+  id: string;
+  recipient: string;
+  subject: string;
+  body: string;
+  sentAt: string; // ISO string
 }
 
 export interface CustomEmail {
     id: string;
-    recipients: 'all';
     subject: string;
     body: string;
-    sentAt: string; // ISO 8601
+    sentAt: string; // ISO string
+}
+
+export interface ActivityLog {
+  id: string;
+  timestamp: string; // ISO string
+  action: string;
+  details: string;
 }
 
 export interface SMTPSettings {
@@ -177,18 +190,27 @@ export interface SMTPSettings {
   fromName: string;
 }
 
+export interface RSSSettings {
+    feedUrl: string;
+}
+
 export interface BackupData {
     jobs: Job[];
     quickLinks: QuickLink[];
     posts: ContentPost[];
     subscribers: Subscriber[];
-    contacts: ContactSubmission[];
     breakingNews: BreakingNews[];
     adSettings: AdSettings;
     seoSettings: SEOSettings;
     generalSettings: GeneralSettings;
     socialMediaSettings: SocialMediaSettings;
-    emailNotifications: EmailNotification[];
-    customEmails: CustomEmail[];
+    activityLogs: ActivityLog[];
     smtpSettings: SMTPSettings;
+    rssSettings: RSSSettings;
+}
+
+export interface User {
+    username: string;
+    passwordHash: string;
+    email: string;
 }

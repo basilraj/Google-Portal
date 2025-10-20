@@ -1,424 +1,191 @@
-import React, { useState, useMemo } from 'react';
-import { useData } from '../contexts/DataContext';
-import Icon from '../components/Icon';
-import { ContactSubmission, ContentPost, Job } from '../types';
-import Modal from '../components/Modal';
-import Pagination from '../components/admin/Pagination';
-import usePagination from '../hooks/usePagination';
-import PublicFooter from '../components/PublicFooter';
-import { getEffectiveJobStatus } from '../utils/jobUtils';
-import { slugify } from '../utils/slugify';
-import { basePath } from '../App';
-import PublicHeader from '../components/PublicHeader';
-
-
-const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job, navigate }) => {
-    const effectiveStatus = getEffectiveJobStatus(job);
-
-    const getBadge = () => {
-        switch (effectiveStatus) {
-            case 'active': return <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">Active</span>;
-            case 'closing-soon': return <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-yellow-600 bg-yellow-200">Closing Soon</span>;
-            case 'expired': return <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-red-600 bg-red-200">Expired</span>;
-        }
-    };
-
-    const jobUrl = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
-    const shareTitle = `Check out this job: ${job.title}`;
-    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(jobUrl)}&quote=${encodeURIComponent(shareTitle)}`;
-    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + jobUrl)}`;
-    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(jobUrl)}&text=${encodeURIComponent(shareTitle)}`;
-
-    return (
-        <div className="border bg-white p-6 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
-            <div className="flex-grow">
-                <h3 className="text-xl font-bold text-[#1e3c72] mb-2">{job.title}</h3>
-                <div className="text-sm text-gray-600 mb-3 flex flex-wrap gap-x-4 gap-y-2">
-                    <span><Icon name="building" className="mr-2 text-gray-400" />{job.department}</span>
-                    <span><Icon name="graduation-cap" className="mr-2 text-gray-400" />{job.qualification}</span>
-                    <span><Icon name="briefcase" className="mr-2 text-gray-400" />{job.vacancies} Vacancies</span>
-                    <span><Icon name="calendar-check" className="mr-2 text-gray-400" />Posted: {job.postedDate}</span>
-                    <span><Icon name="calendar-alt" className="mr-2 text-gray-400" />Last Date: {job.lastDate}</span>
-                </div>
-            </div>
-
-            <div className="flex flex-wrap justify-between items-center mt-4 pt-4 border-t">
-                 <div className="flex items-center gap-4 mb-3 sm:mb-0">
-                    {getBadge()}
-                    <div className="flex items-center gap-3 text-gray-500">
-                        <span className="text-sm font-semibold">Share:</span>
-                        <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors">
-                            <Icon prefix="fab" name="facebook-f" className="text-lg" />
-                        </a>
-                        <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors">
-                            <Icon prefix="fab" name="whatsapp" className="text-lg" />
-                        </a>
-                        <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors">
-                            <Icon prefix="fab" name="telegram-plane" className="text-lg" />
-                        </a>
-                    </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <a href={`${basePath}/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); navigate(`/job/${slugify(job.title)}`); }} className="text-sm font-semibold text-indigo-600 hover:underline">
-                        View Full Details
-                    </a>
-                    <a href={job.applyLink} target="_blank" rel="nofollow noopener noreferrer" className={`font-bold py-2 px-4 rounded-md transition-opacity ${effectiveStatus === 'expired' ? 'bg-gray-400 text-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'}`}>
-                        {effectiveStatus === 'expired' ? 'Expired' : 'Apply Now'}
-                    </a>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const PostCard: React.FC<{ post: ContentPost; onViewDetails: (post: ContentPost) => void; }> = ({ post, onViewDetails }) => {
-    const pageUrl = window.location.href.split('#')[0] + '#' + post.type;
-    const shareTitle = `Divine Computer Jobs Update: ${post.title}`;
-    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}&quote=${encodeURIComponent(shareTitle)}`;
-    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + pageUrl)}`;
-    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareTitle)}`;
-
-    const getButtonText = () => {
-        const lowerTitle = post.title.toLowerCase();
-        if (post.type === 'exam-notices') {
-            if (lowerTitle.includes('admit card')) return 'Get Admit Card';
-            return 'Get Exam Notice';
-        }
-        if (post.type === 'results') {
-            return 'Check Result';
-        }
-        return 'View Details';
-    };
-
-    return (
-        <div className="border bg-white p-4 rounded-lg flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex-grow">
-                <h4 className="font-semibold text-gray-800">{post.title}</h4>
-                <p className="text-sm text-gray-500">
-                    Published: {post.publishedDate} 
-                    {post.examDate && ` | Exam: ${post.examDate}`}
-                </p>
-            </div>
-            <div className="flex items-center gap-4 flex-shrink-0">
-                <div className="flex items-center gap-3 text-gray-500">
-                    <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors">
-                        <Icon prefix="fab" name="facebook-f" />
-                    </a>
-                    <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors">
-                        <Icon prefix="fab" name="whatsapp" />
-                    </a>
-                     <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors">
-                        <Icon prefix="fab" name="telegram-plane" />
-                    </a>
-                </div>
-                {post.detailsUrl ? (
-                    <a 
-                        href={post.detailsUrl} 
-                        target="_blank" 
-                        rel="nofollow noopener noreferrer" 
-                        className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors text-sm"
-                    >
-                        {getButtonText()}
-                    </a>
-                ) : (
-                    <button onClick={() => onViewDetails(post)} className="text-indigo-600 hover:underline text-sm font-semibold">
-                        View Details
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-};
+import React, { useState, useMemo, useEffect } from 'react';
+import { useData } from '../contexts/DataContext.tsx';
+import { Job, ContentPost, QuickLink } from '../types.ts';
+import { getEffectiveJobStatus } from '../utils/jobUtils.ts';
+import Icon from '../components/Icon.tsx';
+import PublicHeader from '../components/PublicHeader.tsx';
+import PublicFooter from '../components/PublicFooter.tsx';
+import { slugify } from '../utils/slugify.ts';
 
 const AdComponent: React.FC<{ code: string }> = ({ code }) => (
     <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />
 );
 
-const BreakingNewsTicker: React.FC = () => {
-    const { breakingNews } = useData();
-    const activeNews = breakingNews.filter(n => n.status === 'active');
-
-    if (activeNews.length === 0) return null;
-
-    const newsItems = activeNews.map(n => (
-        <a key={n.id} href={n.link} className="text-white hover:underline mx-4">{n.text}</a>
-    ));
-
-    return (
-        <div className="bg-red-600 text-white py-2 overflow-hidden whitespace-nowrap">
-            <div className="animate-marquee inline-block">
-                {newsItems}
-                {/* Duplicate for seamless scroll */}
-                {newsItems} 
+const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = ({ job, onView }) => (
+    <div className="border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
+        <div className="p-5 flex-grow">
+            <h3 className="text-lg font-bold text-[#1e3c72] leading-tight mb-2">{job.title}</h3>
+            <p className="text-sm text-gray-500 mb-3">{job.department}</p>
+            <div className="text-xs text-gray-600 space-y-2">
+                <p className="flex items-center gap-2"><Icon name="graduation-cap" className="w-4 text-gray-400" />{job.qualification}</p>
+                <p className="flex items-center gap-2"><Icon name="briefcase" className="w-4 text-gray-400" />{job.vacancies} Vacancies</p>
+                <p className="flex items-center gap-2"><Icon name="calendar-alt" className="w-4 text-gray-400" />Last Date: {job.lastDate}</p>
             </div>
-             <style>{`
-                @keyframes marquee {
-                    0% { transform: translateX(0%); }
-                    100% { transform: translateX(-50%); }
-                }
-                .animate-marquee {
-                    animation: marquee 30s linear infinite;
-                }
-            `}</style>
         </div>
-    );
-};
+        <div className="p-4 bg-gray-50 border-t">
+            <button onClick={() => onView(slugify(job.title))} className="w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-700">View Details</button>
+        </div>
+    </div>
+);
+
+const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; typeLabel: string }> = ({ post, navigate, typeLabel }) => (
+    <div className="flex items-start gap-4">
+        <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-md flex flex-col items-center justify-center font-bold text-center leading-none">
+            <span className="text-lg">{new Date(post.publishedDate).getDate()}</span>
+            <span className="text-xs uppercase">{new Date(post.publishedDate).toLocaleString('default', { month: 'short' })}</span>
+        </div>
+        <div>
+            <span className="text-xs font-semibold text-purple-600 uppercase">{typeLabel}</span>
+            <a href={post.detailsUrl || '#'} onClick={(e) => { if(!post.detailsUrl) { e.preventDefault(); navigate(`/post/${post.id}`) } }} className="block font-semibold text-gray-800 hover:text-indigo-700 leading-tight">{post.title}</a>
+        </div>
+    </div>
+);
+
 
 const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const { jobs, quickLinks, posts, addSubscriber, addContact, adSettings } = useData();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [departmentFilter, setDepartmentFilter] = useState('all');
-    const [qualificationFilter, setQualificationFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('all-active');
-    const [subscriberEmail, setSubscriberEmail] = useState('');
-    const [subscriptionMessage, setSubscriptionMessage] = useState('');
-    const [contactForm, setContactForm] = useState<Omit<ContactSubmission, 'id' | 'submittedAt'>>({ name: '', email: '', subject: '', message: ''});
-    const [contactMessage, setContactMessage] = useState('');
-    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-    const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
+    const { jobs, posts, quickLinks, breakingNews, adSettings, addSubscriber, seoSettings } = useData();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [departmentFilter, setDepartmentFilter] = useState('All Departments');
+    const [email, setEmail] = useState('');
+    const [subscribeMessage, setSubscribeMessage] = useState<{ type: 'success'|'error', text: string } | null>(null);
 
-    const departments = useMemo(() => {
-        const uniqueDepts = new Set(jobs.map(job => job.department));
-        return ['all', ...Array.from(uniqueDepts).sort()];
-    }, [jobs]);
-
-    const qualifications = useMemo(() => {
-        const uniqueQuals = new Set(jobs.map(job => job.qualification));
-        return ['all', ...Array.from(uniqueQuals).sort()];
-    }, [jobs]);
-
-    const handleViewPostDetails = (post: ContentPost) => {
-        setSelectedPost(post);
-        setIsPostModalOpen(true);
-    };
-
-    const handleSubscription = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (subscriberEmail) {
-            const success = await addSubscriber(subscriberEmail);
-            if(success) {
-                setSubscriptionMessage('Thank you for subscribing!');
-                setSubscriberEmail('');
-            } else {
-                setSubscriptionMessage('You are already subscribed!');
-            }
-            setTimeout(() => setSubscriptionMessage(''), 5000);
-        }
-    }
-
-    const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setContactForm({...contactForm, [e.target.name]: e.target.value });
-    }
-
-    const handleContactSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        addContact(contactForm);
-        setContactMessage('Your message has been sent successfully! We will get back to you soon.');
-        setContactForm({ name: '', email: '', subject: '', message: ''});
-        setTimeout(() => setContactMessage(''), 8000);
-    }
+    useEffect(() => {
+        document.title = seoSettings.global.siteTitle;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', seoSettings.global.metaDescription);
+    }, [seoSettings]);
     
-    const handleClearFilters = () => {
-        setSearchQuery('');
-        setDepartmentFilter('all');
-        setQualificationFilter('all');
-        setStatusFilter('all-active');
-    };
-
+    const activeJobs = useMemo(() => jobs.filter(job => getEffectiveJobStatus(job) === 'active' || getEffectiveJobStatus(job) === 'closing-soon'), [jobs]);
     const filteredJobs = useMemo(() => {
-        return jobs.filter(job => {
-            const effectiveStatus = getEffectiveJobStatus(job);
-            
-            const statusMatch = effectiveStatus !== 'expired' && 
-                                (statusFilter === 'all-active' || effectiveStatus === statusFilter);
+        return activeJobs.filter(job => 
+            (job.title.toLowerCase().includes(searchTerm.toLowerCase()) || job.department.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (departmentFilter === 'All Departments' || job.department === departmentFilter)
+        );
+    }, [activeJobs, searchTerm, departmentFilter]);
+    
+    const departments = useMemo(() => ['All Departments', ...Array.from(new Set(activeJobs.map(j => j.department))).sort()], [activeJobs]);
+    const latestNotices = useMemo(() => posts.filter(p => p.type === 'exam-notices' && p.status === 'published').slice(0, 5), [posts]);
+    const latestResults = useMemo(() => posts.filter(p => p.type === 'results' && p.status === 'published').slice(0, 5), [posts]);
+    const activeBreakingNews = useMemo(() => breakingNews.filter(n => n.status === 'active'), [breakingNews]);
 
-            const searchMatch = (searchQuery === '' || 
-             job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-             job.department.toLowerCase().includes(searchQuery.toLowerCase()));
-
-            const departmentMatch = (departmentFilter === 'all' || job.department === departmentFilter);
-            
-            const qualificationMatch = (qualificationFilter === 'all' || job.qualification === qualificationFilter);
-
-            return statusMatch && searchMatch && departmentMatch && qualificationMatch;
-        });
-    }, [jobs, searchQuery, departmentFilter, qualificationFilter, statusFilter]);
-
-    const { 
-        currentPage: jobsCurrentPage, 
-        totalPages: jobsTotalPages, 
-        paginatedData: paginatedJobs, 
-        goToPage: goToJobsPage 
-    } = usePagination(filteredJobs, { itemsPerPage: 10 });
+    const handleSubscribe = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubscribeMessage(null);
+        if (!email) {
+            setSubscribeMessage({ type: 'error', text: 'Please enter a valid email.'});
+            return;
+        }
+        const result = await addSubscriber(email);
+        if(result.success) {
+            setSubscribeMessage({ type: 'success', text: 'Thank you for subscribing!'});
+            setEmail('');
+        } else {
+            setSubscribeMessage({ type: 'error', text: result.message || 'An error occurred.'});
+        }
+    };
     
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
-            <BreakingNewsTicker />
             {adSettings.headerAdEnabled && <AdComponent code={adSettings.headerAdCode} />}
-
-            <section id="home" className="hero bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-center py-16">
-                <div className="container mx-auto px-4">
-                    <h2 className="text-4xl font-extrabold mb-4">Find Your Dream Government Job</h2>
-                    <p className="text-lg opacity-90 mb-8">Latest Government Job Openings, Exam Notifications and Results</p>
-                    <div className="search-box max-w-2xl mx-auto flex gap-2">
-                        <input 
-                            type="text" 
-                            placeholder="Search jobs by title or keyword..." 
-                            className="w-full p-3 rounded-md border-0 text-gray-800"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                         />
-                    </div>
-                </div>
-            </section>
             
-            <section className="advanced-search bg-white p-6 rounded-lg shadow-md -mt-8 mx-4 md:mx-auto max-w-6xl relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div>
-                        <label htmlFor="departmentFilter" className="block text-sm font-medium text-gray-700">Department</label>
-                        <select id="departmentFilter" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
-                            {departments.map(dept => (
-                                <option key={dept} value={dept}>{dept === 'all' ? 'All Departments' : dept}</option>
-                            ))}
-                        </select>
+            {activeBreakingNews.length > 0 && (
+                <div className="bg-yellow-400 text-black overflow-hidden">
+                    <div className="container mx-auto px-4 flex items-center h-10">
+                        <span className="font-bold text-sm flex-shrink-0 mr-4">Breaking News:</span>
+                        <div className="relative flex-1 h-full flex items-center overflow-hidden">
+                             <div className="animate-marquee whitespace-nowrap">
+                                {activeBreakingNews.map(news => (
+                                    <a href={news.link} key={news.id} className="text-sm mx-8 hover:underline">{news.text}</a>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                     <div>
-                        <label htmlFor="qualificationFilter" className="block text-sm font-medium text-gray-700">Qualification</label>
-                        <select id="qualificationFilter" value={qualificationFilter} onChange={(e) => setQualificationFilter(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
-                            {qualifications.map(qual => (
-                                <option key={qual} value={qual}>{qual === 'all' ? 'All Qualifications' : qual}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700">Status</label>
-                        <select id="statusFilter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
-                            <option value="all-active">All Active</option>
-                            <option value="active">Active</option>
-                            <option value="closing-soon">Closing Soon</option>
-                        </select>
-                    </div>
-                    <button onClick={handleClearFilters} className="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-md hover:bg-gray-300 transition-colors w-full md:w-auto">
-                        Clear Filters
-                    </button>
                 </div>
-            </section>
+            )}
             
             <main className="container mx-auto px-4 py-12">
+                <section id="job-search" className="mb-12">
+                    <h2 className="text-3xl font-bold text-center text-[#1e3c72] mb-6">Find Your Dream Government Job</h2>
+                    <div className="bg-white p-6 rounded-lg shadow-md flex flex-col md:flex-row gap-4">
+                        <input 
+                            type="text" 
+                            placeholder="Search by job title or keyword..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="flex-grow px-4 py-2 border border-gray-300 rounded-md"
+                        />
+                        <select 
+                            value={departmentFilter}
+                            onChange={e => setDepartmentFilter(e.target.value)}
+                            className="px-4 py-2 border border-gray-300 rounded-md bg-white"
+                        >
+                            {departments.map(dep => <option key={dep} value={dep}>{dep}</option>)}
+                        </select>
+                    </div>
+                </section>
+                
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-12">
-                         <section id="latest-jobs">
-                             <h2 className="text-3xl font-bold text-[#1e3c72] my-6 pb-2 border-b-4 border-purple-500">Latest Job Openings</h2>
-                             <div className="space-y-6">
-                                {paginatedJobs.length > 0 ? (
-                                    paginatedJobs.map(job => <JobCard key={job.id} job={job} navigate={navigate} />)
-                                ) : (
-                                    <p className="text-gray-500 bg-gray-100 p-4 rounded-md">No jobs found matching your search criteria.</p>
-                                )}
-                             </div>
-                             <div className="mt-8">
-                                <Pagination
-                                    currentPage={jobsCurrentPage}
-                                    totalPages={jobsTotalPages}
-                                    onPageChange={goToJobsPage}
-                                />
+                    <div className="lg:col-span-2">
+                        <section id="job-listings">
+                            <h2 className="text-2xl font-bold text-[#1e3c72] mb-4">Latest Jobs</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {filteredJobs.slice(0, 10).map(job => (
+                                    <JobCard key={job.id} job={job} onView={(slug) => navigate(`/job/${slug}`)} />
+                                ))}
                             </div>
-                        </section>
-                        <section id="exam-notices">
-                           <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 pb-2 border-b-4 border-purple-500">Exam Notices & Admit Cards</h2>
-                           <div className="space-y-4">
-                                {posts.filter(p => p.type === 'exam-notices' && p.status === 'published').map(post => <PostCard key={post.id} post={post} onViewDetails={handleViewPostDetails} />)}
-                           </div>
-                        </section>
-                        <section id="results">
-                           <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 pb-2 border-b-4 border-purple-500">Latest Results</h2>
-                           <div className="space-y-4">
-                                {posts.filter(p => p.type === 'results' && p.status === 'published').map(post => <PostCard key={post.id} post={post} onViewDetails={handleViewPostDetails} />)}
-                           </div>
-                        </section>
-                        <section id="contact-us" className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-                            <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 pb-2 border-b-4 border-purple-500">Contact Us</h2>
-                            <form onSubmit={handleContactSubmit} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name *</label>
-                                        <input type="text" name="name" id="name" value={contactForm.name} onChange={handleContactChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address *</label>
-                                        <input type="email" name="email" id="email" value={contactForm.email} onChange={handleContactChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject *</label>
-                                    <input type="text" name="subject" id="subject" value={contactForm.subject} onChange={handleContactChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-                                </div>
-                                <div>
-                                    <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message *</label>
-                                    <textarea name="message" id="message" rows={5} value={contactForm.message} onChange={handleContactChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
-                                </div>
-                                <button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:opacity-90 transition-opacity">Send Message</button>
-                                {contactMessage && <p className="text-green-600 bg-green-100 p-3 rounded-md mt-4 text-center">{contactMessage}</p>}
-                            </form>
                         </section>
                     </div>
                     <aside className="space-y-8 sticky top-24 h-fit">
-                        {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} />}
                         <div className="widget bg-white p-6 rounded-lg shadow-md">
                             <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Quick Links</h3>
-                            <ul className="space-y-2">
-                                {quickLinks.map(link => (
-                                    <li key={link.id} className="border-b last:border-b-0 pb-2">
-                                        <a href={link.url} className="text-gray-700 hover:text-purple-600 transition-colors flex items-center">
-                                            <Icon name="chevron-right" className="mr-2 text-xs text-purple-500"/>{link.title}
-                                        </a>
+                            <ul className="space-y-2 text-sm">
+                                {quickLinks.filter(l => l.status === 'active').map(link => (
+                                    <li key={link.id} className="flex items-start">
+                                        <Icon name="link" className="text-purple-500 mt-1 mr-2"/>
+                                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-indigo-700">{link.title}</a>
                                     </li>
                                 ))}
                             </ul>
                         </div>
-                         <div className="widget bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-6 rounded-lg shadow-lg">
-                            <h3 className="text-xl font-bold mb-4 pb-2 border-b-2 border-white/50">Get Daily Updates</h3>
-                            <p className="mb-4 text-sm">Subscribe to receive latest job notifications directly to your email!</p>
-                            <form onSubmit={handleSubscription}>
-                                <input 
-                                    type="email" 
-                                    placeholder="Enter your email" 
-                                    value={subscriberEmail}
-                                    onChange={(e) => setSubscriberEmail(e.target.value)}
-                                    className="w-full p-2 rounded-md border-0 text-gray-800 mb-2" required/>
-                                <button type="submit" className="w-full bg-white text-purple-600 font-bold py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">Subscribe Now</button>
-                            </form>
-                            {subscriptionMessage && <p className="text-white bg-white/20 p-2 rounded-md mt-4 text-center text-sm">{subscriptionMessage}</p>}
-                        </div>
+                         {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} />}
                     </aside>
                 </div>
+
+                <section id="content-sections" className="mt-16">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white p-6 rounded-lg shadow-md">
+                             <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Exam Notices & Admit Cards</h3>
+                             <div className="space-y-4">
+                                {latestNotices.map(post => <PostCard key={post.id} post={post} navigate={navigate} typeLabel="Notice" />)}
+                             </div>
+                        </div>
+                        <div className="bg-white p-6 rounded-lg shadow-md">
+                            <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Latest Results</h3>
+                            <div className="space-y-4">
+                                {latestResults.map(post => <PostCard key={post.id} post={post} navigate={navigate} typeLabel="Result" />)}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="newsletter" className="mt-16 bg-gradient-to-r from-purple-600 to-indigo-700 text-white p-8 rounded-lg text-center">
+                    <h2 className="text-3xl font-bold mb-2">Get Job Alerts</h2>
+                    <p className="mb-6">Subscribe to our newsletter and never miss an update.</p>
+                    <form onSubmit={handleSubscribe} className="max-w-md mx-auto flex">
+                        <input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="flex-grow px-4 py-2 rounded-l-md text-gray-800" required />
+                        <button type="submit" className="bg-yellow-400 text-black font-bold px-6 py-2 rounded-r-md hover:bg-yellow-500">Subscribe</button>
+                    </form>
+                    {subscribeMessage && <p className={`mt-4 text-sm ${subscribeMessage.type === 'success' ? 'text-green-300' : 'text-red-300'}`}>{subscribeMessage.text}</p>}
+                </section>
             </main>
-             {adSettings.footerAdEnabled && (
+
+            {adSettings.footerAdEnabled && (
                 <div className="container mx-auto px-4">
                     <AdComponent code={adSettings.footerAdCode} />
                 </div>
             )}
             <PublicFooter navigate={navigate} />
-
-            <Modal isOpen={isPostModalOpen} onClose={() => setIsPostModalOpen(false)} title={selectedPost?.title || 'Details'}>
-                {selectedPost && (
-                    <div className="static-content">
-                        {selectedPost.imageUrl && (
-                            <img src={selectedPost.imageUrl} alt={selectedPost.title} className="w-full h-auto max-h-72 object-cover rounded-lg mb-6" />
-                        )}
-                        <div className="text-sm text-gray-500 mb-4">
-                            <span><strong>Published:</strong> {selectedPost.publishedDate}</span>
-                            {selectedPost.examDate && <span className="ml-4"><strong>Exam Date:</strong> {selectedPost.examDate}</span>}
-                        </div>
-                        <hr/>
-                        <p>{selectedPost.content}</p>
-                        <div className="flex justify-end pt-4 mt-4">
-                            <button onClick={() => setIsPostModalOpen(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Close</button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
         </div>
     );
 };

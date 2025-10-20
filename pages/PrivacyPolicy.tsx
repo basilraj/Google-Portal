@@ -1,6 +1,8 @@
+
 import React, { useEffect } from 'react';
-import StaticPage from '../components/StaticPage';
-import { useData } from '../contexts/DataContext';
+import StaticPage from '../components/StaticPage.tsx';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../contexts/DataContext.tsx';
 
 const PrivacyPolicy: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
   const { seoSettings } = useData();

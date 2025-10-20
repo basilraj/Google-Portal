@@ -1,11 +1,14 @@
+
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { ContentPost } from '../../types';
-import Icon from '../Icon';
-import Modal from '../Modal';
-import Pagination from './Pagination';
-import usePagination from '../../hooks/usePagination';
-import PostForm from './PostForm';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module imports.
+import { ContentPost } from '../../types.ts';
+import Icon from '../Icon.tsx';
+import Modal from '../Modal.tsx';
+import Pagination from './Pagination.tsx';
+import usePagination from '../../hooks/usePagination.ts';
+import PostForm from './PostForm.tsx';
 
 const ITEMS_PER_PAGE = 10;
 

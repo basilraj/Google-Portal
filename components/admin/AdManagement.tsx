@@ -1,7 +1,10 @@
+
 import React, { useState, useEffect, ReactNode } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { AdSettings, ABTest, GeoTargetedAd } from '../../types';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module imports.
+import { AdSettings, ABTest, GeoTargetedAd } from '../../types.ts';
+import Icon from '../Icon.tsx';
 
 const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: boolean; onToggle: () => void; }> = ({ title, children, isOpen, onToggle }) => (
     <div className="border-b">

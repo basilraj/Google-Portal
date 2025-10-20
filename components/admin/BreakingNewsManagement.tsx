@@ -1,8 +1,11 @@
+
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { BreakingNews } from '../../types';
-import Icon from '../Icon';
-import Modal from '../Modal';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module imports.
+import { BreakingNews } from '../../types.ts';
+import Icon from '../Icon.tsx';
+import Modal from '../Modal.tsx';
 
 const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
     <div className="text-center py-16 border-t">

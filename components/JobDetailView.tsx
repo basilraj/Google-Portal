@@ -1,9 +1,8 @@
-
 import React from 'react';
-import { Job } from '../types';
-import Icon from './Icon';
-import { basePath } from '../App';
-import { slugify } from '../utils/slugify';
+import { Job } from '../types.ts';
+import Icon from './Icon.tsx';
+import { basePath } from '../App.tsx';
+import { slugify } from '../utils/slugify.ts';
 
 interface JobDetailViewProps {
   job: Job;

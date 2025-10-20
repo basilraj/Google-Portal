@@ -1,19 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from './contexts/AuthContext';
-import { useData } from './contexts/DataContext';
-import PublicWebsite from './pages/PublicWebsite';
-import AdminLoginPage from './pages/AdminLoginPage';
-import AdminPanel from './pages/AdminPanel';
-import MaintenancePage from './pages/MaintenancePage';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import AboutUs from './pages/AboutUs';
-import Disclaimer from './pages/Disclaimer';
-import TermsAndConditions from './pages/TermsAndConditions';
-import BlogPage from './pages/BlogPage';
-import JobDetailPage from './pages/JobDetailPage';
-import BlogDetailPage from './pages/BlogDetailPage';
-import TelegramFAB from './components/TelegramFAB';
+// Fix: Add .tsx extension to local module imports.
+import { useAuth } from './contexts/AuthContext.tsx';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from './contexts/DataContext.tsx';
+import PublicWebsite from './pages/PublicWebsite.tsx';
+import AdminLoginPage from './pages/AdminLoginPage.tsx';
+// Fix: Add .tsx extension to local module imports.
+import AdminPanel from './pages/AdminPanel.tsx';
+import MaintenancePage from './pages/MaintenancePage.tsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
+import AboutUs from './pages/AboutUs.tsx';
+import Disclaimer from './pages/Disclaimer.tsx';
+import TermsAndConditions from './pages/TermsAndConditions.tsx';
+import BlogPage from './pages/BlogPage.tsx';
+import JobDetailPage from './pages/JobDetailPage.tsx';
+import BlogDetailPage from './pages/BlogDetailPage.tsx';
+import TelegramFAB from './components/TelegramFAB.tsx';
 
 export const basePath = '';
 

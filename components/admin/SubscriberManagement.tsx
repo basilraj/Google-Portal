@@ -1,6 +1,8 @@
+
 import React from 'react';
-import { useData } from '../../contexts/DataContext';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+import Icon from '../Icon.tsx';
 
 const EmptyState: React.FC<{ message: string; }> = ({ message }) => (
     <div className="text-center py-16 border-t">

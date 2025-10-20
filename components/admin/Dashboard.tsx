@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../contexts/DataContext';
-import Icon from '../Icon';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+import Icon from '../Icon.tsx';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: string; color: string; onClick?: () => void }> = ({ title, value, icon, color, onClick }) => (
     <div onClick={onClick} className={`bg-white p-4 rounded-lg shadow-sm flex items-center gap-4 ${onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-1 transition-transform' : ''}`}>

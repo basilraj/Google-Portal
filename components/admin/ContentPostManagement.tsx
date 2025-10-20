@@ -1,12 +1,16 @@
+
+
 import React, { useState, useMemo, useEffect } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { ContentPost } from '../../types';
-import Icon from '../Icon';
-import Modal from '../Modal';
-import Pagination from './Pagination';
-import usePagination from '../../hooks/usePagination';
-import PostForm from './PostForm';
-import ConfirmationModal from './ConfirmationModal';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module imports.
+import { ContentPost } from '../../types.ts';
+import Icon from '../Icon.tsx';
+import Modal from '../Modal.tsx';
+import Pagination from './Pagination.tsx';
+import usePagination from '../../hooks/usePagination.ts';
+import PostForm from './PostForm.tsx';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -217,7 +221,8 @@ const ContentPostManagement: React.FC = () => {
                         onChange={e => setCategoryFilter(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm w-full sm:w-auto"
                     >
-                        {categories.map(cat => (
+                        {/* FIX: Add explicit type for 'cat' to resolve potential type inference issues. */}
+                        {categories.map((cat: string) => (
                             <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
                         ))}
                     </select>

@@ -1,12 +1,11 @@
-
 import React, { useEffect } from 'react';
-import { useData } from '../contexts/DataContext';
-import Icon from '../components/Icon';
-import PublicFooter from '../components/PublicFooter';
-import PublicHeader from '../components/PublicHeader';
-import JobDetailView from '../components/JobDetailView';
-import { slugify } from '../utils/slugify';
-import { basePath } from '../App';
+import { useData } from '../contexts/DataContext.tsx';
+import Icon from '../components/Icon.tsx';
+import PublicFooter from '../components/PublicFooter.tsx';
+import PublicHeader from '../components/PublicHeader.tsx';
+import JobDetailView from '../components/JobDetailView.tsx';
+import { slugify } from '../utils/slugify.ts';
+import { basePath } from '../App.tsx';
 
 const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => void }> = ({ jobSlug, navigate }) => {
     const { jobs, seoSettings, generalSettings } = useData();

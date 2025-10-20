@@ -1,5 +1,7 @@
+
 import { useState } from 'react';
-import storage from '../utils/storage'; // Using the safe storage utility
+// Fix: Add .ts extension to local module import.
+import storage from '../utils/storage.ts'; // Using the safe storage utility
 
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {

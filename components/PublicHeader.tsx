@@ -1,75 +1,74 @@
-
-
 import React, { useState } from 'react';
-import Icon from './Icon';
-import { basePath } from '../App';
-import { useData } from '../contexts/DataContext';
+import { useData } from '../contexts/DataContext.tsx';
+import Icon from './Icon.tsx';
 
 const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
+    const { generalSettings, socialMediaSettings } = useData();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const { generalSettings } = useData();
 
-    const navItems = [
-        { label: 'Home', path: `${basePath}/` },
-        { label: 'Latest Jobs', path: `${basePath}/#latest-jobs` },
-        { label: 'Blog', path: `${basePath}/blog` },
-        { label: 'Exam Notices', path: `${basePath}/#exam-notices` },
-        { label: 'Results', path: `${basePath}/#results` },
-        { label: 'Contact Us', path: `${basePath}/#contact-us` },
+    const navLinks = [
+        { name: 'Home', path: '/' },
+        { name: 'Blog', path: '/blog' },
+        { name: 'About Us', path: '/about' },
+        { name: 'Contact', path: '/contact' },
     ];
 
-    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
-        // For SPA routing, prevent default browser navigation for client-side handled routes
-        const [target, anchor] = path.split('#');
-        const currentTarget = `${basePath}${window.location.pathname.replace(basePath, '')}`;
-        
-        // If it's a pure anchor link on the same page, let the default behavior handle scrolling
-        if (target === currentTarget && anchor) {
-            setIsMenuOpen(false);
-            return;
-        }
-
-        e.preventDefault();
-        setIsMenuOpen(false);
-        navigate(path.replace(basePath, ''));
-    };
-
-
     return (
-        <header className="bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-lg sticky top-0 z-40">
-            <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap">
-                <a href={`${basePath}/`} onClick={(e) => handleLinkClick(e, `${basePath}/`)} className="flex items-center cursor-pointer">
-                    {generalSettings.siteIconUrl ? (
-                        <img 
-                            src={generalSettings.siteIconUrl}
-                            alt="Jobtica Logo" 
-                            className="h-16 w-auto"
-                        />
-                    ) : (
-                        <div className="h-16 w-16 bg-white/20 rounded-md flex items-center justify-center">
-                            <Icon name="briefcase" className="text-3xl text-white" />
-                        </div>
-                    )}
-                </a>
-                <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
-                    <Icon name={isMenuOpen ? "times" : "bars"} className="text-2xl" />
-                </button>
-                <nav className={`w-full md:w-auto md:flex ${isMenuOpen ? 'block mt-4' : 'hidden'}`}>
-                    <ul className="flex flex-col md:flex-row md:space-x-2">
-                         {navItems.map(item => (
-                            <li key={item.label} className="w-full">
-                                <a 
-                                    href={item.path} 
-                                    onClick={(e) => handleLinkClick(e, item.path)}
-                                    className="block md:inline-block text-white font-semibold text-base hover:bg-white/10 px-4 py-2 rounded-md transition-colors w-full"
-                                >
-                                    {item.label}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
+        <header className="bg-white shadow-md sticky top-0 z-40">
+            <div className="bg-[#1e3c72] text-white text-xs py-1">
+                <div className="container mx-auto px-4 flex justify-between items-center">
+                    <span>Welcome to your #1 Government Job Portal</span>
+                    <div className="flex items-center gap-4">
+                         {socialMediaSettings.telegram && <a href={socialMediaSettings.telegram} target="_blank" rel="noopener noreferrer" className="hover:text-blue-400">Telegram</a>}
+                         {socialMediaSettings.whatsapp && <a href={socialMediaSettings.whatsapp} target="_blank" rel="noopener noreferrer" className="hover:text-green-400">WhatsApp</a>}
+                    </div>
+                </div>
             </div>
+            <div className="container mx-auto px-4">
+                <div className="flex justify-between items-center py-4">
+                    <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="flex items-center gap-3">
+                        {generalSettings.siteIconUrl && <img src={generalSettings.siteIconUrl} alt="Site Logo" className="h-10 w-auto" />}
+                        <span className="text-2xl font-bold text-[#1e3c72]">{generalSettings.siteTitle}</span>
+                    </a>
+                    
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-6">
+                        {navLinks.map(link => (
+                            <a 
+                                key={link.name} 
+                                href={link.path} 
+                                onClick={(e) => { e.preventDefault(); navigate(link.path); }}
+                                className="text-gray-600 font-semibold hover:text-indigo-600"
+                            >
+                                {link.name}
+                            </a>
+                        ))}
+                    </nav>
+
+                    {/* Mobile Menu Button */}
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-2xl text-gray-700">
+                        <Icon name={isMenuOpen ? 'times' : 'bars'} />
+                    </button>
+                </div>
+            </div>
+            
+            {/* Mobile Menu */}
+            {isMenuOpen && (
+                 <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg border-t">
+                     <nav className="flex flex-col p-4">
+                         {navLinks.map(link => (
+                            <a 
+                                key={link.name} 
+                                href={link.path} 
+                                onClick={(e) => { e.preventDefault(); navigate(link.path); setIsMenuOpen(false); }}
+                                className="text-gray-700 font-semibold py-2 hover:bg-gray-100 rounded-md text-center"
+                            >
+                                {link.name}
+                            </a>
+                        ))}
+                     </nav>
+                 </div>
+            )}
         </header>
     );
 };

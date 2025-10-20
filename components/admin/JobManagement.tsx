@@ -1,16 +1,21 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { Job } from '../../types';
-import Icon from '../Icon';
-import Modal from '../Modal';
-import Pagination from './Pagination';
-import usePagination from '../../hooks/usePagination';
-import { getEffectiveJobStatus } from '../../utils/jobUtils';
-import JobDetailView from '../JobDetailView';
-import { slugify } from '../../utils/slugify';
-import ConfirmationModal from './ConfirmationModal';
-import NotificationExtractorModal from './NotificationExtractorModal';
-import { basePath } from '../../App';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module imports.
+import { Job } from '../../types.ts';
+import Icon from '../Icon.tsx';
+import Modal from '../Modal.tsx';
+import Pagination from './Pagination.tsx';
+import usePagination from '../../hooks/usePagination.ts';
+// Fix: Add .ts extension to local module imports.
+import { getEffectiveJobStatus } from '../../utils/jobUtils.ts';
+import JobDetailView from '../JobDetailView.tsx';
+// Fix: Add .ts extension to local module imports.
+import { slugify } from '../../utils/slugify.ts';
+import ConfirmationModal from './ConfirmationModal.tsx';
+import NotificationExtractorModal from './NotificationExtractorModal.tsx';
+import { basePath } from '../../App.tsx';
 
 const ITEMS_PER_PAGE = 10;
 

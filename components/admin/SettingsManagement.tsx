@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
-import Icon from '../Icon';
-import AdManagement from './AdManagement';
-import SEOManagement from './SEOManagement';
-import SocialMediaManagement from './SocialMediaManagement';
-import EmailSettings from './EmailSettings';
-import { useData } from '../../contexts/DataContext';
+import Icon from '../Icon.tsx';
+import AdManagement from './AdManagement.tsx';
+import SEOManagement from './SEOManagement.tsx';
+import SocialMediaManagement from './SocialMediaManagement.tsx';
+import EmailSettings from './EmailSettings.tsx';
+import { useData } from '../../contexts/DataContext.tsx';
 
 type SettingsTab = 'general' | 'seo' | 'ads' | 'social' | 'email';
 
@@ -18,6 +17,21 @@ const GeneralSettingsManagement: React.FC = () => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    };
+
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, siteIconUrl: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemoveLogo = () => {
+        setFormData(prev => ({ ...prev, siteIconUrl: '' }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -35,8 +49,34 @@ const GeneralSettingsManagement: React.FC = () => {
                 <input type="text" name="siteTitle" value={formData.siteTitle} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700">Website Icon URL</label>
-                <input type="url" name="siteIconUrl" value={formData.siteIconUrl} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="https://example.com/icon.png"/>
+                <label className="block text-sm font-medium text-gray-700">Website Logo</label>
+                <div className="mt-2 flex items-center gap-4">
+                    {formData.siteIconUrl ? (
+                        <img src={formData.siteIconUrl} alt="Current Logo" className="h-16 w-auto max-w-[64px] object-contain rounded-md border p-1 bg-gray-100" />
+                    ) : (
+                        <div className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center border">
+                            <Icon name="image" className="text-3xl text-gray-400" />
+                        </div>
+                    )}
+                    <div className="flex-grow">
+                        <input
+                            id="logo-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            className="hidden"
+                        />
+                        <label htmlFor="logo-upload" className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Upload Logo
+                        </label>
+                        {formData.siteIconUrl && (
+                             <button type="button" onClick={handleRemoveLogo} className="ml-3 text-sm text-red-600 hover:underline">
+                                Remove
+                            </button>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">Recommended: PNG, SVG, or JPG. Displayed at 64px height.</p>
+                    </div>
+                </div>
             </div>
              <div className="pt-4 border-t">
                 <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">

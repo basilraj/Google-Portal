@@ -1,22 +1,21 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
-import { DataProvider } from './contexts/DataContext';
-import { AuthProvider } from './contexts/AuthContext';
+import App from './App.tsx';
+import { AuthProvider } from './contexts/AuthContext.tsx';
+import { DataProvider } from './contexts/DataContext.tsx';
+// Assuming a global CSS file exists from the project setup (e.g., for TailwindCSS).
+// If not, this can be removed. It's standard practice.
+// import './index.css'; 
 
 const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
+if (!rootElement) throw new Error('Failed to find the root element');
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <AuthProvider>
-      <DataProvider>
+    <DataProvider>
+      <AuthProvider>
         <App />
-      </DataProvider>
-    </AuthProvider>
-  </React.StrictMode>
+      </AuthProvider>
+    </DataProvider>
+  </React.StrictMode>,
 );

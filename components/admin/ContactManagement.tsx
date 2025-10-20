@@ -1,10 +1,13 @@
+
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { ContactSubmission } from '../../types';
-import Icon from '../Icon';
-import Modal from '../Modal';
-import Pagination from './Pagination';
-import usePagination from '../../hooks/usePagination';
+// Fix: Add .tsx extension to local module imports.
+import { useData } from '../../contexts/DataContext.tsx';
+// Fix: Add .ts extension to local module imports.
+import { ContactSubmission } from '../../types.ts';
+import Icon from '../Icon.tsx';
+import Modal from '../Modal.tsx';
+import Pagination from './Pagination.tsx';
+import usePagination from '../../hooks/usePagination.ts';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -93,13 +96,12 @@ const ContactManagement: React.FC = () => {
                             <strong className="block text-sm text-gray-500">Subject:</strong>
                             <p>{selectedContact.subject}</p>
                         </div>
-                        <hr/>
                         <div>
                             <strong className="block text-sm text-gray-500">Message:</strong>
                             <p className="whitespace-pre-wrap bg-gray-50 p-3 rounded-md mt-1">{selectedContact.message}</p>
                         </div>
-                         <div className="flex justify-end pt-4">
-                             <button onClick={() => setIsModalOpen(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Close</button>
+                        <div className="flex justify-end pt-4">
+                            <button onClick={() => setIsModalOpen(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Close</button>
                         </div>
                     </div>
                 )}

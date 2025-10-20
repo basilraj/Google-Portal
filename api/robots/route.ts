@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { basePath } from '../../App';
+import { basePath } from '../../App.tsx';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const content = `User-agent: *

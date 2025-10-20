@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { ContentPost, PostType } from '../../types';
+// Fix: Add .ts extension to local module imports.
+import { ContentPost, PostType } from '../../types.ts';
 
 interface PostFormProps {
   post?: ContentPost;

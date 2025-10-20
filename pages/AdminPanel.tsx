@@ -1,60 +1,40 @@
+
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useData } from '../contexts/DataContext';
-import Icon from '../components/Icon';
-import Dashboard from '../components/admin/Dashboard';
-import JobManagement from '../components/admin/JobManagement';
-import QuickLinkManagement from '../components/admin/QuickLinkManagement';
-import ContentPostManagement from '../components/admin/ContentPostManagement';
-import SubscriberManagement from '../components/admin/SubscriberManagement';
-import ContactManagement from '../components/admin/ContactManagement';
-import BreakingNewsManagement from '../components/admin/BreakingNewsManagement';
-import SettingsManagement from '../components/admin/SettingsManagement';
-import UserProfile from '../components/admin/UserProfile';
-import ExamNoticeManagement from '../components/admin/ExamNoticeManagement';
-import ResultManagement from '../components/admin/ResultManagement';
-import BackupRestore from '../components/admin/BackupRestore';
-import EmailMarketing from '../components/admin/EmailMarketing';
-import NotificationHistory from '../components/admin/NotificationHistory';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import Icon from '../components/Icon.tsx';
+import Dashboard from '../components/admin/Dashboard.tsx';
+import JobManagement from '../components/admin/JobManagement.tsx';
+import ContentPostManagement from '../components/admin/ContentPostManagement.tsx';
+import SubscriberManagement from '../components/admin/SubscriberManagement.tsx';
+import QuickLinkManagement from '../components/admin/QuickLinkManagement.tsx';
+import BreakingNewsManagement from '../components/admin/BreakingNewsManagement.tsx';
+import ContactManagement from '../components/admin/ContactManagement.tsx';
+import SettingsManagement from '../components/admin/SettingsManagement.tsx';
+import UserProfile from '../components/admin/UserProfile.tsx';
+import ExamNoticeManagement from '../components/admin/ExamNoticeManagement.tsx';
+import ResultManagement from '../components/admin/ResultManagement.tsx';
+import BackupRestore from '../components/admin/BackupRestore.tsx';
+import EmailMarketing from '../components/admin/EmailMarketing.tsx';
+import NotificationHistory from '../components/admin/NotificationHistory.tsx';
+import SecurityLogs from '../components/admin/SecurityLogs.tsx';
+import { useData } from '../contexts/DataContext.tsx';
 
-type AdminTab = 'dashboard' | 'jobs' | 'quick-links' | 'posts' | 'exam-notices' | 'results' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'notification-history' | 'settings' | 'profile' | 'backup';
-
-interface NavItemProps {
-    label: string;
-    icon: string;
-    tabName: AdminTab;
-    activeTab: AdminTab;
-    setActiveTab: (tab: AdminTab) => void;
-    isSidebarOpen: boolean;
-}
-
-const NavItem: React.FC<NavItemProps> = ({ label, icon, tabName, activeTab, setActiveTab, isSidebarOpen }) => (
-    <button
-        onClick={() => setActiveTab(tabName)}
-        title={label}
-        className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            activeTab === tabName ? 'bg-indigo-700 text-white' : 'text-gray-300 hover:bg-indigo-500 hover:text-white'
-        } ${!isSidebarOpen && 'justify-center'}`}
-    >
-        <Icon name={icon} className="w-5" />
-        {isSidebarOpen && <span>{label}</span>}
-    </button>
-);
+type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'notification-history' | 'settings' | 'profile' | 'backup-restore' | 'security-logs';
 
 const AdminPanel: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
     const { logout } = useAuth();
     const { generalSettings } = useData();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
             case 'jobs': return <JobManagement />;
-            case 'quick-links': return <QuickLinkManagement />;
             case 'posts': return <ContentPostManagement />;
             case 'exam-notices': return <ExamNoticeManagement />;
             case 'results': return <ResultManagement />;
+            case 'quick-links': return <QuickLinkManagement />;
             case 'breaking-news': return <BreakingNewsManagement />;
             case 'subscribers': return <SubscriberManagement />;
             case 'contacts': return <ContactManagement />;
@@ -62,86 +42,79 @@ const AdminPanel: React.FC = () => {
             case 'notification-history': return <NotificationHistory />;
             case 'settings': return <SettingsManagement />;
             case 'profile': return <UserProfile />;
-            case 'backup': return <BackupRestore />;
+            case 'backup-restore': return <BackupRestore />;
+            case 'security-logs': return <SecurityLogs />;
             default: return <Dashboard setActiveTab={setActiveTab} />;
         }
     };
     
-    const tabTitles: Record<AdminTab, string> = {
-        dashboard: 'Dashboard',
-        jobs: 'Job Management',
-        'quick-links': 'Quick Links',
-        posts: 'General Posts',
-        'exam-notices': 'Exam Notices',
-        results: 'Results',
-        'breaking-news': 'Breaking News',
-        subscribers: 'Subscribers',
-        contacts: 'Contact Submissions',
-        'email-marketing': 'Email Marketing',
-        'notification-history': 'Notification History',
-        settings: 'Settings',
-        profile: 'User Profile',
-        backup: 'Backup & Restore',
-    };
+    const NavLink: React.FC<{ tab: AdminTab; icon: string; label: string; }> = ({ tab, icon, label }) => (
+        <button
+            onClick={() => { setActiveTab(tab); setIsSidebarOpen(false); }}
+            className={`flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors ${activeTab === tab ? 'bg-indigo-600 text-white' : 'text-gray-200 hover:bg-indigo-800'}`}
+        >
+            <Icon name={icon} className="w-6 mr-3" />
+            <span>{label}</span>
+        </button>
+    );
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-gray-100 font-sans">
             {/* Sidebar */}
-            <aside className={`bg-indigo-800 text-white flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
-                <div className={`p-4 flex ${isSidebarOpen ? 'justify-between' : 'justify-center'} items-center`}>
-                    {isSidebarOpen ? (
-                        generalSettings.siteIconUrl ? (
-                            <img src={generalSettings.siteIconUrl} alt="Site Logo" className="h-10 w-auto" />
-                        ) : (
-                            <h1 className="text-xl font-bold">Admin Panel</h1>
-                        )
-                    ) : null}
-                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-md hover:bg-indigo-700">
-                        <Icon name={isSidebarOpen ? 'chevron-left' : 'chevron-right'} />
-                    </button>
+            <aside className={`bg-indigo-900 text-white w-64 fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30`}>
+                <div className="p-4 flex items-center gap-3 border-b border-indigo-800">
+                    {generalSettings.siteIconUrl && <img src={generalSettings.siteIconUrl} alt="Logo" className="h-8 w-8 rounded-full" />}
+                    <h1 className="text-xl font-bold">{generalSettings.siteTitle}</h1>
                 </div>
-                <nav className="flex-1 px-2 py-2 space-y-1 overflow-y-auto">
-                    <NavItem label="Dashboard" icon="tachometer-alt" tabName="dashboard" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen} />
-                    <hr className="my-2 border-indigo-700" />
-                    {!isSidebarOpen && <div className="h-4" />}
-                    <NavItem label="Jobs" icon="briefcase" tabName="jobs" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Posts" icon="file-alt" tabName="posts" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen} />
-                    <NavItem label="Exam Notices" icon="bell" tabName="exam-notices" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Results" icon="poll" tabName="results" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Quick Links" icon="link" tabName="quick-links" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Breaking News" icon="newspaper" tabName="breaking-news" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <hr className="my-2 border-indigo-700" />
-                     {!isSidebarOpen && <div className="h-4" />}
-                    <NavItem label="Subscribers" icon="users" tabName="subscribers" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Contacts" icon="inbox" tabName="contacts" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Email" icon="envelope" tabName="email-marketing" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Notifications" icon="history" tabName="notification-history" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <hr className="my-2 border-indigo-700" />
-                     {!isSidebarOpen && <div className="h-4" />}
-                    <NavItem label="Settings" icon="cogs" tabName="settings" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <NavItem label="Backup" icon="save" tabName="backup" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
+                <nav className="p-2 space-y-1">
+                    <NavLink tab="dashboard" icon="tachometer-alt" label="Dashboard" />
+                    <div className="pt-2">
+                        <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Content</h2>
+                        <NavLink tab="jobs" icon="briefcase" label="Job Listings" />
+                        <NavLink tab="posts" icon="file-alt" label="General Posts" />
+                        <NavLink tab="exam-notices" icon="bell" label="Exam Notices" />
+                        <NavLink tab="results" icon="poll" label="Results" />
+                        <NavLink tab="quick-links" icon="link" label="Quick Links" />
+                        <NavLink tab="breaking-news" icon="newspaper" label="Breaking News" />
+                    </div>
+                     <div className="pt-2">
+                        <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Audience</h2>
+                        <NavLink tab="subscribers" icon="users" label="Subscribers" />
+                        <NavLink tab="contacts" icon="envelope" label="Contact Messages" />
+                    </div>
+                     <div className="pt-2">
+                        <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Marketing</h2>
+                        <NavLink tab="email-marketing" icon="paper-plane" label="Email Campaigns" />
+                        <NavLink tab="notification-history" icon="history" label="Notification History" />
+                    </div>
+                    <div className="pt-2">
+                        <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">System</h2>
+                        <NavLink tab="settings" icon="cogs" label="Settings" />
+                        <NavLink tab="profile" icon="user-circle" label="Admin Profile" />
+                        <NavLink tab="backup-restore" icon="database" label="Backup & Restore" />
+                        <NavLink tab="security-logs" icon="shield-alt" label="Security Logs" />
+                    </div>
                 </nav>
-                <div className="p-2 border-t border-indigo-700">
-                    <NavItem label="Profile" icon="user-circle" tabName="profile" activeTab={activeTab} setActiveTab={setActiveTab} isSidebarOpen={isSidebarOpen}/>
-                    <button
-                        onClick={logout}
-                        title="Logout"
-                        className={`w-full flex items-center gap-3 px-4 py-2 mt-1 text-sm font-medium rounded-md text-gray-300 hover:bg-red-600 hover:text-white ${!isSidebarOpen && 'justify-center'}`}
-                    >
-                        <Icon name="sign-out-alt" className="w-5" />
-                        {isSidebarOpen && <span>Logout</span>}
-                    </button>
-                </div>
             </aside>
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col overflow-hidden">
-                <header className="bg-white shadow-sm p-4">
-                    <h2 className="text-2xl font-bold text-gray-800">{tabTitles[activeTab]}</h2>
+
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Header */}
+                <header className="bg-white shadow-sm z-20 flex justify-between items-center p-4">
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-600 md:hidden">
+                        <Icon name="bars" className="text-2xl" />
+                    </button>
+                    <h2 className="text-2xl font-bold text-gray-800 capitalize">{activeTab.replace('-', ' ')}</h2>
+                    <button onClick={logout} className="flex items-center gap-2 text-sm text-gray-600 hover:text-indigo-600">
+                        <Icon name="sign-out-alt" />
+                        <span>Logout</span>
+                    </button>
                 </header>
-                <div className="flex-1 p-6 overflow-y-auto">
+
+                {/* Main Content */}
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
                     {renderContent()}
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     );
 };
