@@ -32,7 +32,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
             }}
             className={isMobile
                 ? "block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-100"
-                : "text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-semibold transition-colors"
+                : "text-lg font-semibold text-blue-900 hover:text-indigo-600 px-3 py-2 rounded-md transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-indigo-600 after:scale-x-0 after:origin-bottom-left after:transition-transform after:duration-300 hover:after:scale-x-100"
             }
         >
             {name}
@@ -41,23 +41,26 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
 
     return (
         <header className={`bg-white sticky top-0 z-40 transition-shadow duration-300 border-b ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
-            <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
+            <div className="mx-auto px-4 max-w-7xl">
+                <div className="flex items-center justify-between h-24">
                     <div className="flex items-center">
-                        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="flex-shrink-0 flex items-center gap-3">
-                            {generalSettings.siteIconUrl && <img className="h-8 w-auto" src={generalSettings.siteIconUrl} alt="Site Icon" />}
-                            <span className="text-gray-800 text-xl font-bold">{generalSettings.siteTitle}</span>
+                        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="flex-shrink-0 flex items-center gap-4">
+                            {generalSettings.siteIconUrl ? (
+                                <img className="h-16 w-auto" src={generalSettings.siteIconUrl} alt="Site Logo" />
+                            ) : (
+                                <span className="text-gray-800 text-2xl font-bold">{generalSettings.siteTitle}</span>
+                            )}
                         </a>
                     </div>
                     <div className="hidden md:block">
-                        <div className="ml-10 flex items-baseline space-x-4">
+                        <div className="ml-10 flex items-baseline space-x-6">
                             {navLinks.map(link => <NavLink key={link.name} {...link} />)}
                             {socialMediaSettings.telegramGroup && (
                                 <a
                                     href={socialMediaSettings.telegramGroup}
                                     target="_blank"
                                     rel="nofollow noopener noreferrer"
-                                    className="bg-green-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600 flex items-center gap-2"
+                                    className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-green-600 flex items-center gap-2"
                                 >
                                     <Icon name={socialMediaSettings.telegramGroupIcon || 'users'} /> Join Group
                                 </a>
@@ -67,10 +70,10 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                     <div className="-mr-2 flex md:hidden">
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+                            className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                         >
                             <span className="sr-only">Open main menu</span>
-                            <Icon name={isMenuOpen ? 'times' : 'bars'} />
+                            <Icon name={isMenuOpen ? 'times' : 'bars'} className="text-2xl" />
                         </button>
                     </div>
                 </div>

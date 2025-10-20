@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useCallback, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage.ts';
 import { 
     Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, 
@@ -107,8 +107,57 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             action,
             details,
         };
-        setActivityLogs(prev => [newLog, ...prev]);
+        setActivityLogs(prev => [newLog, ...prev.slice(0, 499)]); // Keep max 500 logs
     }, [setActivityLogs]);
+
+    // Automated job status sync and cleanup effect
+    useEffect(() => {
+        const syncAllJobStatuses = () => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const tenDaysAgo = new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000);
+
+            let changed = false;
+            let jobsToKeep: Job[] = [];
+
+            jobs.forEach(job => {
+                const lastDate = new Date(job.lastDate);
+                lastDate.setHours(0, 0, 0, 0);
+
+                // Auto-delete old expired jobs
+                if (job.status === 'expired' && lastDate < tenDaysAgo) {
+                    addActivityLog('Job Auto-Deleted', `Expired job removed: "${job.title}"`);
+                    changed = true;
+                    return; // Skip adding to jobsToKeep
+                }
+                
+                let newStatus = job.status;
+                if (lastDate < today) {
+                    newStatus = 'expired';
+                } else if (lastDate <= sevenDaysFromNow) {
+                    newStatus = 'closing-soon';
+                } else {
+                    newStatus = 'active';
+                }
+
+                if (newStatus !== job.status) {
+                    jobsToKeep.push({ ...job, status: newStatus });
+                    changed = true;
+                } else {
+                    jobsToKeep.push(job);
+                }
+            });
+
+            if (changed) {
+                setJobs(jobsToKeep);
+            }
+        };
+
+        syncAllJobStatuses();
+        // This effect should only run once on initial load.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     
     const updateRssSettings = useCallback(async (settings: RSSSettings) => {
         setRssSettings(settings);
@@ -276,9 +325,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await addActivityLog('Settings Updated', 'SMTP settings were updated.');
     }, [setSmtpSettings, addActivityLog]);
 
-    const clearActivityLogs = useCallback(() => {
+    const clearActivityLogs = useCallback(async () => {
         setActivityLogs([]);
-    }, [setActivityLogs]);
+        await addActivityLog('Logs Cleared', 'All activity logs were cleared.');
+    }, [setActivityLogs, addActivityLog]);
     
     const addContact = useCallback(async (contact: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
         const newContact: ContactSubmission = {
@@ -287,7 +337,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             submittedAt: new Date().toISOString(),
         };
         setContacts(prev => [newContact, ...prev]);
-        // Do not log this in public activity log for privacy
     }, [setContacts]);
 
     const deleteContact = useCallback(async (id: string) => {
@@ -302,7 +351,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setEmailNotifications([]);
     }, [setEmailNotifications]);
 
-    const sendCustomEmail = useCallback((subject: string, body: string) => {
+    const sendCustomEmail = useCallback(async (subject: string, body: string) => {
         const newEmail: CustomEmail = {
             id: crypto.randomUUID(),
             subject,
@@ -321,7 +370,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             sentAt: new Date().toISOString(),
         }));
         setEmailNotifications(prev => [...notifications, ...prev]);
-        addActivityLog('Email Campaign Sent', `Campaign "${subject}" sent to ${activeSubscribers.length} subscribers.`);
+        await addActivityLog('Email Campaign Sent', `Campaign "${subject}" sent to ${activeSubscribers.length} subscribers.`);
 
     }, [subscribers, setCustomEmails, setEmailNotifications, addActivityLog]);
 
@@ -338,24 +387,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings]);
 
     const restoreBackup = useCallback((data: BackupData): boolean => {
-        // Basic validation
-        if (!data.jobs || !data.posts || !data.generalSettings) {
+        try {
+            if (!data.jobs || !data.posts || !data.generalSettings) {
+                return false;
+            }
+            setJobs(data.jobs || []);
+            setQuickLinks(data.quickLinks || []);
+            setPosts(data.posts || []);
+            setSubscribers(data.subscribers || []);
+            setBreakingNews(data.breakingNews || []);
+            setAdSettings(data.adSettings || initialAdSettings);
+            setSeoSettings(data.seoSettings || initialSeoSettings);
+            setGeneralSettings(data.generalSettings || initialGeneralSettings);
+            setSocialMediaSettings(data.socialMediaSettings || initialSocialMediaSettings);
+            setActivityLogs(data.activityLogs || []);
+            setSmtpSettings(data.smtpSettings || initialSmtpSettings);
+            setRssSettings(data.rssSettings || initialRssSettings);
+            addActivityLog('System Restore', 'Data was restored from a backup file.');
+            return true;
+        } catch (error) {
+            console.error("Restore failed:", error);
             return false;
         }
-        setJobs(data.jobs);
-        setQuickLinks(data.quickLinks);
-        setPosts(data.posts);
-        setSubscribers(data.subscribers);
-        setBreakingNews(data.breakingNews);
-        setAdSettings(data.adSettings);
-        setSeoSettings(data.seoSettings);
-        setGeneralSettings(data.generalSettings);
-        setSocialMediaSettings(data.socialMediaSettings);
-        setActivityLogs(data.activityLogs);
-        setSmtpSettings(data.smtpSettings);
-        setRssSettings(data.rssSettings);
-        return true;
-    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings]);
+    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, addActivityLog]);
 
     return (
         <DataContext.Provider value={{

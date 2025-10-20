@@ -1,8 +1,7 @@
-// Fix: Import the 'process' module to provide correct types for process.cwd()
-// and resolve the TypeScript error.
-import process from 'process';
 import fs from 'fs';
 import path from 'path';
+// Fix: Explicitly import the 'process' object to resolve type errors with process.cwd().
+import process from 'process';
 
 // Since we can't use dynamic imports easily in this context, we will manually copy the data.
 // In a real project, this would import from the source files.
