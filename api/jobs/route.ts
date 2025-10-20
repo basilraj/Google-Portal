@@ -91,7 +91,7 @@ export async function DELETE(request: NextRequest) {
         const { ids } = await request.json();
         if (ids && Array.isArray(ids)) {
             // Bulk delete
-            await client.sql`DELETE FROM jobs WHERE id = ANY(${ids});`;
+            await client.sql`DELETE FROM jobs WHERE id = ANY(${ids as any});`;
             return NextResponse.json({ message: 'Jobs deleted successfully' });
         }
         

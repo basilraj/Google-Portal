@@ -66,7 +66,7 @@ export async function DELETE(request: NextRequest) {
 
         const { ids } = await request.json();
         if (ids && Array.isArray(ids)) {
-            await client.sql`DELETE FROM posts WHERE id = ANY(${ids});`;
+            await client.sql`DELETE FROM posts WHERE id = ANY(${ids as any});`;
             return NextResponse.json({ message: 'Posts deleted' });
         }
         
