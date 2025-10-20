@@ -1,6 +1,6 @@
-
-
-
+// Fix: Import the 'process' module to provide correct types for process.cwd()
+// and resolve the TypeScript error.
+import process from 'process';
 import fs from 'fs';
 import path from 'path';
 
@@ -90,8 +90,6 @@ function generateSitemap() {
   sitemap += `
 </urlset>`;
   
-  // Fix: Rely on the global 'process' object from the Node.js environment
-  // to avoid type conflicts with explicit imports.
   const publicPath = path.join(process.cwd(), 'public');
   if (!fs.existsSync(publicPath)) {
     fs.mkdirSync(publicPath);
