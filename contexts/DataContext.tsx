@@ -1,322 +1,221 @@
-import React, { createContext, useContext } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Job, QuickLink, ContentPost, Subscriber, ContactSubmission, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, EmailNotification, CustomEmail, BackupData } from '../types';
-import { INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_CONTACTS, INITIAL_BREAKING_NEWS, initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, INITIAL_EMAIL_NOTIFICATIONS, INITIAL_CUSTOM_EMAILS } from '../constants';
+import { initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings } from '../constants';
 
-// Define the shape of the context data
 interface DataContextType {
     jobs: Job[];
-    addJob: (job: Omit<Job, 'id' | 'createdAt'>) => void;
-    updateJob: (job: Job) => void;
-    deleteJob: (jobId: string) => void;
-    addMultipleJobs: (jobs: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => number;
-    deleteMultipleJobs: (jobIds: string[]) => void;
+    addJob: (job: Omit<Job, 'id' | 'createdAt'>) => Promise<void>;
+    updateJob: (job: Job) => Promise<void>;
+    deleteJob: (jobId: string) => Promise<void>;
+    addMultipleJobs: (jobs: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => Promise<number>;
+    deleteMultipleJobs: (jobIds: string[]) => Promise<void>;
     
     quickLinks: QuickLink[];
-    addQuickLink: (link: Omit<QuickLink, 'id'>) => void;
-    updateQuickLink: (link: QuickLink) => void;
-    deleteQuickLink: (linkId: string) => void;
+    addQuickLink: (link: Omit<QuickLink, 'id'>) => Promise<void>;
+    updateQuickLink: (link: QuickLink) => Promise<void>;
+    deleteQuickLink: (linkId: string) => Promise<void>;
 
     posts: ContentPost[];
-    addPost: (post: Omit<ContentPost, 'id' | 'createdAt'>) => void;
-    updatePost: (post: ContentPost) => void;
-    deletePost: (postId: string) => void;
-    deleteMultiplePosts: (postIds: string[]) => void;
+    addPost: (post: Omit<ContentPost, 'id' | 'createdAt'>) => Promise<void>;
+    updatePost: (post: ContentPost) => Promise<void>;
+    deletePost: (postId: string) => Promise<void>;
+    deleteMultiplePosts: (postIds: string[]) => Promise<void>;
 
     subscribers: Subscriber[];
-    addSubscriber: (email: string) => boolean;
-    deleteSubscriber: (id: string) => void;
+    addSubscriber: (email: string) => Promise<boolean>;
+    deleteSubscriber: (id: string) => Promise<void>;
 
     contacts: ContactSubmission[];
-    addContact: (contact: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
-    deleteContact: (id: string) => void;
+    addContact: (contact: Omit<ContactSubmission, 'id' | 'submittedAt'>) => Promise<void>;
+    deleteContact: (id: string) => Promise<void>;
 
     breakingNews: BreakingNews[];
-    addNews: (news: Omit<BreakingNews, 'id'>) => void;
-    updateNews: (news: BreakingNews) => void;
-    deleteNews: (id: string) => void;
+    addNews: (news: Omit<BreakingNews, 'id'>) => Promise<void>;
+    updateNews: (news: BreakingNews) => Promise<void>;
+    deleteNews: (id: string) => Promise<void>;
     
     adSettings: AdSettings;
-    updateAdSettings: (settings: AdSettings) => void;
+    updateAdSettings: (settings: AdSettings) => Promise<void>;
 
     seoSettings: SEOSettings;
-    updateSEOSettings: (settings: SEOSettings) => void;
+    updateSEOSettings: (settings: SEOSettings) => Promise<void>;
 
     generalSettings: GeneralSettings;
-    updateGeneralSettings: (settings: GeneralSettings) => void;
+    updateGeneralSettings: (settings: GeneralSettings) => Promise<void>;
 
     socialMediaSettings: SocialMediaSettings;
-    updateSocialMediaSettings: (settings: SocialMediaSettings) => void;
+    updateSocialMediaSettings: (settings: SocialMediaSettings) => Promise<void>;
     
     emailNotifications: EmailNotification[];
-    deleteEmailNotification: (id: string) => void;
-    clearAllEmailNotifications: () => void;
+    deleteEmailNotification: (id: string) => Promise<void>;
+    clearAllEmailNotifications: () => Promise<void>;
 
     customEmails: CustomEmail[];
-    sendCustomEmail: (subject: string, body: string) => void;
-    deleteCustomEmail: (id: string) => void;
+    sendCustomEmail: (subject: string, body: string) => Promise<void>;
+    deleteCustomEmail: (id: string) => Promise<void>;
 
     createBackup: () => BackupData;
     restoreBackup: (data: BackupData) => boolean;
+
+    isLoading: boolean;
+    error: string | null;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// Helper function for API calls
+async function apiCall<T>(url: string, method: string, body?: any): Promise<T> {
+    const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'API call failed');
+    }
+    return response.json();
+}
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [jobs, setJobs] = useLocalStorage<Job[]>('jobs', INITIAL_JOBS);
-    const [quickLinks, setQuickLinks] = useLocalStorage<QuickLink[]>('quickLinks', INITIAL_QUICK_LINKS);
-    const [posts, setPosts] = useLocalStorage<ContentPost[]>('posts', INITIAL_POSTS);
-    const [subscribers, setSubscribers] = useLocalStorage<Subscriber[]>('subscribers', INITIAL_SUBSCRIBERS);
-    const [contacts, setContacts] = useLocalStorage<ContactSubmission[]>('contacts', INITIAL_CONTACTS);
-    const [breakingNews, setBreakingNews] = useLocalStorage<BreakingNews[]>('breakingNews', INITIAL_BREAKING_NEWS);
-    const [adSettings, setAdSettings] = useLocalStorage<AdSettings>('adSettings', initialAdSettings);
-    const [seoSettings, setSeoSettings] = useLocalStorage<SEOSettings>('seoSettings', initialSeoSettings);
-    const [generalSettings, setGeneralSettings] = useLocalStorage<GeneralSettings>('generalSettings', initialGeneralSettings);
-    const [socialMediaSettings, setSocialMediaSettings] = useLocalStorage<SocialMediaSettings>('socialMediaSettings', initialSocialMediaSettings);
-    const [emailNotifications, setEmailNotifications] = useLocalStorage<EmailNotification[]>('emailNotifications', INITIAL_EMAIL_NOTIFICATIONS);
-    const [customEmails, setCustomEmails] = useLocalStorage<CustomEmail[]>('customEmails', INITIAL_CUSTOM_EMAILS);
+    const [jobs, setJobs] = useState<Job[]>([]);
+    const [quickLinks, setQuickLinks] = useState<QuickLink[]>([]);
+    const [posts, setPosts] = useState<ContentPost[]>([]);
+    const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+    const [contacts, setContacts] = useState<ContactSubmission[]>([]);
+    const [breakingNews, setBreakingNews] = useState<BreakingNews[]>([]);
+    const [adSettings, setAdSettings] = useState<AdSettings>(initialAdSettings);
+    const [seoSettings, setSeoSettings] = useState<SEOSettings>(initialSeoSettings);
+    const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(initialGeneralSettings);
+    const [socialMediaSettings, setSocialMediaSettings] = useState<SocialMediaSettings>(initialSocialMediaSettings);
+    const [emailNotifications, setEmailNotifications] = useState<EmailNotification[]>([]);
+    const [customEmails, setCustomEmails] = useState<CustomEmail[]>([]);
 
-    const generateId = () => Date.now().toString();
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const sendNewJobNotification = (job: Job) => {
-        if (!generalSettings.emailNotificationsEnabled) {
-            return;
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const data = await apiCall<any>('/api/data', 'GET');
+            setJobs(data.jobs || []);
+            setQuickLinks(data.quickLinks || []);
+            setPosts(data.posts || []);
+            setSubscribers(data.subscribers || []);
+            setContacts(data.contacts || []);
+            setBreakingNews(data.breakingNews || []);
+            // Settings should have fallbacks to initial state
+            setAdSettings(data.adSettings || initialAdSettings);
+            setSeoSettings(data.seoSettings || initialSeoSettings);
+            setGeneralSettings(data.generalSettings || initialGeneralSettings);
+            setSocialMediaSettings(data.socialMediaSettings || initialSocialMediaSettings);
+            setEmailNotifications(data.emailNotifications || []);
+            setCustomEmails(data.customEmails || []);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
         }
+    }, []);
 
-        const activeSubscribers = subscribers.filter(s => s.status === 'active');
-        if (activeSubscribers.length === 0) {
-            return;
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const handleApiAction = async <T,>(action: () => Promise<T>, successCallback: (result: T) => void) => {
+        try {
+            const result = await action();
+            successCallback(result);
+        } catch (err: any) {
+            setError(err.message);
         }
-
-        const basePath = '/Google-Portal'; // As used in vite.config.ts and other components
-        const jobUrl = `${window.location.origin}${basePath}/job/${job.id}`;
-
-        const subject = `New Job Alert from Divine Computer Jobs: ${job.title}`;
-        const body = `Hello,
-
-A new job opportunity has just been posted on Divine Computer Jobs.
-
-----------------------------------------
-Job Title: ${job.title}
-Department: ${job.department}
-Qualification: ${job.qualification}
-Vacancies: ${job.vacancies}
-Last Date to Apply: ${job.lastDate}
-----------------------------------------
-
-To view the full details and apply, please visit the link below:
-${jobUrl}
-
-We wish you the best of luck in your job search!
-
-Regards,
-The Team at Divine Computer Jobs
-        `.trim();
-
-        const newNotifications: EmailNotification[] = activeSubscribers.map(subscriber => ({
-            id: `${generateId()}-${subscriber.id}`, // More unique ID
-            recipient: subscriber.email,
-            subject,
-            body,
-            sentAt: new Date().toISOString(),
-            jobId: job.id,
-        }));
-        
-        setEmailNotifications(prev => [...newNotifications, ...prev]);
     };
+    
+    // Generic CRUD functions
+    const createItem = async <T, U>(endpoint: string, itemData: T, stateSetter: React.Dispatch<React.SetStateAction<U[]>>) => {
+        const newItem = await apiCall<U>(endpoint, 'POST', itemData);
+        stateSetter(prev => [newItem, ...prev]);
+    };
+    
+    const updateItem = async <T extends { id: string }>(endpoint: string, updatedItem: T, stateSetter: React.Dispatch<React.SetStateAction<T[]>>) => {
+        const result = await apiCall<T>(`${endpoint}?id=${updatedItem.id}`, 'PUT', updatedItem);
+        stateSetter(prev => prev.map(item => item.id === updatedItem.id ? result : item));
+    };
+
+    const deleteItem = async (endpoint: string, id: string, stateSetter: React.Dispatch<React.SetStateAction<any[]>>) => {
+        await apiCall(`${endpoint}?id=${id}`, 'DELETE');
+        stateSetter(prev => prev.filter(item => item.id !== id));
+    };
+    
+    const deleteMultipleItems = async (endpoint: string, ids: string[], stateSetter: React.Dispatch<React.SetStateAction<any[]>>) => {
+        await apiCall(endpoint, 'DELETE', { ids });
+        stateSetter(prev => prev.filter(item => !ids.includes(item.id)));
+    };
+
 
     // Job Management
-    const addJob = (jobData: Omit<Job, 'id' | 'createdAt'>) => {
-        const newJob: Job = { ...jobData, id: generateId(), createdAt: new Date().toISOString() };
-        setJobs(prev => [newJob, ...prev]);
-        sendNewJobNotification(newJob);
-    };
-    const updateJob = (updatedJob: Job) => {
-        setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
-    };
-    const deleteJob = (jobId: string) => {
-        setJobs(prev => prev.filter(j => j.id !== jobId));
-    };
-    const addMultipleJobs = (jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => {
-        const newJobs: Job[] = jobsData.map(job => ({
-            ...job,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-            status: 'active' // Default status for bulk upload
-        }));
+    const addJob = (jobData: Omit<Job, 'id' | 'createdAt'>) => createItem('/api/jobs', jobData, setJobs);
+    const updateJob = (updatedJob: Job) => updateItem('/api/jobs', updatedJob, setJobs);
+    const deleteJob = (jobId: string) => deleteItem('/api/jobs', jobId, setJobs);
+    const deleteMultipleJobs = (jobIds: string[]) => deleteMultipleItems('/api/jobs', jobIds, setJobs);
+    const addMultipleJobs = async (jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => {
+        const { count, newJobs } = await apiCall<any>('/api/jobs', 'POST', { jobs: jobsData });
         setJobs(prev => [...newJobs, ...prev]);
-        newJobs.forEach(sendNewJobNotification);
-        return newJobs.length;
-    };
-    const deleteMultipleJobs = (jobIds: string[]) => {
-        setJobs(prev => prev.filter(job => !jobIds.includes(job.id)));
-    };
-
-    // Quick Link Management
-    const addQuickLink = (linkData: Omit<QuickLink, 'id'>) => {
-        const newLink: QuickLink = { ...linkData, id: generateId() };
-        setQuickLinks(prev => [newLink, ...prev]);
-    };
-    const updateQuickLink = (updatedLink: QuickLink) => {
-        setQuickLinks(prev => prev.map(l => l.id === updatedLink.id ? updatedLink : l));
-    };
-    const deleteQuickLink = (linkId: string) => {
-        setQuickLinks(prev => prev.filter(l => l.id !== linkId));
-    };
-
-    // Post Management
-    const addPost = (postData: Omit<ContentPost, 'id' | 'createdAt'>) => {
-        const newPost: ContentPost = { ...postData, id: generateId(), createdAt: new Date().toISOString() };
-        setPosts(prev => [newPost, ...prev]);
-    };
-    const updatePost = (updatedPost: ContentPost) => {
-        setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
-    };
-    const deletePost = (postId: string) => {
-        setPosts(prev => prev.filter(p => p.id !== postId));
-    };
-    const deleteMultiplePosts = (postIds: string[]) => {
-        setPosts(prev => prev.filter(post => !postIds.includes(post.id)));
+        return count;
     };
     
+    // QuickLink Management
+    const addQuickLink = (linkData: Omit<QuickLink, 'id'>) => createItem('/api/quicklinks', linkData, setQuickLinks);
+    const updateQuickLink = (updatedLink: QuickLink) => updateItem('/api/quicklinks', updatedLink, setQuickLinks);
+    const deleteQuickLink = (linkId: string) => deleteItem('/api/quicklinks', linkId, setQuickLinks);
+    
+    // Post Management
+    const addPost = (postData: Omit<ContentPost, 'id' | 'createdAt'>) => createItem('/api/posts', postData, setPosts);
+    const updatePost = (updatedPost: ContentPost) => updateItem('/api/posts', updatedPost, setPosts);
+    const deletePost = (postId: string) => deleteItem('/api/posts', postId, setPosts);
+    const deleteMultiplePosts = (postIds: string[]) => deleteMultipleItems('/api/posts', postIds, setPosts);
+
     // Subscriber Management
-    const addSubscriber = (email: string) => {
-        if (subscribers.some(s => s.email === email)) {
+    const addSubscriber = async (email: string) => {
+       try {
+            const { success, subscriber } = await apiCall<any>('/api/subscribers', 'POST', { email });
+            if (success) {
+                setSubscribers(prev => [subscriber, ...prev]);
+            }
+            return success;
+        } catch (error) {
+            console.error(error);
             return false;
         }
-        const newSubscriber: Subscriber = {
-            id: generateId(),
-            email,
-            subscriptionDate: new Date().toISOString().split('T')[0],
-            status: 'active'
-        };
-        setSubscribers(prev => [newSubscriber, ...prev]);
-
-        // Send welcome email if enabled
-        if (generalSettings.emailNotificationsEnabled) {
-            const welcomeSubject = `Welcome to Divine Computer Jobs!`;
-            const welcomeBody = `Hello,
-
-Thank you for subscribing to Divine Computer Jobs! We're excited to have you with us.
-
-You are now on our list to receive the latest updates on government job openings, exam notifications, and results directly in your inbox.
-
-Our goal is to help you find your dream job in the public sector. Stay tuned for upcoming opportunities!
-
-Best Regards,
-The Team at Divine Computer Jobs
-            `.trim();
-
-            const welcomeNotification: EmailNotification = {
-                id: `${generateId()}-welcome`,
-                recipient: newSubscriber.email,
-                subject: welcomeSubject,
-                body: welcomeBody,
-                sentAt: new Date().toISOString(),
-                jobId: 'welcome-email' // A special ID to distinguish it
-            };
-            setEmailNotifications(prev => [welcomeNotification, ...prev]);
-        }
-
-        return true;
     };
-    const deleteSubscriber = (id: string) => {
-        setSubscribers(prev => prev.filter(s => s.id !== id));
-    };
+    const deleteSubscriber = (id: string) => deleteItem('/api/subscribers', id, setSubscribers);
 
     // Contact Management
-    const addContact = (contactData: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
-        const newContact: ContactSubmission = {
-            ...contactData,
-            id: generateId(),
-            submittedAt: new Date().toISOString()
-        };
-        setContacts(prev => [newContact, ...prev]);
-    };
-    const deleteContact = (id: string) => {
-        setContacts(prev => prev.filter(c => c.id !== id));
-    };
+    const addContact = (contactData: Omit<ContactSubmission, 'id' | 'submittedAt'>) => createItem('/api/contacts', contactData, setContacts);
+    const deleteContact = (id: string) => deleteItem('/api/contacts', id, setContacts);
     
     // Breaking News Management
-    const addNews = (newsData: Omit<BreakingNews, 'id'>) => {
-        const newNews: BreakingNews = { ...newsData, id: generateId() };
-        setBreakingNews(prev => [newNews, ...prev]);
-    };
-    const updateNews = (updatedNews: BreakingNews) => {
-        setBreakingNews(prev => prev.map(n => n.id === updatedNews.id ? updatedNews : n));
-    };
-    const deleteNews = (id: string) => {
-        setBreakingNews(prev => prev.filter(n => n.id !== id));
-    };
-
-    // Email Notification Management
-    const deleteEmailNotification = (id: string) => {
-        setEmailNotifications(prev => prev.filter(n => n.id !== id));
-    };
-
-    const clearAllEmailNotifications = () => {
-        if (window.confirm('Are you sure you want to clear the entire notification history? This action cannot be undone.')) {
-            setEmailNotifications([]);
-        }
-    };
-    
-    // Custom Email Management
-    const sendCustomEmail = (subject: string, body: string) => {
-        const activeSubscribers = subscribers.filter(s => s.status === 'active');
-        if (activeSubscribers.length === 0) {
-            alert("There are no active subscribers to send emails to.");
-            return;
-        }
-        const newEmail: CustomEmail = {
-            id: generateId(),
-            recipients: 'all',
-            subject,
-            body,
-            sentAt: new Date().toISOString(),
-        };
-        setCustomEmails(prev => [newEmail, ...prev]);
-        alert(`Email "${subject}" has been queued for sending to all ${activeSubscribers.length} subscribers.`);
-    };
-    
-    const deleteCustomEmail = (id: string) => {
-        if (window.confirm('Are you sure you want to delete this email record?')) {
-            setCustomEmails(prev => prev.filter(e => e.id !== id));
-        }
-    };
+    const addNews = (newsData: Omit<BreakingNews, 'id'>) => createItem('/api/breakingnews', newsData, setBreakingNews);
+    const updateNews = (updatedNews: BreakingNews) => updateItem('/api/breakingnews', updatedNews, setBreakingNews);
+    const deleteNews = (id: string) => deleteItem('/api/breakingnews', id, setBreakingNews);
 
     // Settings Management
-    const updateAdSettings = (settings: AdSettings) => setAdSettings(settings);
-    const updateSEOSettings = (settings: SEOSettings) => setSeoSettings(settings);
-    const updateGeneralSettings = (settings: GeneralSettings) => setGeneralSettings(settings);
-    const updateSocialMediaSettings = (settings: SocialMediaSettings) => setSocialMediaSettings(settings);
+    const updateAdSettings = (settings: AdSettings) => handleApiAction(() => apiCall('/api/settings', 'POST', { type: 'adSettings', data: settings }), setAdSettings);
+    const updateSEOSettings = (settings: SEOSettings) => handleApiAction(() => apiCall('/api/settings', 'POST', { type: 'seoSettings', data: settings }), setSeoSettings);
+    const updateGeneralSettings = (settings: GeneralSettings) => handleApiAction(() => apiCall('/api/settings', 'POST', { type: 'generalSettings', data: settings }), setGeneralSettings);
+    const updateSocialMediaSettings = (settings: SocialMediaSettings) => handleApiAction(() => apiCall('/api/settings', 'POST', { type: 'socialMediaSettings', data: settings }), setSocialMediaSettings);
+    
+    // Notifications and Emails are not fully implemented on the backend for this example.
+    // These functions will only update local state for now.
+    const deleteEmailNotification = async (id: string) => { setEmailNotifications(prev => prev.filter(n => n.id !== id))};
+    const clearAllEmailNotifications = async () => { setEmailNotifications([])};
+    const sendCustomEmail = async (subject: string, body: string) => { alert("This functionality requires a backend email service."); };
+    const deleteCustomEmail = async (id: string) => { setCustomEmails(prev => prev.filter(e => e.id !== id))};
 
-    // Backup & Restore
-    const createBackup = (): BackupData => {
-        return {
-            jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings,
-            seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails,
-        };
-    };
-
-    const restoreBackup = (data: BackupData): boolean => {
-        // Basic validation
-        if (!data || !Array.isArray(data.jobs) || !data.adSettings) {
-            return false;
-        }
-        setJobs(data.jobs || []);
-        setQuickLinks(data.quickLinks || []);
-        setPosts(data.posts || []);
-        setSubscribers(data.subscribers || []);
-        setContacts(data.contacts || []);
-        setBreakingNews(data.breakingNews || []);
-        setAdSettings(data.adSettings || initialAdSettings);
-        setSeoSettings(data.seoSettings || initialSeoSettings);
-        setGeneralSettings(data.generalSettings || initialGeneralSettings);
-        setSocialMediaSettings(data.socialMediaSettings || initialSocialMediaSettings);
-        setEmailNotifications(data.emailNotifications || []);
-        setCustomEmails(data.customEmails || []);
-        return true;
-    };
+    // Backup & Restore (Client-side implementation remains)
+    const createBackup = (): BackupData => ({ jobs, quickLinks, posts, subscribers, contacts, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, emailNotifications, customEmails });
+    const restoreBackup = (): boolean => { alert("Restoring from backup should be done via the database directly. This client-side function is disabled."); return false; };
 
     const value = {
         jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs,
@@ -332,6 +231,7 @@ The Team at Divine Computer Jobs
         emailNotifications, deleteEmailNotification, clearAllEmailNotifications,
         customEmails, sendCustomEmail, deleteCustomEmail,
         createBackup, restoreBackup,
+        isLoading, error,
     };
 
     return (

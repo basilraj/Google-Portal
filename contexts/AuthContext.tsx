@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useRef } from 'react';
 import { authService } from '../services/database';
 import { AdminCredentials } from '../types';
@@ -11,9 +12,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// This must match the 'base' in vite.config.ts
-const basePath = '/Google-Portal';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const credentialsRef = useRef<AdminCredentials>(authService.getCredentials());
@@ -23,7 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user === storedCreds.username && pass === storedCreds.password) {
       setIsLoggedIn(true);
       // On successful login, redirect to the admin dashboard
-      window.history.pushState({}, '', `${basePath}/admin`);
+      window.history.pushState({}, '', `/admin`);
       // Dispatch a popstate event to make the App component re-route
       window.dispatchEvent(new PopStateEvent('popstate'));
       return true;
@@ -34,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setIsLoggedIn(false);
     // On logout, redirect to the admin login page
-    window.location.href = `${basePath}/admin`;
+    window.location.href = `/admin`;
   };
   
   const updateCredentials = (currentPass: string, newUser: string, newPass: string): boolean => {

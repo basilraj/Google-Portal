@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
@@ -109,7 +110,7 @@ const AdminPanel: React.FC = () => {
                         </button>
                          <h2 className="text-2xl font-bold text-gray-800">{activeTitle}</h2>
                     </div>
-                     <a href="/Google-Portal/" target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-2">
+                     <a href="/" target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-2">
                         View Public Site <Icon name="external-link-alt" />
                     </a>
                 </header>

@@ -15,39 +15,12 @@ import JobDetailPage from './pages/JobDetailPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 import TelegramFAB from './components/TelegramFAB';
 
-export const basePath = '/Google-Portal';
-
-/**
- * Determines the initial path for the application.
- * On static hosts like GitHub Pages, a direct visit to a sub-route (e.g., /admin)
- * triggers a 404. The 404.html page saves the intended path to sessionStorage
- * and redirects to the root. This function reads that saved path to restore the
- * correct view on the initial load.
- */
-const getInitialPath = () => {
-  try {
-    const redirectPath = sessionStorage.getItem('redirectPath');
-    if (redirectPath) {
-      sessionStorage.removeItem('redirectPath');
-      // If we have a redirect path, use it. Also, update the browser's history
-      // to reflect the correct deep link URL without reloading the page.
-      if (window.location.pathname !== redirectPath) {
-          window.history.replaceState(null, '', redirectPath);
-      }
-      return redirectPath;
-    }
-  } catch (error) {
-    console.warn("Could not access sessionStorage to handle redirect:", error);
-  }
-  // If no redirect path is found, use the current path.
-  return window.location.pathname;
-};
-
+export const basePath = '';
 
 const App: React.FC = () => {
   const { isLoggedIn } = useAuth();
   const { generalSettings, seoSettings } = useData();
-  const [path, setPath] = useState(getInitialPath);
+  const [path, setPath] = useState(window.location.pathname);
 
   // This effect listens for browser navigation events (back/forward buttons)
   // to keep the component's path state in sync.
