@@ -1,9 +1,8 @@
 
 
+
 import fs from 'fs';
 import path from 'path';
-// Fix: Import the 'process' object to use `process.cwd()` as `cwd` is not a named export.
-import process from 'node:process';
 
 // Since we can't use dynamic imports easily in this context, we will manually copy the data.
 // In a real project, this would import from the source files.
@@ -91,7 +90,8 @@ function generateSitemap() {
   sitemap += `
 </urlset>`;
   
-  // Fix: Use `process.cwd()` from the imported 'process' object.
+  // Fix: Rely on the global 'process' object from the Node.js environment
+  // to avoid type conflicts with explicit imports.
   const publicPath = path.join(process.cwd(), 'public');
   if (!fs.existsSync(publicPath)) {
     fs.mkdirSync(publicPath);
