@@ -79,6 +79,33 @@ const simulateApiCall = (ms = 300) => new Promise(resolve => setTimeout(resolve,
 
 const usePersistentState = <T,>(key: string, initialValue: T) => useLocalStorage(key, initialValue);
 
+const syncAllJobStatuses = (jobsToSync: Job[]): Job[] => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(today.getDate() + 7);
+    sevenDaysFromNow.setHours(23, 59, 59, 999);
+
+    return jobsToSync.map(job => {
+        const lastDate = new Date(job.lastDate);
+        let correctStatus: Job['status'];
+
+        if (lastDate < today) {
+            correctStatus = 'expired';
+        } else if (lastDate <= sevenDaysFromNow) {
+            correctStatus = 'closing-soon';
+        } else {
+            correctStatus = 'active';
+        }
+
+        if (job.status !== correctStatus) {
+            return { ...job, status: correctStatus };
+        }
+        return job;
+    });
+};
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -98,7 +125,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [smtpSettings, setSmtpSettings] = usePersistentState<SMTPSettings>('smtpSettings', initialSmtpSettings);
 
     useEffect(() => {
+        // This effect runs on initial load to sync job statuses.
+        // It prevents jobs from having stale statuses (e.g., being 'active' when their lastDate has passed).
+        const initialSyncedJobs = syncAllJobStatuses(jobs);
+        if (JSON.stringify(initialSyncedJobs) !== JSON.stringify(jobs)) {
+            console.log('Automated job status synchronization completed on load.');
+            setJobs(initialSyncedJobs);
+        }
         setLoading(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
     const addJob = async (jobData: Omit<Job, 'id' | 'createdAt'>) => {
@@ -116,9 +151,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return newJob;
     };
 
-    const updateJob = async (jobData: Job) => {
-        await simulateApiCall(); setJobs(prev => prev.map(j => j.id === jobData.id ? jobData : j)); return jobData;
-    };
+    const updateJob = async (jobData: Job) => { await simulateApiCall(); setJobs(prev => prev.map(j => j.id === jobData.id ? jobData : j)); return jobData; };
     const deleteJob = async (jobId: string) => { await simulateApiCall(); setJobs(prev => prev.filter(j => j.id !== jobId)); };
     const addMultipleJobs = async (jobsData: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => {
         await simulateApiCall();
@@ -176,7 +209,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const restoreBackup = (data: BackupData): boolean => {
         try {
             if (!data.jobs || !data.seoSettings) return false;
-            setJobs(data.jobs); setQuickLinks(data.quickLinks); setPosts(data.posts); setSubscribers(data.subscribers);
+            
+            const syncedJobs = syncAllJobStatuses(data.jobs);
+            
+            setJobs(syncedJobs); setQuickLinks(data.quickLinks); setPosts(data.posts); setSubscribers(data.subscribers);
             setContacts(data.contacts); setBreakingNews(data.breakingNews); setAdSettings(data.adSettings);
             setSeoSettings(data.seoSettings); setGeneralSettings(data.generalSettings); setSocialMediaSettings(data.socialMediaSettings);
             setEmailNotifications(data.emailNotifications); setCustomEmails(data.customEmails);

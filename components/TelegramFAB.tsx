@@ -13,9 +13,9 @@ const TelegramFAB: React.FC = () => {
         <a
             href={socialMediaSettings.telegramGroup}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="nofollow noopener noreferrer"
             aria-label="Join our Telegram Group"
-            className="fixed bottom-8 left-8 bg-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-transform hover:scale-110 z-50"
+            className="fixed bottom-8 right-8 bg-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-transform hover:scale-110 z-[99]"
         >
             <Icon name="comments" className="text-3xl" />
         </a>

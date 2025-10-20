@@ -18,6 +18,7 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
         publishedDate: new Date().toISOString().split('T')[0],
         examDate: '',
         imageUrl: '',
+        detailsUrl: '',
     });
 
     useEffect(() => {
@@ -34,6 +35,7 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
                 publishedDate: new Date().toISOString().split('T')[0],
                 examDate: '',
                 imageUrl: '',
+                detailsUrl: '',
             });
         }
     }, [post, defaultType]);
@@ -92,6 +94,20 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
                 <label className="block text-sm font-medium text-gray-700">Content *</label>
                 <textarea name="content" value={formData.content} onChange={handleChange} rows={8} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
             </div>
+            {(formData.type === 'exam-notices' || formData.type === 'results') && (
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700">Details URL (Optional)</label>
+                    <input 
+                        type="url" 
+                        name="detailsUrl" 
+                        value={formData.detailsUrl || ''} 
+                        onChange={handleChange} 
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+                        placeholder="https://example.com/admit-card-or-result-link"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Direct link for users to get the notice, admit card, or result.</p>
+                </div>
+            )}
              <div>
                 <label className="block text-sm font-medium text-gray-700">Featured Image</label>
                 <input type="file" accept="image/*" onChange={handleImageChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100" />

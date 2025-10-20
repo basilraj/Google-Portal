@@ -1,6 +1,9 @@
+
 export type JobStatus = 'active' | 'closing-soon' | 'expired';
 export type PostStatus = 'published' | 'draft';
 export type PostType = 'posts' | 'exam-notices' | 'results';
+export type LinkStatus = 'active' | 'inactive';
+export type NewsStatus = 'active' | 'inactive';
 
 export interface Job {
   id: string;
@@ -22,7 +25,7 @@ export interface QuickLink {
   category: string;
   url: string;
   description: string;
-  status: 'active' | 'inactive';
+  status: LinkStatus;
 }
 
 export interface ContentPost {
@@ -33,9 +36,10 @@ export interface ContentPost {
   status: PostStatus;
   type: PostType;
   publishedDate: string; // YYYY-MM-DD
-  createdAt?: string; // ISO 8601
+  createdAt: string; // ISO 8601
   examDate?: string; // YYYY-MM-DD
   imageUrl?: string;
+  detailsUrl?: string;
 }
 
 export interface Subscriber {
@@ -58,92 +62,91 @@ export interface BreakingNews {
   id: string;
   text: string;
   link: string;
-  status: 'active' | 'inactive';
+  status: NewsStatus;
+}
+
+export interface ABTest {
+  id: string;
+  placement: 'header' | 'sidebar' | 'footer';
+  enabled: boolean;
+  codeA: string;
+  codeB: string;
+  stats: {
+    impressionsA: number;
+    clicksA: number;
+    impressionsB: number;
+    clicksB: number;
+  };
 }
 
 export interface GeoTargetedAd {
-    id: string;
-    country: string; // e.g., 'IN', 'US'
-    code: string;
+  id: string;
+  country: string; // e.g., 'IN', 'US'
+  code: string;
 }
-  
-export interface ABTest {
-    id: string;
-    placement: string; // e.g., 'Header', 'Sidebar'
-    enabled: boolean;
-    codeA: string;
-    codeB: string;
-    stats: {
-        impressionsA: number;
-        clicksA: number;
-        impressionsB: number;
-        clicksB: number;
-    };
-}
-  
+
 export interface AdSettings {
-    adFrequency: 'low' | 'medium' | 'high';
-    adStartTime: string; // HH:mm
-    adEndTime: string;   // HH:mm
-    bannerAds: boolean;
-    squareAds: boolean;
-    skyscraperAds: boolean;
-    popupAds: boolean;
-    headerAdEnabled: boolean;
-    headerAdCode: string;
-    sidebarAdEnabled: boolean;
-    sidebarAdCode: string;
-    footerAdEnabled: boolean;
-    footerAdCode: string;
-    customAds: {
-      enabled: boolean;
-      rotation: boolean;
-      codes: string[];
-    };
-    abTests: ABTest[];
-    deviceTargeting: {
-      enabled: boolean;
-      desktopCode: string;
-      mobileCode: string;
-    };
-    geoTargeting: {
-      enabled: boolean;
-      rules: GeoTargetedAd[];
-    };
+  adFrequency: 'low' | 'medium' | 'high';
+  adStartTime: string; // HH:mm
+  adEndTime: string;   // HH:mm
+  bannerAds: boolean;
+  squareAds: boolean;
+  skyscraperAds: boolean;
+  popupAds: boolean;
+  headerAdEnabled: boolean;
+  headerAdCode: string;
+  sidebarAdEnabled: boolean;
+  sidebarAdCode: string;
+  footerAdEnabled: boolean;
+  footerAdCode: string;
+  customAds: {
+    enabled: boolean;
+    rotation: boolean;
+    codes: string[];
+  };
+  abTests: ABTest[];
+  deviceTargeting: {
+    enabled: boolean;
+    desktopCode: string;
+    mobileCode: string;
+  };
+  geoTargeting: {
+    enabled: boolean;
+    rules: GeoTargetedAd[];
+  };
 }
 
 export interface SEOSettings {
-    global: {
-      siteTitle: string;
-      metaDescription: string;
-      metaKeywords: string;
-    };
-    social: {
-      ogTitle: string;
-      ogDescription: string;
-      ogImageUrl: string;
-    };
-    structuredData: {
-      jobPostingSchemaEnabled: boolean;
-    };
+  global: {
+    siteTitle: string;
+    metaDescription: string;
+    metaKeywords: string;
+  };
+  social: {
+    ogTitle: string;
+    ogDescription: string;
+    ogImageUrl: string;
+  };
+  structuredData: {
+    jobPostingSchemaEnabled: boolean;
+  };
 }
 
 export interface GeneralSettings {
-    siteTitle: string;
-    siteIconUrl: string;
-    maintenanceMode: boolean;
-    maintenanceMessage: string;
-    emailNotificationsEnabled: boolean;
-    adminEmail: string;
+  siteTitle: string;
+  siteIconUrl: string;
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  emailNotificationsEnabled: boolean;
 }
 
 export interface SocialMediaSettings {
-    facebook: string;
-    instagram: string;
-    telegram: string;
-    telegramGroup: string;
-    telegramGroupIcon: string;
-    whatsapp: string;
+  facebook: string;
+  instagram: string;
+  telegram: string;
+  telegramGroup: string;
+  telegramGroupIcon: string;
+  whatsapp: string;
 }
 
 export interface EmailNotification {
@@ -157,21 +160,21 @@ export interface EmailNotification {
 
 export interface CustomEmail {
     id: string;
-    recipients: 'all' | string[]; // 'all' or array of emails
+    recipients: 'all';
     subject: string;
     body: string;
     sentAt: string; // ISO 8601
 }
 
 export interface SMTPSettings {
+  configured: boolean;
   host: string;
   port: number;
+  secure: boolean;
   user: string;
   pass: string;
   fromEmail: string;
   fromName: string;
-  secure: boolean;
-  configured: boolean;
 }
 
 export interface BackupData {

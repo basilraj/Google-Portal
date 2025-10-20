@@ -1,22 +1,23 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+
+import React, { createContext, useContext, ReactNode } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 interface AuthContextType {
   isLoggedIn: boolean;
-  login: (username: string, password_provided: string) => boolean;
+  login: (user: string, pass: string) => boolean;
   logout: () => void;
-  updateCredentials: (currentPassword_provided: string, newUsername_provided: string, newPassword_provided: string) => boolean;
+  updateCredentials: (currentPass: string, newUser: string, newPass: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('isLoggedIn', false);
-  const [username, setUsername] = useLocalStorage<string>('adminUsername', 'admin');
-  const [password, setPassword] = useLocalStorage<string>('adminPassword', 'password');
+  const [username, setUsername] = useLocalStorage<string>('adminUser', 'admin');
+  const [password, setPassword] = useLocalStorage<string>('adminPass', 'password');
 
-  const login = (username_provided: string, password_provided: string): boolean => {
-    if (username_provided === username && password_provided === password) {
+  const login = (user: string, pass: string): boolean => {
+    if (user === username && pass === password) {
       setIsLoggedIn(true);
       return true;
     }
@@ -27,20 +28,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoggedIn(false);
   };
 
-  const updateCredentials = (currentPassword_provided: string, newUsername_provided: string, newPassword_provided: string): boolean => {
-    if (currentPassword_provided === password) {
-      setUsername(newUsername_provided);
-      setPassword(newPassword_provided);
-      return true;
+  const updateCredentials = (currentPass: string, newUser: string, newPass: string): boolean => {
+    if (currentPass !== password) {
+      return false;
     }
-    return false;
+    setUsername(newUser);
+    setPassword(newPass);
+    return true;
   };
 
-  return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout, updateCredentials }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = { isLoggedIn, login, logout, updateCredentials };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

@@ -81,7 +81,6 @@ const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => voi
                     }
                 },
                 "qualifications": job.qualification,
-                "totalJobOpenings": job.vacancies,
             };
 
             const breadcrumbSchema = {

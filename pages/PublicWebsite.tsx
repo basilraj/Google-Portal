@@ -62,7 +62,7 @@ const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job
                     <a href={`${basePath}/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); navigate(`/job/${slugify(job.title)}`); }} className="text-sm font-semibold text-indigo-600 hover:underline">
                         View Full Details
                     </a>
-                    <a href={job.applyLink} target="_blank" rel="noopener noreferrer" className={`font-bold py-2 px-4 rounded-md transition-opacity ${effectiveStatus === 'expired' ? 'bg-gray-400 text-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'}`}>
+                    <a href={job.applyLink} target="_blank" rel="nofollow noopener noreferrer" className={`font-bold py-2 px-4 rounded-md transition-opacity ${effectiveStatus === 'expired' ? 'bg-gray-400 text-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90'}`}>
                         {effectiveStatus === 'expired' ? 'Expired' : 'Apply Now'}
                     </a>
                 </div>
@@ -77,6 +77,18 @@ const PostCard: React.FC<{ post: ContentPost; onViewDetails: (post: ContentPost)
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}&quote=${encodeURIComponent(shareTitle)}`;
     const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + pageUrl)}`;
     const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareTitle)}`;
+
+    const getButtonText = () => {
+        const lowerTitle = post.title.toLowerCase();
+        if (post.type === 'exam-notices') {
+            if (lowerTitle.includes('admit card')) return 'Get Admit Card';
+            return 'Get Exam Notice';
+        }
+        if (post.type === 'results') {
+            return 'Check Result';
+        }
+        return 'View Details';
+    };
 
     return (
         <div className="border bg-white p-4 rounded-lg flex items-center justify-between gap-4 flex-wrap">
@@ -95,11 +107,24 @@ const PostCard: React.FC<{ post: ContentPost; onViewDetails: (post: ContentPost)
                     <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors">
                         <Icon prefix="fab" name="whatsapp" />
                     </a>
-                    <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors">
+                     <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors">
                         <Icon prefix="fab" name="telegram-plane" />
                     </a>
                 </div>
-                <button onClick={() => onViewDetails(post)} className="text-indigo-600 hover:underline text-sm font-semibold">View Details</button>
+                {post.detailsUrl ? (
+                    <a 
+                        href={post.detailsUrl} 
+                        target="_blank" 
+                        rel="nofollow noopener noreferrer" 
+                        className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors text-sm"
+                    >
+                        {getButtonText()}
+                    </a>
+                ) : (
+                    <button onClick={() => onViewDetails(post)} className="text-indigo-600 hover:underline text-sm font-semibold">
+                        View Details
+                    </button>
+                )}
             </div>
         </div>
     );

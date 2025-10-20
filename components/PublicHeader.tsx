@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import Icon from './Icon';
 import { basePath } from '../App';
@@ -36,7 +37,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
 
     return (
         <header className="bg-gradient-to-r from-[#1e3c72] to-[#2a5298] text-white shadow-lg sticky top-0 z-40">
-            <div className="container mx-auto px-4 py-3 flex justify-between items-center flex-wrap">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap">
                 <a href={`${basePath}/`} onClick={(e) => handleLinkClick(e, `${basePath}/`)} className="flex items-center cursor-pointer">
                     {generalSettings.siteIconUrl ? (
                         <img 
@@ -54,13 +55,13 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                     <Icon name={isMenuOpen ? "times" : "bars"} className="text-2xl" />
                 </button>
                 <nav className={`w-full md:w-auto md:flex ${isMenuOpen ? 'block mt-4' : 'hidden'}`}>
-                    <ul className="flex flex-col md:flex-row md:space-x-4">
+                    <ul className="flex flex-col md:flex-row md:space-x-2">
                          {navItems.map(item => (
                             <li key={item.label} className="w-full">
                                 <a 
                                     href={item.path} 
                                     onClick={(e) => handleLinkClick(e, item.path)}
-                                    className="block md:inline-block hover:bg-white/20 px-3 py-2 rounded-md transition-colors w-full"
+                                    className="block md:inline-block text-white font-semibold text-base hover:bg-white/10 px-4 py-2 rounded-md transition-colors w-full"
                                 >
                                     {item.label}
                                 </a>
