@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-// Fix: Explicitly import the 'process' object to provide type context for process.cwd().
-import process from 'process';
+// Fix: Use import.meta.url to derive the project root path reliably,
+// avoiding `process.cwd()` which could cause a type error in some environments.
+import { fileURLToPath } from 'url';
 
 // Since we can't use dynamic imports easily in this context, we will manually copy the data.
 // In a real project, this would import from the source files.
@@ -45,6 +46,9 @@ const slugify = (text) => {
     .replace(/-+$/, '');
 };
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..');
 
 const baseUrl = 'https://jobtica.vercel.app'; // Replace with your actual domain
 
@@ -89,7 +93,7 @@ function generateSitemap() {
   sitemap += `
 </urlset>`;
   
-  const publicPath = path.join(process.cwd(), 'public');
+  const publicPath = path.join(projectRoot, 'public');
   if (!fs.existsSync(publicPath)) {
     fs.mkdirSync(publicPath);
   }
