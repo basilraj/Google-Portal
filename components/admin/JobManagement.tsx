@@ -8,6 +8,7 @@ import usePagination from '../../hooks/usePagination';
 import { getEffectiveJobStatus } from '../../utils/jobUtils';
 import JobDetailView from '../JobDetailView';
 import ConfirmationModal from './ConfirmationModal';
+import NotificationExtractorModal from './NotificationExtractorModal';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -265,6 +266,7 @@ const JobManagement: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [confirmModalContent, setConfirmModalContent] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; }>({ title: '', message: '', onConfirm: () => {} });
+    const [isExtractorModalOpen, setIsExtractorModalOpen] = useState(false);
 
     const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
         setNotification({ type, message });
@@ -546,6 +548,9 @@ const JobManagement: React.FC = () => {
                         <option value="closing-soon">Closing Soon</option>
                         <option value="expired">Expired</option>
                     </select>
+                    <button onClick={() => setIsExtractorModalOpen(true)} className="bg-teal-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-teal-700">
+                        <Icon name="wand-magic-sparkles" /> Extract Notification
+                    </button>
                     <button onClick={() => { setIsBulkUploadModalOpen(true); setBulkUploadErrors([]); }} className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700">
                         <Icon name="upload" /> Bulk Upload
                     </button>
@@ -640,6 +645,10 @@ const JobManagement: React.FC = () => {
                 message={confirmModalContent.message}
                 isLoading={isLoading}
                 confirmText="Delete"
+            />
+            <NotificationExtractorModal
+                isOpen={isExtractorModalOpen}
+                onClose={() => setIsExtractorModalOpen(false)}
             />
         </div>
     );

@@ -26,6 +26,7 @@ const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job
     const shareTitle = `Check out this job: ${job.title}`;
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(jobUrl)}&quote=${encodeURIComponent(shareTitle)}`;
     const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + jobUrl)}`;
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(jobUrl)}&text=${encodeURIComponent(shareTitle)}`;
 
     return (
         <div className="border bg-white p-6 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
@@ -51,6 +52,9 @@ const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job
                         <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors">
                             <Icon prefix="fab" name="whatsapp" className="text-lg" />
                         </a>
+                        <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors">
+                            <Icon prefix="fab" name="telegram-plane" className="text-lg" />
+                        </a>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -66,18 +70,39 @@ const JobCard: React.FC<{ job: Job; navigate: (path: string) => void }> = ({ job
     );
 };
 
-const PostCard: React.FC<{ post: ContentPost; onViewDetails: (post: ContentPost) => void; }> = ({ post, onViewDetails }) => (
-    <div className="border bg-white p-4 rounded-lg flex items-center justify-between gap-4 flex-wrap">
-        <div>
-            <h4 className="font-semibold text-gray-800">{post.title}</h4>
-            <p className="text-sm text-gray-500">
-                Published: {post.publishedDate} 
-                {post.examDate && ` | Exam: ${post.examDate}`}
-            </p>
+const PostCard: React.FC<{ post: ContentPost; onViewDetails: (post: ContentPost) => void; }> = ({ post, onViewDetails }) => {
+    const pageUrl = window.location.href.split('#')[0] + '#' + post.type;
+    const shareTitle = `Divine Computer Jobs Update: ${post.title}`;
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}&quote=${encodeURIComponent(shareTitle)}`;
+    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + pageUrl)}`;
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareTitle)}`;
+
+    return (
+        <div className="border bg-white p-4 rounded-lg flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex-grow">
+                <h4 className="font-semibold text-gray-800">{post.title}</h4>
+                <p className="text-sm text-gray-500">
+                    Published: {post.publishedDate} 
+                    {post.examDate && ` | Exam: ${post.examDate}`}
+                </p>
+            </div>
+            <div className="flex items-center gap-4 flex-shrink-0">
+                <div className="flex items-center gap-3 text-gray-500">
+                    <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors">
+                        <Icon prefix="fab" name="facebook-f" />
+                    </a>
+                    <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors">
+                        <Icon prefix="fab" name="whatsapp" />
+                    </a>
+                    <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors">
+                        <Icon prefix="fab" name="telegram-plane" />
+                    </a>
+                </div>
+                <button onClick={() => onViewDetails(post)} className="text-indigo-600 hover:underline text-sm font-semibold">View Details</button>
+            </div>
         </div>
-        <button onClick={() => onViewDetails(post)} className="text-indigo-600 hover:underline text-sm font-semibold flex-shrink-0">View Details</button>
-    </div>
-);
+    );
+};
 
 const AdComponent: React.FC<{ code: string }> = ({ code }) => (
     <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />

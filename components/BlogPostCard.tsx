@@ -16,7 +16,7 @@ const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost
     return (
         <div className="border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
             {post.imageUrl && (
-                <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover" />
+                <img src={post.imageUrl} alt={post.title} className="w-full aspect-video object-cover" />
             )}
             <div className="p-6 flex flex-col flex-grow">
                 <div className="flex-grow">

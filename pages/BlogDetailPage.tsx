@@ -48,7 +48,7 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
             <main className="flex-grow container mx-auto px-4 py-12">
                 <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
                     {post.imageUrl && (
-                        <img src={post.imageUrl} alt={post.title} className="w-full h-auto max-h-96 object-cover rounded-lg mb-6" />
+                        <img src={post.imageUrl} alt={post.title} className="w-full aspect-video object-cover rounded-lg mb-6" />
                     )}
                     <h1 className="text-4xl font-bold text-[#1e3c72] mb-4">{post.title}</h1>
                     <div className="text-sm text-gray-600 mb-6 border-b pb-4 flex flex-wrap gap-x-6 gap-y-2">

@@ -68,7 +68,7 @@ const QuickActionButton: React.FC<{ label: string; icon: string; onClick: () => 
 
 
 const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTab }) => {
-    const { jobs, posts, subscribers, adSettings } = useData();
+    const { jobs, posts, subscribers, adSettings, generalSettings } = useData();
 
     // Simulated data for charts
     const jobsLast7Days = [
@@ -119,6 +119,18 @@ const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTa
                      <h3 className="text-xl font-bold text-gray-700 mb-4">System Health</h3>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <span className="text-gray-600">API Status</span>
+                            <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Operational</span>
+                        </div>
+                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <span className="text-gray-600">Email Notifications</span>
+                            {generalSettings.emailNotificationsEnabled ? (
+                                <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Active</span>
+                            ) : (
+                                <span className="font-semibold text-red-600 flex items-center gap-2"><Icon name="times-circle" /> Inactive</span>
+                            )}
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                             <span className="text-gray-600">Ad System Status</span>
                             {adSettings.headerAdEnabled || adSettings.sidebarAdEnabled || adSettings.footerAdEnabled ? (
                                 <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Active</span>
@@ -133,10 +145,6 @@ const Dashboard: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTa
                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                             <span className="text-gray-600">Last Backup</span>
                              <span className="font-semibold text-gray-800">Today (Automatic)</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                            <span className="text-gray-600">API Status</span>
-                            <span className="font-semibold text-green-600 flex items-center gap-2"><Icon name="check-circle" /> Operational</span>
                         </div>
                      </div>
                 </div>

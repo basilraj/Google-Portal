@@ -48,7 +48,7 @@ const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                         )}
                     </div>
                 </div>
-                <div className="border-t border-white/20 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-center">
+                <div className="border-t border-white/20 mt-8 pt-6 flex flex-col md:flex-row-reverse justify-between items-center text-center">
                     <div className="mb-4 md:mb-0">
                         <p className="text-xs text-gray-400">&copy; 2025 Divine Computer Jobs. All Rights Reserved.</p>
                     </div>
