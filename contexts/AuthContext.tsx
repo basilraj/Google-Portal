@@ -1,29 +1,37 @@
-
-import React, { createContext, useContext, useState, useRef } from 'react';
-import { authService } from '../services/database';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import useLocalStorage from '../hooks/useLocalStorage';
 import { AdminCredentials } from '../types';
 
 interface AuthContextType {
   isLoggedIn: boolean;
-  login: (user: string, pass: string) => boolean;
+  login: (username: string, password: string) => boolean;
   logout: () => void;
-  updateCredentials: (currentPass: string, newUser: string, newPass: string) => boolean;
+  updateCredentials: (currentPassword: string, newUsername: string, newPass: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const credentialsRef = useRef<AdminCredentials>(authService.getCredentials());
+const defaultAdminCredentials: AdminCredentials = {
+  username: 'admin',
+  password: 'password123',
+};
 
-  const login = (user: string, pass: string) => {
-    const storedCreds = credentialsRef.current;
-    if (user === storedCreds.username && pass === storedCreds.password) {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [credentials, setCredentials] = useLocalStorage<AdminCredentials>('admin-credentials', defaultAdminCredentials);
+
+  // Check login status on initial load from sessionStorage
+  useEffect(() => {
+    const loggedInStatus = sessionStorage.getItem('isLoggedIn');
+    if (loggedInStatus === 'true') {
+        setIsLoggedIn(true);
+    }
+  }, []);
+
+  const login = (username: string, password: string): boolean => {
+    if (username === credentials.username && password === credentials.password) {
       setIsLoggedIn(true);
-      // On successful login, redirect to the admin dashboard
-      window.history.pushState({}, '', `/admin`);
-      // Dispatch a popstate event to make the App component re-route
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      sessionStorage.setItem('isLoggedIn', 'true');
       return true;
     }
     return false;
@@ -31,32 +39,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsLoggedIn(false);
-    // On logout, redirect to the admin login page
-    window.location.href = `/admin`;
+    sessionStorage.removeItem('isLoggedIn');
   };
-  
-  const updateCredentials = (currentPass: string, newUser: string, newPass: string): boolean => {
-    const storedCreds = credentialsRef.current;
-    if (currentPass !== storedCreds.password) {
-        return false; // Incorrect current password
+
+  const updateCredentials = (currentPassword: string, newUsername: string, newPass: string): boolean => {
+    if (currentPassword === credentials.password) {
+      setCredentials({ username: newUsername, password: newPass });
+      return true;
     }
-
-    const newCredentials = {
-        username: newUser,
-        password: newPass
-    };
-
-    authService.saveCredentials(newCredentials);
-    credentialsRef.current = newCredentials;
-    return true;
+    return false;
   };
 
+  const value = { isLoggedIn, login, logout, updateCredentials };
 
-  return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout, updateCredentials }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
