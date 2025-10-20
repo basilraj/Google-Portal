@@ -23,6 +23,8 @@ const createInMemoryStorage = (): Storage => {
   };
 };
 
+let isLocalStorageAvailable = false;
+
 const getSafeStorage = (): Storage => {
   try {
     const storage = window.localStorage;
@@ -30,16 +32,19 @@ const getSafeStorage = (): Storage => {
     const testKey = '__storage_test__';
     storage.setItem(testKey, testKey);
     storage.removeItem(testKey);
+    isLocalStorageAvailable = true;
     return storage;
   } catch (e) {
     console.warn(
       'localStorage is not available due to security restrictions. ' +
       'Using temporary in-memory storage. Data will not be persisted across sessions.'
     );
+    isLocalStorageAvailable = false;
     return createInMemoryStorage();
   }
 };
 
 const storage: Storage = getSafeStorage();
 
+export { isLocalStorageAvailable };
 export default storage;

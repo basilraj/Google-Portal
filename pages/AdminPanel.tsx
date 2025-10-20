@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import Icon from '../components/Icon.tsx';
@@ -23,7 +24,7 @@ type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'q
 
 const AdminPanel: React.FC = () => {
     const { logout } = useAuth();
-    const { generalSettings } = useData();
+    const { generalSettings, isPersistenceActive } = useData();
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -109,6 +110,13 @@ const AdminPanel: React.FC = () => {
                         <span>Logout</span>
                     </button>
                 </header>
+                
+                {!isPersistenceActive && (
+                    <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 text-sm p-3 text-center font-medium shadow-inner">
+                        <Icon name="exclamation-triangle" className="mr-2" />
+                        <strong>Warning:</strong> Your browser's storage is not accessible. Any changes you make will be lost when you close the app.
+                    </div>
+                )}
 
                 {/* Main Content */}
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">

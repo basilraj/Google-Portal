@@ -80,6 +80,9 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     const { jobs, posts, quickLinks, breakingNews, adSettings, addSubscriber, seoSettings, trackSponsoredAdClick } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All Departments');
+    const [qualificationFilter, setQualificationFilter] = useState('All Qualifications');
+    const [sortOption, setSortOption] = useState('postedDate-desc');
+    const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
     const [email, setEmail] = useState('');
     const [subscribeMessage, setSubscribeMessage] = useState<{ type: 'success'|'error', text: string } | null>(null);
 
@@ -90,14 +93,37 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     }, [seoSettings]);
     
     const activeJobs = useMemo(() => jobs.filter(job => getEffectiveJobStatus(job) === 'active' || getEffectiveJobStatus(job) === 'closing-soon'), [jobs]);
-    const filteredJobs = useMemo(() => {
-        return activeJobs.filter(job => 
+
+    const sortedAndFilteredJobs = useMemo(() => {
+        let filtered = activeJobs.filter(job => 
             (job.title.toLowerCase().includes(searchTerm.toLowerCase()) || job.department.toLowerCase().includes(searchTerm.toLowerCase())) &&
-            (departmentFilter === 'All Departments' || job.department === departmentFilter)
+            (departmentFilter === 'All Departments' || job.department === departmentFilter) &&
+            (qualificationFilter === 'All Qualifications' || job.qualification === qualificationFilter)
         );
-    }, [activeJobs, searchTerm, departmentFilter]);
+
+        const [key, direction] = sortOption.split('-');
+
+        filtered.sort((a, b) => {
+            let valA, valB;
+            if (key === 'postedDate' || key === 'lastDate') {
+                valA = new Date(a[key as 'postedDate' | 'lastDate']).getTime();
+                valB = new Date(b[key as 'postedDate' | 'lastDate']).getTime();
+            } else {
+                return 0;
+            }
+
+            if (direction === 'asc') {
+                return valA - valB;
+            } else {
+                return valB - valA;
+            }
+        });
+
+        return filtered;
+    }, [activeJobs, searchTerm, departmentFilter, qualificationFilter, sortOption]);
     
     const departments = useMemo(() => ['All Departments', ...Array.from(new Set(activeJobs.map(j => j.department))).sort()], [activeJobs]);
+    const qualifications = useMemo(() => ['All Qualifications', ...Array.from(new Set(activeJobs.map(j => j.qualification))).sort()], [activeJobs]);
     const latestNotices = useMemo(() => posts.filter(p => p.type === 'exam-notices' && p.status === 'published').slice(0, 5), [posts]);
     const latestResults = useMemo(() => posts.filter(p => p.type === 'results' && p.status === 'published').slice(0, 5), [posts]);
     const activeBreakingNews = useMemo(() => breakingNews.filter(n => n.status === 'active'), [breakingNews]);
@@ -143,21 +169,58 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
             <main className="container mx-auto px-4 py-12">
                 <section id="job-search" className="mb-12">
                     <h2 className="text-3xl font-bold text-center text-[#1e3c72] mb-6">Find Your Dream Government Job</h2>
-                    <div className="bg-white p-6 rounded-lg shadow-md flex flex-col md:flex-row gap-4">
-                        <input 
-                            type="text" 
-                            placeholder="Search by job title or keyword..."
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            className="flex-grow px-4 py-2 border border-gray-300 rounded-md"
-                        />
-                        <select 
-                            value={departmentFilter}
-                            onChange={e => setDepartmentFilter(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-md bg-white"
-                        >
-                            {departments.map(dep => <option key={dep} value={dep}>{dep}</option>)}
-                        </select>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input 
+                                type="text" 
+                                placeholder="Search by job title or keyword..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            />
+                            <select 
+                                value={departmentFilter}
+                                onChange={e => setDepartmentFilter(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white"
+                            >
+                                {departments.map(dep => <option key={dep} value={dep}>{dep}</option>)}
+                            </select>
+                        </div>
+                         <div className="mt-4 text-right">
+                            <button 
+                                onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
+                                className="text-sm font-semibold text-indigo-600 hover:underline"
+                            >
+                                {isAdvancedFilterOpen ? 'Hide' : 'Show'} Advanced Filters <Icon name={isAdvancedFilterOpen ? 'chevron-up' : 'chevron-down'} className="ml-1 text-xs" />
+                            </button>
+                        </div>
+                        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isAdvancedFilterOpen ? 'max-h-40 mt-4 pt-4 border-t' : 'max-h-0'}`}>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Qualification</label>
+                                    <select 
+                                        value={qualificationFilter}
+                                        onChange={e => setQualificationFilter(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                                    >
+                                        {qualifications.map(q => <option key={q} value={q}>{q}</option>)}
+                                    </select>
+                                </div>
+                                 <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Sort By</label>
+                                    <select 
+                                        value={sortOption}
+                                        onChange={e => setSortOption(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                                    >
+                                        <option value="postedDate-desc">Posted Date (Newest First)</option>
+                                        <option value="postedDate-asc">Posted Date (Oldest First)</option>
+                                        <option value="lastDate-asc">Last Date (Ascending)</option>
+                                        <option value="lastDate-desc">Last Date (Descending)</option>
+                                    </select>
+                                </div>
+                           </div>
+                        </div>
                     </div>
                 </section>
                 
@@ -166,7 +229,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                         <section id="job-listings">
                             <h2 className="text-2xl font-bold text-[#1e3c72] mb-4">Latest Jobs</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {filteredJobs.slice(0, 10).map(job => (
+                                {sortedAndFilteredJobs.slice(0, 10).map(job => (
                                     <JobCard key={job.id} job={job} onView={(slug) => navigate(`/job/${slug}`)} />
                                 ))}
                             </div>
