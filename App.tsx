@@ -39,7 +39,7 @@ const App: React.FC = () => {
   
   // Update document title based on SEO settings and current page
   useEffect(() => {
-    const route = path.replace(basePath, '') || '/';
+    const route = (path.replace(basePath, '') || '/').toLowerCase();
     let title = seoSettings.global.siteTitle;
     if (route.startsWith('/admin')) title = `Admin Panel | ${title}`;
     else if (route.startsWith('/job/')) title = `Job Details | ${title}`;
@@ -62,7 +62,7 @@ const App: React.FC = () => {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  const route = path.replace(basePath, '') || '/';
+  const route = (path.replace(basePath, '') || '/').toLowerCase();
   const isPublicRoute = !route.startsWith('/admin');
 
   const renderPage = () => {
@@ -75,12 +75,12 @@ const App: React.FC = () => {
     }
     
     if (route.startsWith('/job/')) {
-      const jobId = route.split('/')[2];
+      const jobId = path.split('/')[2];
       return <JobDetailPage jobId={jobId} navigate={navigate} />;
     }
 
     if (route.startsWith('/blog/')) {
-      const postId = route.split('/')[2];
+      const postId = path.split('/')[2];
       return <BlogDetailPage postId={postId} navigate={navigate} />;
     }
     
