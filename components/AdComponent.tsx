@@ -28,36 +28,42 @@ const AdComponent: React.FC<AdComponentProps> = ({ code, placement }) => {
         if (isPlaceholder || !adContainerRef.current) return;
 
         const container = adContainerRef.current;
-        container.innerHTML = ''; // Clear previous content to avoid ad duplication
+        
+        // Clear container from previous renders before adding new content.
+        container.innerHTML = '';
 
-        // Use a DocumentFragment to parse the HTML string into DOM nodes
-        const range = document.createRange();
-        const documentFragment = range.createContextualFragment(code);
-        const nodes = Array.from(documentFragment.childNodes);
-
-        nodes.forEach(node => {
-            // If the node is a script, we need to create a new script element
-            // and append it to the container to force it to execute.
-            if (node.nodeName === 'SCRIPT') {
-                const script = node as HTMLScriptElement;
-                const newScript = document.createElement('script');
-
-                // Copy all attributes (src, async, type, etc.)
-                script.getAttributeNames().forEach(attrName => {
-                    newScript.setAttribute(attrName, script.getAttribute(attrName) || '');
-                });
-
-                // Copy the inline script content
-                if (script.innerHTML) {
-                    newScript.innerHTML = script.innerHTML;
-                }
-
-                container.appendChild(newScript);
-            } else {
-                // For all other nodes (like <ins>, <div>, comments), just append them directly.
-                container.appendChild(node.cloneNode(true));
-            }
+        // Append the ad code's HTML structure and scripts.
+        // Scripts inserted this way are not executed by the browser.
+        container.innerHTML = code;
+        
+        // Find all script tags that were just inserted.
+        const scripts = Array.from(container.querySelectorAll("script"));
+        
+        // Re-create each script tag to force the browser to execute it.
+        // Fix: Explicitly type the 'oldScript' parameter to HTMLScriptElement to resolve property access errors.
+        scripts.forEach((oldScript: HTMLScriptElement) => {
+            const newScript = document.createElement("script");
+            
+            // Copy all attributes from the old script to the new one.
+            // Fix: Explicitly type the 'attr' parameter to Attr to resolve property access errors.
+            Array.from(oldScript.attributes).forEach((attr: Attr) => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            
+            // Copy the inline script content.
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            
+            // Replace the non-executable script with the new, executable one.
+            oldScript.parentNode?.replaceChild(newScript, oldScript);
         });
+
+        // Crucial cleanup function to run when the component unmounts.
+        // This prevents errors and memory leaks when navigating between pages.
+        return () => {
+            if (adContainerRef.current) {
+                adContainerRef.current.innerHTML = '';
+            }
+        };
 
     }, [code, isPlaceholder]);
 
@@ -77,8 +83,6 @@ const AdComponent: React.FC<AdComponentProps> = ({ code, placement }) => {
         );
     }
     
-    // Using a key ensures React creates a new component instance when the ad code changes,
-    // which guarantees a clean state for the useEffect hook.
     return <div key={code} ref={adContainerRef} className="my-6 flex justify-center items-center" />;
 };
 
