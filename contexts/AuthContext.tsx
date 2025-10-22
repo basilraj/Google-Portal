@@ -3,7 +3,7 @@ import useLocalStorage from '../hooks/useLocalStorage.ts';
 import { User } from '../types.ts';
 import { useData } from './DataContext.tsx';
 
-type AuthStage = 'signup' | 'login' | 'otp' | 'loggedIn';
+type AuthStage = 'signup' | 'login' | 'loggedIn' | 'forgotPassword' | 'resetPassword';
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -11,10 +11,12 @@ interface AuthContextType {
   userEmail: string | null;
   createAdmin: (user: Omit<User, 'passwordHash'> & { password: string }) => Promise<boolean>;
   login: (username: string, password: string) => Promise<boolean>;
-  verifyOtp: (otp: string) => boolean;
   logout: () => void;
-  cancelOtp: () => void;
   updateCredentials: (currentPassword: string, newUsername: string, newPassword: string) => Promise<boolean>;
+  goToForgotPassword: () => void;
+  requestPasswordReset: (email: string) => Promise<boolean>;
+  resetPassword: (newPassword: string) => Promise<boolean>;
+  backToLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,17 +38,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useLocalStorage<User | null>('admin-user', null);
   const [sessionLoggedIn, setSessionLoggedIn] = useLocalStorage('session-is-logged-in', false);
   const [authStage, setAuthStage] = useState<AuthStage>('login');
-  const [storedOtp, setStoredOtp] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionLoggedIn) {
       setAuthStage('loggedIn');
     } else if (!user) {
       setAuthStage('signup');
-    } else {
+    } else if (authStage !== 'forgotPassword' && authStage !== 'resetPassword') {
       setAuthStage('login');
     }
-  }, [user, sessionLoggedIn]);
+  }, [user, sessionLoggedIn, authStage]);
 
   const createAdmin = async (userData: Omit<User, 'passwordHash'> & { password: string }): Promise<boolean> => {
     const newUser: User = {
@@ -62,29 +63,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (username: string, password: string): Promise<boolean> => {
     if (user && username === user.username && simpleHash(password) === user.passwordHash) {
-      // Simulate sending OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      setStoredOtp(otp);
-      
-      // In a real app, you would send this via email. For this demo, we'll alert it with context.
-      if (smtpSettings.configured) {
-        alert(`SMTP is configured. In a real-world application, an email would be sent to ${user.email}.\n\nYour OTP is: ${otp}`);
-      } else {
-        alert(`SMTP not configured. Please configure it in Settings for a production environment.\n\nYour OTP is: ${otp}`);
-      }
-      
-      setAuthStage('otp');
-      return true;
-    }
-    return false;
-  };
-
-  const verifyOtp = (otp: string): boolean => {
-    if (otp === storedOtp) {
       setSessionLoggedIn(true);
       setAuthStage('loggedIn');
-      setStoredOtp(null);
-      addActivityLog('Admin Login', `User '${user?.username}' logged in successfully.`);
+      await addActivityLog('Admin Login', `User '${user?.username}' logged in successfully.`);
       return true;
     }
     return false;
@@ -94,11 +75,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addActivityLog('Admin Logout', `User '${user?.username}' logged out.`);
     setSessionLoggedIn(false);
     setAuthStage('login');
-  };
-
-  const cancelOtp = () => {
-    setAuthStage('login');
-    setStoredOtp(null);
   };
 
   const updateCredentials = async (currentPassword: string, newUsername: string, newPassword: string): Promise<boolean> => {
@@ -111,6 +87,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return false;
   };
 
+  const goToForgotPassword = () => {
+    setAuthStage('forgotPassword');
+  };
+  
+  const backToLogin = () => {
+    setAuthStage('login');
+  };
+
+  const requestPasswordReset = async (email: string): Promise<boolean> => {
+    if (user && email === user.email) {
+      if (smtpSettings.configured) {
+        alert(`SMTP is configured. In a real-world application, a password reset link would be sent to ${user.email}.`);
+      } else {
+        alert(`SMTP not configured. Please configure it in Settings for a production environment. For this demo, we will proceed directly to the password reset step.`);
+      }
+      setAuthStage('resetPassword');
+      return true;
+    }
+    return false;
+  };
+
+  const resetPassword = async (newPassword: string): Promise<boolean> => {
+    if (user) {
+      const updatedUser = { ...user, passwordHash: simpleHash(newPassword) };
+      setUser(updatedUser);
+      await addActivityLog('Password Reset', `Admin password was reset for user: ${user.username}`);
+      setAuthStage('login');
+      return true;
+    }
+    return false;
+  };
+
   return (
     <AuthContext.Provider value={{ 
         isLoggedIn: authStage === 'loggedIn', 
@@ -118,10 +126,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         userEmail: user?.email || null,
         createAdmin,
         login, 
-        verifyOtp,
         logout, 
-        cancelOtp,
-        updateCredentials 
+        updateCredentials,
+        goToForgotPassword,
+        requestPasswordReset,
+        resetPassword,
+        backToLogin
     }}>
       {children}
     </AuthContext.Provider>

@@ -34,7 +34,7 @@ const SignupForm: React.FC = () => {
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                 <div className="rounded-md shadow-sm space-y-3">
-                    <input type="text" placeholder="Administrator Email (for OTP)" required value={email} onChange={e => setEmail(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                    <input type="email" placeholder="Administrator Email (for password recovery)" required value={email} onChange={e => setEmail(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                     <input type="text" placeholder="Choose a Username" required value={username} onChange={e => setUsername(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                     <input type="password" placeholder="Choose a Secure Password" required value={password} onChange={e => setPassword(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                 </div>
@@ -48,7 +48,7 @@ const SignupForm: React.FC = () => {
 };
 
 const LoginForm: React.FC = () => {
-    const { login } = useAuth();
+    const { login, goToForgotPassword } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -78,6 +78,13 @@ const LoginForm: React.FC = () => {
                     <input type="password" placeholder="Password" required value={password} onChange={e => setPassword(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                 </div>
                 {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+                <div className="flex items-center justify-end">
+                    <div className="text-sm">
+                        <button type="button" onClick={goToForgotPassword} className="font-medium text-indigo-600 hover:text-indigo-500">
+                            Forgot your password?
+                        </button>
+                    </div>
+                </div>
                 <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
                     {isLoading ? 'Verifying...' : 'Sign in'}
                 </button>
@@ -86,65 +93,74 @@ const LoginForm: React.FC = () => {
     );
 };
 
-const OtpForm: React.FC = () => {
-    const { verifyOtp, cancelOtp, userEmail } = useAuth();
-    const { smtpSettings } = useData();
-    const [otp, setOtp] = useState('');
+const ForgotPasswordForm: React.FC = () => {
+    const { requestPasswordReset, backToLogin } = useAuth();
+    const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const otpInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        otpInputRef.current?.focus();
-    }, []);
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
-        const success = verifyOtp(otp);
+        const success = await requestPasswordReset(email);
         if (!success) {
-            setError('Invalid OTP. Please try again.');
+            setError('The provided email does not match the registered admin email.');
             setIsLoading(false);
-            setOtp('');
         }
+        // On success, auth context handles stage change.
     };
 
     return (
         <>
             <div className="text-center">
-                <Icon name="key" className="text-5xl text-indigo-600 mx-auto" />
-                <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Two-Factor Authentication</h1>
-                <p className="mt-2 text-sm text-gray-600">
-                    An OTP is required to proceed. Please check the browser alert for your code.
-                </p>
-                 <div className={`mt-4 text-xs p-3 rounded-md ${smtpSettings.configured ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    <Icon name={smtpSettings.configured ? "check-circle" : "exclamation-triangle"} className="mr-2"/>
-                    {smtpSettings.configured 
-                        ? "SMTP is configured. In a real application, this OTP would be sent to your email. For this demo, please use the code from the alert."
-                        : "SMTP is not configured. Please complete setup in the admin panel to enable real email delivery."
-                    }
-                </div>
+                <Icon name="question-circle" className="text-5xl text-indigo-600 mx-auto" />
+                <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Forgot Password</h1>
+                <p className="mt-2 text-sm text-gray-600">Enter your admin email to begin the reset process.</p>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                <div>
-                    <input 
-                        ref={otpInputRef}
-                        type="text" 
-                        placeholder="Enter 6-digit OTP" 
-                        maxLength={6}
-                        required 
-                        value={otp} 
-                        onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} 
-                        className="appearance-none text-center tracking-[1rem] text-2xl font-bold relative block w-full px-3 py-2 border border-gray-300 rounded-md" 
-                    />
-                </div>
+                <input type="email" placeholder="Administrator Email" required value={email} onChange={e => setEmail(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                 {error && <p className="text-sm text-red-600 text-center">{error}</p>}
                 <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
-                    {isLoading ? 'Verifying...' : 'Verify'}
+                    {isLoading ? 'Verifying...' : 'Request Reset'}
                 </button>
-                <button type="button" onClick={cancelOtp} className="w-full text-center text-sm text-gray-600 hover:underline">
-                    Cancel and go back to login
+                <button type="button" onClick={backToLogin} className="w-full text-center text-sm text-gray-600 hover:underline">
+                    Back to login
+                </button>
+            </form>
+        </>
+    );
+};
+
+const ResetPasswordForm: React.FC = () => {
+    const { resetPassword, backToLogin, userEmail } = useAuth();
+    const [newPassword, setNewPassword] = useState('');
+    const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMessage('');
+        setIsLoading(true);
+        await resetPassword(newPassword);
+        // Auth context will navigate away on success.
+    };
+    
+    return (
+         <>
+            <div className="text-center">
+                <Icon name="key" className="text-5xl text-indigo-600 mx-auto" />
+                <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Reset Your Password</h1>
+                <p className="mt-2 text-sm text-gray-600">Enter a new password for your account associated with <strong>{userEmail}</strong>.</p>
+            </div>
+            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                <input type="password" placeholder="Enter new password" required value={newPassword} onChange={e => setNewPassword(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                {message && <p className="text-sm text-green-600 text-center">{message}</p>}
+                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                    {isLoading ? 'Resetting...' : 'Set New Password'}
+                </button>
+                 <button type="button" onClick={backToLogin} className="w-full text-center text-sm text-gray-600 hover:underline">
+                    Back to login
                 </button>
             </form>
         </>
@@ -158,7 +174,8 @@ const AdminLoginPage: React.FC = () => {
         switch (authStage) {
             case 'signup': return <SignupForm />;
             case 'login': return <LoginForm />;
-            case 'otp': return <OtpForm />;
+            case 'forgotPassword': return <ForgotPasswordForm />;
+            case 'resetPassword': return <ResetPasswordForm />;
             default: return null; // Should not happen
         }
     };
