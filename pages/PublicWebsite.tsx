@@ -54,7 +54,7 @@ const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; 
     };
 
     return (
-    <div className="flex items-center justify-between gap-4 border-b pb-3 mb-3 last:border-b-0 last:pb-0 last:mb-0">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-3 mb-3 last:border-b-0 last:pb-0 last:mb-0">
         <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-md flex flex-col items-center justify-center font-bold text-center leading-none flex-shrink-0">
                 <span className="text-lg">{new Date(post.publishedDate).getDate()}</span>
@@ -65,13 +65,15 @@ const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; 
                 <p className="font-semibold text-gray-800 leading-tight">{post.title}</p>
             </div>
         </div>
+        <div className="w-full sm:w-auto flex justify-end">
         {post.detailsUrl ? (
-            <a href={post.detailsUrl} target="_blank" rel="nofollow noopener noreferrer" className="flex-shrink-0 text-sm bg-purple-500 text-white px-3 py-2 rounded-md hover:bg-purple-600 font-semibold transition-colors whitespace-nowrap">
+            <a href={post.detailsUrl} target="_blank" rel="nofollow noopener noreferrer" className="w-full sm:w-auto inline-flex items-center justify-center text-center flex-shrink-0 text-sm bg-purple-500 text-white px-3 py-2 rounded-md hover:bg-purple-600 font-semibold transition-colors whitespace-nowrap">
                 {getButtonText(post.title)}
             </a>
         ) : (
             <button onClick={() => navigate(`/post/${post.id}`)} className="flex-shrink-0 text-sm text-indigo-600 hover:underline font-semibold whitespace-nowrap">View Details</button>
         )}
+        </div>
     </div>
 )});
 
