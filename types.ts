@@ -100,6 +100,9 @@ export interface PlacementSetting {
   customCode: string;
 }
 
+export type PlacementKey = keyof Pick<AdSettings, 'headerAd' | 'sidebarAd' | 'footerAd' | 'inFeedJobsAd' | 'inFeedBlogAd' | 'jobDetailTopAd' | 'blogDetailTopAd'>;
+
+
 export interface AdSettings {
     // Refactored Ad Placements
     headerAd: PlacementSetting;
@@ -135,6 +138,7 @@ export interface AdSettings {
     };
     sponsoredAds: SponsoredAd[];
     adNetworks: AdNetworkSettings;
+    activeTests: PlacementKey[];
 }
 
 export interface SEOSettings {

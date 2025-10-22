@@ -77,10 +77,10 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         if (metaDesc) metaDesc.setAttribute('content', seoSettings.global.metaDescription);
     }, [seoSettings]);
 
-    const headerAdCode = getAdCodeForPlacement(adSettings.headerAd, adSettings.adNetworks);
-    const inFeedJobsAdCode = getAdCodeForPlacement(adSettings.inFeedJobsAd, adSettings.adNetworks);
-    const sidebarAdCode = getAdCodeForPlacement(adSettings.sidebarAd, adSettings.adNetworks);
-    const footerAdCode = getAdCodeForPlacement(adSettings.footerAd, adSettings.adNetworks);
+    const headerAdCode = getAdCodeForPlacement('headerAd', adSettings);
+    const inFeedJobsAdCode = getAdCodeForPlacement('inFeedJobsAd', adSettings);
+    const sidebarAdCode = getAdCodeForPlacement('sidebarAd', adSettings);
+    const footerAdCode = getAdCodeForPlacement('footerAd', adSettings);
     
     const activeJobs = useMemo(() => jobs.filter(job => getEffectiveJobStatus(job) === 'active' || getEffectiveJobStatus(job) === 'closing-soon'), [jobs]);
 

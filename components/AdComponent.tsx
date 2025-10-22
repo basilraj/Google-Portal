@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import Icon from './Icon.tsx';
 
 export type AdPlacement = 'header' | 'sidebar' | 'footer' | 'in-feed';
 
@@ -9,8 +10,19 @@ interface AdComponentProps {
 
 const AdComponent: React.FC<AdComponentProps> = ({ code, placement }) => {
     const adContainerRef = useRef<HTMLDivElement>(null);
-    // An ad code is considered a placeholder only if it's the default comment.
     const isPlaceholder = code.trim().startsWith('<!--') && code.trim().endsWith('-->');
+
+    // New Test Ad Logic
+    if (code.trim().startsWith('<!-- JOBTICA_TEST_AD::')) {
+        const placementName = code.match(/::(.*?)\s*-->/)?.[1] || 'Test Ad';
+        return (
+            <div className="my-6 flex flex-col items-center justify-center bg-yellow-300 border-2 border-dashed border-yellow-500 rounded-md mx-auto p-4 text-center" style={{ maxWidth: '728px', minHeight: '90px' }}>
+                <Icon name="vial" className="text-yellow-700 text-2xl mb-2" />
+                <span className="text-yellow-800 font-bold text-lg">TEST MODE ACTIVE</span>
+                <span className="text-yellow-700 font-mono text-sm">{placementName}</span>
+            </div>
+        );
+    }
 
     useEffect(() => {
         if (isPlaceholder || !adContainerRef.current) return;

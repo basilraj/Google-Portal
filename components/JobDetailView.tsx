@@ -15,7 +15,7 @@ interface JobDetailViewProps {
 const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { adSettings } = useData();
-  const jobDetailTopAdCode = getAdCodeForPlacement(adSettings.jobDetailTopAd, adSettings.adNetworks);
+  const jobDetailTopAdCode = getAdCodeForPlacement('jobDetailTopAd', adSettings);
 
   const jobUrl = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
   const shareTitle = `Check out this job: ${job.title}`;

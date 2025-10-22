@@ -2,7 +2,8 @@ import React, { createContext, useContext, ReactNode, useCallback, useEffect } f
 import useLocalStorage from '../hooks/useLocalStorage.ts';
 import { 
     Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, 
-    SocialMediaSettings, SMTPSettings, ActivityLog, ContactSubmission, EmailNotification, CustomEmail, BackupData, SponsoredAd, RSSSettings
+    SocialMediaSettings, SMTPSettings, ActivityLog, ContactSubmission, EmailNotification, CustomEmail, BackupData, SponsoredAd, RSSSettings,
+    PlacementKey
 } from '../types.ts';
 import { 
     INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, 
@@ -43,6 +44,7 @@ interface DataContextType {
   adSettings: AdSettings;
   updateAdSettings: (settings: AdSettings) => Promise<void>;
   trackSponsoredAdClick: (adId: string) => void;
+  toggleAdTest: (placement: PlacementKey) => void;
 
   seoSettings: SEOSettings;
   updateSEOSettings: (settings: SEOSettings) => Promise<void>;
@@ -305,6 +307,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
     }, [setAdSettings]);
 
+    const toggleAdTest = useCallback((placement: PlacementKey) => {
+        setAdSettings(prev => {
+            const currentTests = prev.activeTests || [];
+            const newActiveTests = currentTests.includes(placement)
+                ? currentTests.filter(p => p !== placement)
+                : [...currentTests, placement];
+            return { ...prev, activeTests: newActiveTests };
+        });
+    }, [setAdSettings]);
+
     const updateSEOSettings = useCallback(async (settings: SEOSettings) => {
         setSeoSettings(settings);
         await addActivityLog('Settings Updated', 'SEO settings were updated.');
@@ -418,7 +430,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             posts, addPost, updatePost, deletePost, deleteMultiplePosts,
             subscribers, addSubscriber, deleteSubscriber,
             breakingNews, addNews, updateNews, deleteNews,
-            adSettings, updateAdSettings, trackSponsoredAdClick,
+            adSettings, updateAdSettings, trackSponsoredAdClick, toggleAdTest,
             seoSettings, updateSEOSettings,
             generalSettings, updateGeneralSettings,
             socialMediaSettings, updateSocialMediaSettings,

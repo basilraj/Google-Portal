@@ -15,10 +15,10 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
     const { posts, adSettings } = useData();
     const [selectedCategory, setSelectedCategory] = useState('All Categories');
 
-    const headerAdCode = getAdCodeForPlacement(adSettings.headerAd, adSettings.adNetworks);
-    const inFeedBlogAdCode = getAdCodeForPlacement(adSettings.inFeedBlogAd, adSettings.adNetworks);
-    const sidebarAdCode = getAdCodeForPlacement(adSettings.sidebarAd, adSettings.adNetworks);
-    const footerAdCode = getAdCodeForPlacement(adSettings.footerAd, adSettings.adNetworks);
+    const headerAdCode = getAdCodeForPlacement('headerAd', adSettings);
+    const inFeedBlogAdCode = getAdCodeForPlacement('inFeedBlogAd', adSettings);
+    const sidebarAdCode = getAdCodeForPlacement('sidebarAd', adSettings);
+    const footerAdCode = getAdCodeForPlacement('footerAd', adSettings);
     
     const blogPosts = useMemo(() => posts.filter(p => p.type === 'posts' && p.status === 'published')
                                       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()), [posts]);

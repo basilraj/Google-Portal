@@ -11,7 +11,7 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
     const { posts, seoSettings, generalSettings, adSettings } = useData();
     const post = posts.find(p => p.id === postId);
     const canonicalUrl = `${window.location.origin}${basePath}/blog/${postId}`.replace(/([^:]\/)\/+/g, "$1");
-    const blogDetailTopAdCode = getAdCodeForPlacement(adSettings.blogDetailTopAd, adSettings.adNetworks);
+    const blogDetailTopAdCode = getAdCodeForPlacement('blogDetailTopAd', adSettings);
 
     useEffect(() => {
         document.querySelectorAll('[data-seo-managed]').forEach(el => el.remove());
