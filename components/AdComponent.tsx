@@ -28,33 +28,35 @@ const AdComponent: React.FC<AdComponentProps> = ({ code, placement }) => {
         if (isPlaceholder || !adContainerRef.current) return;
 
         const container = adContainerRef.current;
-        container.innerHTML = ''; // Clear previous content to avoid ad duplication on re-renders
+        container.innerHTML = ''; // Clear previous content to avoid ad duplication
 
-        // Create a temporary div to parse the HTML string. This is a standard way
-        // to handle an HTML string and extract its parts, like script tags.
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = code;
+        // Use a DocumentFragment to parse the HTML string into DOM nodes
+        const range = document.createRange();
+        const documentFragment = range.createContextualFragment(code);
+        const nodes = Array.from(documentFragment.childNodes);
 
-        // Find all script tags within the provided ad code.
-        const scripts = Array.from(tempDiv.getElementsByTagName('script'));
+        nodes.forEach(node => {
+            // If the node is a script, we need to create a new script element
+            // and append it to the container to force it to execute.
+            if (node.nodeName === 'SCRIPT') {
+                const script = node as HTMLScriptElement;
+                const newScript = document.createElement('script');
 
-        // Append the main content (non-script parts) of the ad code.
-        container.innerHTML = tempDiv.innerHTML;
+                // Copy all attributes (src, async, type, etc.)
+                script.getAttributeNames().forEach(attrName => {
+                    newScript.setAttribute(attrName, script.getAttribute(attrName) || '');
+                });
 
-        // For each script found, create a *new* script element and append it.
-        // This is the crucial step that forces the browser to execute the script.
-        scripts.forEach(script => {
-            const newScript = document.createElement('script');
-            // Copy all attributes (like src, async, etc.) from the original script tag.
-            for (let i = 0; i < script.attributes.length; i++) {
-                const attr = script.attributes[i];
-                newScript.setAttribute(attr.name, attr.value);
+                // Copy the inline script content
+                if (script.innerHTML) {
+                    newScript.innerHTML = script.innerHTML;
+                }
+
+                container.appendChild(newScript);
+            } else {
+                // For all other nodes (like <ins>, <div>, comments), just append them directly.
+                container.appendChild(node.cloneNode(true));
             }
-            // Copy the inline script content.
-            if (script.innerHTML) {
-                newScript.innerHTML = script.innerHTML;
-            }
-            document.body.appendChild(newScript);
         });
 
     }, [code, isPlaceholder]);
