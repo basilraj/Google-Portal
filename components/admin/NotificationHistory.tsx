@@ -1,8 +1,10 @@
 
-import React, { useState } from 'react';
+
+
+import React, { useState, useRef } from 'react';
 // Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import { EmailNotification } from '../../types.ts';
 // Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
@@ -10,8 +12,9 @@ import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 // Fix: Add .tsx extension to local module import.
 import Pagination from './Pagination.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import usePagination from '../../hooks/usePagination.ts';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -26,28 +29,58 @@ const NotificationHistory: React.FC = () => {
     const { emailNotifications, deleteEmailNotification, clearAllEmailNotifications } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<EmailNotification | null>(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null); // 'all' or an id
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const sortedNotifications = [...emailNotifications].sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
 
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedNotifications, { itemsPerPage: ITEMS_PER_PAGE });
 
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     const handleViewNotification = (notification: EmailNotification) => {
         setSelectedNotification(notification);
         setIsModalOpen(true);
     };
+    
+    const handleDeleteRequest = (id: string) => {
+        setItemToDelete(id);
+        setIsConfirmModalOpen(true);
+    };
 
-    const handleDelete = (notificationId: string) => {
-        if (window.confirm('Are you sure you want to delete this notification record?')) {
-            deleteEmailNotification(notificationId);
+    const handleClearAllRequest = () => {
+        setItemToDelete('all');
+        setIsConfirmModalOpen(true);
+    };
+
+    const confirmDeletion = () => {
+        if (itemToDelete === 'all') {
+            clearAllEmailNotifications();
+        } else if (itemToDelete) {
+            deleteEmailNotification(itemToDelete);
         }
+        setIsConfirmModalOpen(false);
+        setItemToDelete(null);
     };
     
+    const getConfirmMessage = () => {
+        if (itemToDelete === 'all') {
+            return 'Are you sure you want to delete all notification records? This action cannot be undone.';
+        }
+        const notif = emailNotifications.find(n => n.id === itemToDelete);
+        return <>Are you sure you want to delete the notification record for <strong>{notif?.recipient}</strong> with subject: <strong>"{notif?.subject}"</strong>?</>;
+    };
+
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 className="text-xl font-bold text-gray-700">Notification History ({emailNotifications.length})</h2>
                 {emailNotifications.length > 0 && (
-                    <button onClick={clearAllEmailNotifications} className="bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-red-700">
+                    <button onClick={handleClearAllRequest} className="bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-red-700">
                         <Icon name="trash" /> Clear All History
                     </button>
                 )}
@@ -74,7 +107,7 @@ const NotificationHistory: React.FC = () => {
                                     <button onClick={() => handleViewNotification(notification)} className="text-blue-500 hover:text-blue-700" aria-label={`View notification to ${notification.recipient}`}>
                                         <Icon name="eye" />
                                     </button>
-                                    <button onClick={() => handleDelete(notification.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete notification to ${notification.recipient}`}>
+                                    <button onClick={() => handleDeleteRequest(notification.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete notification to ${notification.recipient}`}>
                                         <Icon name="trash" />
                                     </button>
                                 </td>
@@ -83,7 +116,7 @@ const NotificationHistory: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </>
             ) : (
                 <EmptyState message="No notifications have been sent yet." />
@@ -115,6 +148,14 @@ const NotificationHistory: React.FC = () => {
                     </div>
                 )}
             </Modal>
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmDeletion}
+                title="Confirm Deletion"
+                message={getConfirmMessage()}
+                confirmText="Delete"
+            />
         </div>
     );
 };

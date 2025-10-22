@@ -44,11 +44,14 @@ const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => voi
             createMeta({ property: 'og:url', content: canonicalUrl });
             createMeta({ property: 'og:type', content: 'article' });
             createMeta({ property: 'og:site_name', content: generalSettings.siteTitle });
+            createMeta({ property: 'og:image', content: seoSettings.social.ogImageUrl }); // Add default OG image
 
             // Twitter Card
             createMeta({ name: 'twitter:card', content: 'summary' });
             createMeta({ name: 'twitter:title', content: job.title });
             createMeta({ name: 'twitter:description', content: metaDescription });
+            createMeta({ name: 'twitter:image', content: seoSettings.social.ogImageUrl }); // Add default Twitter image
+
 
             // Canonical URL
             createLink({ rel: 'canonical', href: canonicalUrl });

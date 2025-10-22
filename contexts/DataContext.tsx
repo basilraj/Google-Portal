@@ -8,7 +8,7 @@ import {
 import { 
     INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, 
     initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, 
-    initialSmtpSettings, INITIAL_ACTIVITY_LOGS, initialRssSettings
+    initialSmtpSettings, INITIAL_ACTIVITY_LOGS, initialRssSettings, INITIAL_SPONSORED_ADS
 } from '../constants.ts';
 import { isLocalStorageAvailable } from '../utils/storage.ts';
 
@@ -40,6 +40,11 @@ interface DataContextType {
   addNews: (news: Omit<BreakingNews, 'id'>) => Promise<void>;
   updateNews: (news: BreakingNews) => Promise<void>;
   deleteNews: (id: string) => Promise<void>;
+
+  sponsoredAds: SponsoredAd[];
+  addSponsoredAd: (ad: Omit<SponsoredAd, 'id'>) => Promise<void>;
+  updateSponsoredAd: (ad: SponsoredAd) => Promise<void>;
+  deleteSponsoredAd: (id: string) => Promise<void>;
 
   adSettings: AdSettings;
   updateAdSettings: (settings: AdSettings) => Promise<void>;
@@ -91,6 +96,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [posts, setPosts] = useLocalStorage<ContentPost[]>('posts', INITIAL_POSTS);
     const [subscribers, setSubscribers] = useLocalStorage<Subscriber[]>('subscribers', INITIAL_SUBSCRIBERS);
     const [breakingNews, setBreakingNews] = useLocalStorage<BreakingNews[]>('breaking-news', INITIAL_BREAKING_NEWS);
+    const [sponsoredAds, setSponsoredAds] = useLocalStorage<SponsoredAd[]>('sponsored-ads', INITIAL_SPONSORED_ADS);
     const [adSettings, setAdSettings] = useLocalStorage<AdSettings>('ad-settings', initialAdSettings);
     const [seoSettings, setSeoSettings] = useLocalStorage<SEOSettings>('seo-settings', initialSeoSettings);
     const [generalSettings, setGeneralSettings] = useLocalStorage<GeneralSettings>('general-settings', initialGeneralSettings);
@@ -283,29 +289,44 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [breakingNews, setBreakingNews, addActivityLog]);
 
+    const addSponsoredAd = useCallback(async (ad: Omit<SponsoredAd, 'id'>) => {
+        const newAd = { ...ad, id: crypto.randomUUID() };
+        setSponsoredAds(prev => [...prev, newAd]);
+        await addActivityLog('Sponsored Ad Created', `New sponsored ad added.`);
+    }, [setSponsoredAds, addActivityLog]);
+
+    const updateSponsoredAd = useCallback(async (ad: SponsoredAd) => {
+        setSponsoredAds(prev => prev.map(a => a.id === ad.id ? ad : a));
+        await addActivityLog('Sponsored Ad Updated', `Sponsored ad updated.`);
+    }, [setSponsoredAds, addActivityLog]);
+
+    const deleteSponsoredAd = useCallback(async (id: string) => {
+        setSponsoredAds(prev => prev.filter(a => a.id !== id));
+        await addActivityLog('Sponsored Ad Deleted', `Sponsored ad deleted.`);
+    }, [setSponsoredAds, addActivityLog]);
+
     const updateAdSettings = useCallback(async (settings: AdSettings) => {
         setAdSettings(settings);
         await addActivityLog('Settings Updated', 'Advertisement settings were updated.');
     }, [setAdSettings, addActivityLog]);
 
     const trackSponsoredAdClick = useCallback((adId: string) => {
-        setAdSettings(prev => {
-            const newSettings = { ...prev };
-            const adIndex = newSettings.sponsoredAds.findIndex(ad => ad.id === adId);
+        setSponsoredAds(prev => {
+            const adIndex = prev.findIndex(ad => ad.id === adId);
             if (adIndex > -1) {
                 const updatedAd: SponsoredAd = {
-                    ...newSettings.sponsoredAds[adIndex],
-                    clicks: (newSettings.sponsoredAds[adIndex].clicks || 0) + 1,
+                    ...prev[adIndex],
+                    clicks: (prev[adIndex].clicks || 0) + 1,
                 };
-                newSettings.sponsoredAds = [
-                    ...newSettings.sponsoredAds.slice(0, adIndex),
+                return [
+                    ...prev.slice(0, adIndex),
                     updatedAd,
-                    ...newSettings.sponsoredAds.slice(adIndex + 1),
+                    ...prev.slice(adIndex + 1),
                 ];
             }
-            return newSettings;
+            return prev;
         });
-    }, [setAdSettings]);
+    }, [setSponsoredAds]);
 
     const toggleAdTest = useCallback((placement: PlacementKey) => {
         setAdSettings(prev => {
@@ -394,9 +415,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return {
             jobs, quickLinks, posts, subscribers, breakingNews, adSettings, 
             seoSettings, generalSettings, socialMediaSettings, activityLogs, 
-            smtpSettings, rssSettings
+            smtpSettings, rssSettings, sponsoredAds
         };
-    }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings]);
+    }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings, sponsoredAds]);
 
     const restoreBackup = useCallback((data: BackupData): boolean => {
         try {
@@ -415,13 +436,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setActivityLogs(data.activityLogs || []);
             setSmtpSettings(data.smtpSettings || initialSmtpSettings);
             setRssSettings(data.rssSettings || initialRssSettings);
+            setSponsoredAds(data.sponsoredAds || []);
             addActivityLog('System Restore', 'Data was restored from a backup file.');
             return true;
         } catch (error) {
             console.error("Restore failed:", error);
             return false;
         }
-    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, addActivityLog]);
+    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, setSponsoredAds, addActivityLog]);
 
     return (
         <DataContext.Provider value={{
@@ -430,6 +452,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             posts, addPost, updatePost, deletePost, deleteMultiplePosts,
             subscribers, addSubscriber, deleteSubscriber,
             breakingNews, addNews, updateNews, deleteNews,
+            sponsoredAds, addSponsoredAd, updateSponsoredAd, deleteSponsoredAd,
             adSettings, updateAdSettings, trackSponsoredAdClick, toggleAdTest,
             seoSettings, updateSEOSettings,
             generalSettings, updateGeneralSettings,

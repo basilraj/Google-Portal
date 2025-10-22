@@ -1,11 +1,13 @@
 
+
 import React, { useState } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { BreakingNews } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
     <div className="text-center py-16 border-t">
@@ -66,6 +68,8 @@ const BreakingNewsManagement: React.FC = () => {
     const { breakingNews, addNews, updateNews, deleteNews } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNews, setEditingNews] = useState<BreakingNews | undefined>(undefined);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<BreakingNews | null>(null);
 
     const handleSave = (newsData: Omit<BreakingNews, 'id'>, id?: string) => {
         if (id) {
@@ -82,10 +86,17 @@ const BreakingNewsManagement: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = (newsId: string) => {
-        if (window.confirm('Are you sure you want to delete this news item?')) {
-            deleteNews(newsId);
+    const handleDeleteRequest = (newsItem: BreakingNews) => {
+        setItemToDelete(newsItem);
+        setIsConfirmModalOpen(true);
+    };
+    
+    const confirmDelete = () => {
+        if (itemToDelete) {
+            deleteNews(itemToDelete.id);
         }
+        setIsConfirmModalOpen(false);
+        setItemToDelete(null);
     };
 
     return (
@@ -117,7 +128,7 @@ const BreakingNewsManagement: React.FC = () => {
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
                                     <button onClick={() => handleEdit(news)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit news: ${news.text}`}><Icon name="edit" /></button>
-                                    <button onClick={() => handleDelete(news.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete news: ${news.text}`}><Icon name="trash" /></button>
+                                    <button onClick={() => handleDeleteRequest(news)} className="text-red-500 hover:text-red-700" aria-label={`Delete news: ${news.text}`}><Icon name="trash" /></button>
                                 </td>
                             </tr>
                         ))}
@@ -134,6 +145,14 @@ const BreakingNewsManagement: React.FC = () => {
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingNews ? 'Edit News Item' : 'Add News Item'}>
                 <NewsForm newsItem={editingNews} onSave={handleSave} onCancel={() => setIsModalOpen(false)} />
             </Modal>
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+                message={<>Are you sure you want to delete this news item: <strong>"{itemToDelete?.text}"</strong>?</>}
+                confirmText="Delete"
+            />
         </div>
     );
 };

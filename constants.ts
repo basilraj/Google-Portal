@@ -1,5 +1,5 @@
 // Fix: Import all types from the dedicated types.ts file to resolve circular dependencies.
-import { Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, SMTPSettings, ActivityLog, RSSSettings } from './types.ts';
+import { Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, SMTPSettings, ActivityLog, RSSSettings, SponsoredAd } from './types.ts';
 
 export const INITIAL_JOBS: Job[] = [
   // 20 sample jobs for pagination and variety
@@ -46,6 +46,8 @@ export const INITIAL_BREAKING_NEWS: BreakingNews[] = [
     { id: '1', text: 'New vacancy announced for IBPS PO. Last date to apply is tomorrow!', link: '#', status: 'active' },
 ];
 
+export const INITIAL_SPONSORED_ADS: SponsoredAd[] = [];
+
 export const initialAdSettings: AdSettings = {
   headerAd: { enabled: true, type: 'custom', networkKey: '', customCode: '<!-- Header Ad Code -->' },
   sidebarAd: { enabled: true, type: 'custom', networkKey: '', customCode: '<!-- Sidebar Ad Code -->' },
@@ -68,7 +70,6 @@ export const initialAdSettings: AdSettings = {
   }],
   deviceTargeting: { enabled: false, desktopCode: '', mobileCode: '' },
   geoTargeting: { enabled: false, rules: [] },
-  sponsoredAds: [],
   adNetworks: {
     googleAdSense: { code: '<!-- Google AdSense Code -->', notes: 'Main display ad unit.' },
     adsterra: { code: '<!-- Adsterra Pop-under Code -->', notes: 'Sitewide pop-under.' },
@@ -97,7 +98,7 @@ export const initialSeoSettings: SEOSettings = {
 
 export const initialGeneralSettings: GeneralSettings = {
   siteTitle: 'Jobtica',
-  siteIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAYAAAAf/2i+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAfASURBVHhe7Z1/bBxlHMff8+4u1rGxti3btiQhJqStQpLQU0pIS5vQ0kAEWiilFAn/oUBqSflP+acCQn+VFiV4oKS1Bf9wQ+xQEbQ2IYQ2tsE2diS22LH2dWev4+O1+2FjO/bu2M52+fz+zsnO/njsszPvz/P7PPO2c6wBgN4wYq+1AF8HwmEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6eS/F2c/zV77FvX7X3+lX79lR9v1c9jW78H5d5/K4+R3+1zV8aNde/26o/d9Xv6+b81T1+Vz/j1Vd/aL/O3p3L335fP6e/2+ev91v1/K1B6d+r6+19Xh0m2/Nl61L9vq+Oq378/D1c/I6/c//Tdf8D/L7/d+H8dYBgN4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4eS/F2fD351z5vX7d17/ar9+1p+b6teRr9/V/U/K6jP+vnr/p91e/Luv9535on78qnfPrVX/ut+Xdn/u7e/q6eP8fP3+217vtb+YBePd++vP6d12/Lur/+fW3Pq6O0379s/ar/v5fP6e/8//t1/zP8vp8//8B79UuAAAAAElFTkSuQmCC',
+  siteIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAYAAAAf/2i+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAfASURBVHhe7Z1/bBxlHMff8+4u1rGxti3btiQhJqStQpLQU0pIS5vQ0kAEWiilFAn/oUBqSflP+acCQn+VFiV4oKS1Bf9wQ+xQEbQ2IYQ2tsE2diS22LH2dWev4+O1+2FjO/bu2M52+fz+zsnO/njsszPvz/P7PPO2c6wBgN4wYq+1AF8HwmEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6eS/F2c/zV77FvX7X3+lX79lR9v1c9jW78H5d5/K4+R3+1zV8aNde/26o/d9Xv6+b81T1+Vz/j1Vd/aL/O3p3L335fP6e/2+ev91v1/K1B6d+r6+19Xh0m2/Nl61L9vq+Oq378/D1c/I6/c//Tdf8D/L7/d+H8dYBgN4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4eS/F2fD351z5vX7d17/ar9+1p+b6teRr9/V/U/K6jP+vnr/p91e/Luv9535on78qnfPrVX/ut+Xdn/u7e/q6eP8fP3+217vtb+YBePd++vP6d12/Lur/+fW3Pq6O0379s/ar/v5fP6e/8//t1/zP8vp8//8B79UuAAAAAElFTkSuQmCC',
   maintenanceMode: false,
   maintenanceMessage: 'Our website is currently undergoing scheduled maintenance. We should be back shortly. Thank you for your patience.',
   emailNotificationsEnabled: true,

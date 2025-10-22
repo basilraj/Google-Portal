@@ -1,14 +1,17 @@
 
-import React, { useState } from 'react';
+
+
+import React, { useState, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { ContentPost } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import Pagination from './Pagination.tsx';
 import usePagination from '../../hooks/usePagination.ts';
 import PostForm from './PostForm.tsx';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -28,13 +31,22 @@ const ResultManagement: React.FC = () => {
     const { posts, addPost, updatePost, deletePost } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<ContentPost | undefined>(undefined);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [postToDelete, setPostToDelete] = useState<ContentPost | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
 
     const filteredPosts = posts.filter(p => p.type === 'results');
     const sortedPosts = [...filteredPosts].sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
 
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedPosts, { itemsPerPage: ITEMS_PER_PAGE });
 
-    const handleSave = (postData: Omit<ContentPost, 'id'>, id?: string) => {
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleSave = (postData: Omit<ContentPost, 'id' | 'createdAt'>, id?: string) => {
         if (id) {
              const originalPost = posts.find(p => p.id === id);
              if (originalPost) {
@@ -51,15 +63,22 @@ const ResultManagement: React.FC = () => {
         setEditingPost(post);
         setIsModalOpen(true);
     };
+    
+    const handleDeleteRequest = (post: ContentPost) => {
+        setPostToDelete(post);
+        setIsConfirmModalOpen(true);
+    };
 
-    const handleDelete = (postId: string) => {
-        if (window.confirm('Are you sure you want to delete this result?')) {
-            deletePost(postId);
+    const confirmDelete = () => {
+        if (postToDelete) {
+            deletePost(postToDelete.id);
         }
+        setIsConfirmModalOpen(false);
+        setPostToDelete(null);
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 className="text-xl font-bold text-gray-700">Latest Results</h2>
                 <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
@@ -90,14 +109,14 @@ const ResultManagement: React.FC = () => {
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
                                     <button onClick={() => handleEdit(post)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit result: ${post.title}`}><Icon name="edit" /></button>
-                                    <button onClick={() => handleDelete(post.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete result: ${post.title}`}><Icon name="trash" /></button>
+                                    <button onClick={() => handleDeleteRequest(post)} className="text-red-500 hover:text-red-700" aria-label={`Delete result: ${post.title}`}><Icon name="trash" /></button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </>
             ) : (
                 <EmptyState
@@ -114,6 +133,14 @@ const ResultManagement: React.FC = () => {
                     defaultType="results"
                 />
             </Modal>
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+                message={<>Are you sure you want to delete this result: <strong>"{postToDelete?.title}"</strong>?</>}
+                confirmText="Delete"
+            />
         </div>
     );
 };

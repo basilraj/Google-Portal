@@ -1,8 +1,10 @@
 
-import React, { useState } from 'react';
+
+
+import React, { useState, useRef } from 'react';
 // Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import { CustomEmail } from '../../types.ts';
 // Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
@@ -10,7 +12,7 @@ import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 // Fix: Add .tsx extension to local module import.
 import Pagination from './Pagination.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import usePagination from '../../hooks/usePagination.ts';
 
 const ITEMS_PER_PAGE = 5;
@@ -21,9 +23,16 @@ const EmailMarketing: React.FC = () => {
     const [body, setBody] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEmail, setSelectedEmail] = useState<CustomEmail | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
     
     const sortedEmails = [...customEmails].sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedEmails, { itemsPerPage: ITEMS_PER_PAGE });
+
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -88,7 +97,7 @@ const EmailMarketing: React.FC = () => {
             </div>
 
             {/* Sent Emails History */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
                  <h2 className="text-xl font-bold text-gray-700 mb-4">Sent Campaigns History</h2>
                  {paginatedData.length > 0 ? (
                     <>
@@ -106,7 +115,7 @@ const EmailMarketing: React.FC = () => {
                                 </div>
                             ))}
                         </div>
-                        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+                        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
                     </>
                  ) : (
                     <div className="text-center py-10">

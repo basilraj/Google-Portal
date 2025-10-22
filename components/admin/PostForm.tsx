@@ -36,6 +36,17 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
         setFormData(prev => ({ ...prev, [name]: value as any }));
     };
 
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const { id, createdAt, ...dataToSave } = formData as ContentPost;
@@ -65,10 +76,35 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
                 <label className="block text-sm font-medium text-gray-700">Content</label>
                 <textarea name="content" value={formData.content} onChange={handleChange} rows={6} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
             </div>
+            
             <div>
-                <label className="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
-                <input type="url" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                <label className="block text-sm font-medium text-gray-700">Image</label>
+                <div className="mt-2 flex items-center gap-4">
+                    {formData.imageUrl ? (
+                        <img src={formData.imageUrl} alt="Preview" className="h-16 w-32 object-cover rounded-md border p-1 bg-gray-100" />
+                    ) : (
+                        <div className="h-16 w-32 bg-gray-100 rounded-md flex items-center justify-center border">
+                            <Icon name="image" className="text-3xl text-gray-400" />
+                        </div>
+                    )}
+                    <div className="flex-grow">
+                        <input id="image-upload-input" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                        <label htmlFor="image-upload-input" className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Upload Image
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">Or paste URL below</p>
+                    </div>
+                </div>
+                <input 
+                    type="url" 
+                    name="imageUrl" 
+                    value={formData.imageUrl || ''} 
+                    onChange={handleChange} 
+                    className="mt-2 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+                    placeholder="https://example.com/image.jpg"
+                />
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Published Date *</label>

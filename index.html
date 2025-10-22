@@ -155,6 +155,17 @@
         font-size: 1.125rem; /* 18px */
     }
   }
+
+  /* Breaking News Marquee Animation */
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+    will-change: transform;
+    display: inline-block;
+  }
 </style>
 <script type="importmap">
 {

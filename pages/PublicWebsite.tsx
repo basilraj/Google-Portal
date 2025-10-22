@@ -63,7 +63,7 @@ const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; 
 const JOBS_PER_PAGE = 10;
 
 const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const { jobs, posts, quickLinks, breakingNews, adSettings, addSubscriber, seoSettings, trackSponsoredAdClick } = useData();
+    const { jobs, posts, quickLinks, breakingNews, adSettings, sponsoredAds, addSubscriber, seoSettings, trackSponsoredAdClick } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All Departments');
     const [categoryFilter, setCategoryFilter] = useState('All Categories');
@@ -130,7 +130,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     const latestNotices = useMemo(() => posts.filter(p => p.type === 'exam-notices' && p.status === 'published').slice(0, 5), [posts]);
     const latestResults = useMemo(() => posts.filter(p => p.type === 'results' && p.status === 'published').slice(0, 5), [posts]);
     const activeBreakingNews = useMemo(() => breakingNews.filter(n => n.status === 'active'), [breakingNews]);
-    const activeSidebarSponsoredAd = useMemo(() => adSettings.sponsoredAds.find(ad => ad.placement === 'sidebar-top' && ad.status === 'active'), [adSettings.sponsoredAds]);
+    const activeSidebarSponsoredAd = useMemo(() => sponsoredAds.find(ad => ad.placement === 'sidebar-top' && ad.status === 'active'), [sponsoredAds]);
 
 
     const handleSubscribe = async (e: React.FormEvent) => {

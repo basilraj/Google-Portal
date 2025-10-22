@@ -19,10 +19,14 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
 
   const jobUrl = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
   const shareTitle = `Check out this job: ${job.title}`;
+  const summary = job.description.substring(0, 100) + '...';
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(jobUrl)}&quote=${encodeURIComponent(shareTitle)}`;
   const twitterShareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(jobUrl)}&text=${encodeURIComponent(shareTitle)}`;
+  const linkedinShareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(jobUrl)}&title=${encodeURIComponent(shareTitle)}&summary=${encodeURIComponent(summary)}`;
   const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + jobUrl)}`;
   const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(jobUrl)}&text=${encodeURIComponent(shareTitle)}`;
+  const emailShareUrl = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent("I found this job and thought you might be interested:\n\n" + jobUrl)}`;
+
 
   const handleConfirmRedirect = () => {
     window.open(job.applyLink, '_blank', 'noopener,noreferrer');
@@ -57,8 +61,10 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
             <span className="text-sm font-semibold">Share this job:</span>
             <a href={facebookShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-xl" /></a>
             <a href={twitterShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Twitter" className="hover:text-sky-500 transition-colors"><Icon prefix="fab" name="twitter" className="text-xl" /></a>
+            <a href={linkedinShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on LinkedIn" className="hover:text-blue-700 transition-colors"><Icon prefix="fab" name="linkedin-in" className="text-xl" /></a>
             <a href={whatsappShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors"><Icon prefix="fab" name="whatsapp" className="text-xl" /></a>
             <a href={telegramShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors"><Icon prefix="fab" name="telegram-plane" className="text-xl" /></a>
+            <a href={emailShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share via Email" className="hover:text-gray-700 transition-colors"><Icon name="envelope" className="text-xl" /></a>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}

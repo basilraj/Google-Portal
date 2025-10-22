@@ -1,9 +1,10 @@
 
 
-import React, { useState, useMemo, useEffect } from 'react';
+
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { ContentPost } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
@@ -44,6 +45,8 @@ const ContentPostManagement: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [confirmModalContent, setConfirmModalContent] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; }>({ title: '', message: '', onConfirm: () => {} });
+    const containerRef = useRef<HTMLDivElement>(null);
+
 
     const filteredPostsSource = posts.filter(p => p.type === 'posts');
 
@@ -88,6 +91,11 @@ const ContentPostManagement: React.FC = () => {
 
 
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedAndFilteredPosts, { itemsPerPage: ITEMS_PER_PAGE });
+
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     useEffect(() => {
         setSelectedPostIds([]);
@@ -183,7 +191,7 @@ const ContentPostManagement: React.FC = () => {
     );
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
              {notification && (
                 <div
                     className={`p-4 mb-4 text-sm rounded-lg ${
@@ -291,7 +299,7 @@ const ContentPostManagement: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
                 </>
             ) : (
                 <EmptyState 

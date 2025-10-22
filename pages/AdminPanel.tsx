@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import Icon from '../components/Icon.tsx';
@@ -19,8 +20,9 @@ import EmailMarketing from '../components/admin/EmailMarketing.tsx';
 import NotificationHistory from '../components/admin/NotificationHistory.tsx';
 import SecurityLogs from '../components/admin/SecurityLogs.tsx';
 import { useData } from '../contexts/DataContext.tsx';
+import SponsoredAdManagement from '../components/admin/SponsoredAdManagement.tsx';
 
-type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'notification-history' | 'settings' | 'profile' | 'backup-restore' | 'security-logs';
+type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'sponsored-ads' | 'notification-history' | 'settings' | 'profile' | 'backup-restore' | 'security-logs';
 
 const AdminPanel: React.FC = () => {
     const { logout } = useAuth();
@@ -40,6 +42,7 @@ const AdminPanel: React.FC = () => {
             case 'subscribers': return <SubscriberManagement />;
             case 'contacts': return <ContactManagement />;
             case 'email-marketing': return <EmailMarketing />;
+            case 'sponsored-ads': return <SponsoredAdManagement />;
             case 'notification-history': return <NotificationHistory />;
             case 'settings': return <SettingsManagement />;
             case 'profile': return <UserProfile />;
@@ -86,6 +89,7 @@ const AdminPanel: React.FC = () => {
                      <div className="pt-2">
                         <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Marketing</h2>
                         <NavLink tab="email-marketing" icon="paper-plane" label="Email Campaigns" />
+                        <NavLink tab="sponsored-ads" icon="dollar-sign" label="Sponsored Ads" />
                         <NavLink tab="notification-history" icon="history" label="Notification History" />
                     </div>
                     <div className="pt-2">

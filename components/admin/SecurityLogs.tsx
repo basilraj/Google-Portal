@@ -1,14 +1,16 @@
 
-import React, { useState } from 'react';
+
+
+import React, { useState, useRef } from 'react';
 // Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import { ActivityLog } from '../../types.ts';
 // Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
 // Fix: Add .tsx extension to local module import.
 import Pagination from './Pagination.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import usePagination from '../../hooks/usePagination.ts';
 // Fix: Add .tsx extension to local module import.
 import ConfirmationModal from './ConfirmationModal.tsx';
@@ -25,10 +27,17 @@ const EmptyState: React.FC<{ message: string; }> = ({ message }) => (
 const SecurityLogs: React.FC = () => {
     const { activityLogs, clearActivityLogs } = useData();
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
     
     const sortedLogs = [...activityLogs].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedLogs, { itemsPerPage: ITEMS_PER_PAGE });
+    
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     const handleClearLogs = () => {
         clearActivityLogs();
@@ -45,7 +54,7 @@ const SecurityLogs: React.FC = () => {
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 className="text-xl font-bold text-gray-700">Security & Activity Logs ({activityLogs.length})</h2>
                 {activityLogs.length > 0 && (
@@ -83,7 +92,7 @@ const SecurityLogs: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </>
             ) : (
                 <EmptyState message="No activity has been logged yet." />

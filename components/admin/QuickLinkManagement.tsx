@@ -1,12 +1,14 @@
 
 
+
 import React, { useState, useMemo } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { QuickLink } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
     <div className="text-center py-16 border-t">
@@ -88,7 +90,9 @@ const QuickLinkManagement: React.FC = () => {
     const { quickLinks, addQuickLink, updateQuickLink, deleteQuickLink } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLink, setEditingLink] = useState<QuickLink | undefined>(undefined);
-    
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [linkToDelete, setLinkToDelete] = useState<QuickLink | null>(null);
+
     const uniqueCategories = useMemo(() => [...new Set(quickLinks.map(l => l.category).filter(Boolean))].sort(), [quickLinks]);
 
     const handleSave = (linkData: Omit<QuickLink, 'id'>, id?: string) => {
@@ -106,10 +110,17 @@ const QuickLinkManagement: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = (linkId: string) => {
-        if (window.confirm('Are you sure you want to delete this quick link?')) {
-            deleteQuickLink(linkId);
+    const handleDeleteRequest = (link: QuickLink) => {
+        setLinkToDelete(link);
+        setIsConfirmModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (linkToDelete) {
+            deleteQuickLink(linkToDelete.id);
         }
+        setIsConfirmModalOpen(false);
+        setLinkToDelete(null);
     };
 
     return (
@@ -143,7 +154,7 @@ const QuickLinkManagement: React.FC = () => {
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
                                     <button onClick={() => handleEdit(link)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit link: ${link.title}`}><Icon name="edit" /></button>
-                                    <button onClick={() => handleDelete(link.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete link: ${link.title}`}><Icon name="trash" /></button>
+                                    <button onClick={() => handleDeleteRequest(link)} className="text-red-500 hover:text-red-700" aria-label={`Delete link: ${link.title}`}><Icon name="trash" /></button>
                                 </td>
                             </tr>
                         ))}
@@ -160,6 +171,14 @@ const QuickLinkManagement: React.FC = () => {
              <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingLink ? 'Edit Quick Link' : 'Add New Quick Link'}>
                 <QuickLinkForm link={editingLink} onSave={handleSave} onCancel={() => setIsModalOpen(false)} uniqueCategories={uniqueCategories} />
             </Modal>
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+                message={<>Are you sure you want to delete the link: <strong>"{linkToDelete?.title}"</strong>?</>}
+                confirmText="Delete"
+            />
         </div>
     );
 };

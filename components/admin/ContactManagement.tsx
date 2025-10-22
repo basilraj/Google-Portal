@@ -1,13 +1,16 @@
 
-import React, { useState } from 'react';
+
+
+import React, { useState, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { ContactSubmission } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import Pagination from './Pagination.tsx';
 import usePagination from '../../hooks/usePagination.ts';
+import ConfirmationModal from './ConfirmationModal.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -22,25 +25,41 @@ const ContactManagement: React.FC = () => {
     const { contacts, deleteContact } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [contactToDelete, setContactToDelete] = useState<ContactSubmission | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
 
     // Sort contacts by most recent first
     const sortedContacts = [...contacts].sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
 
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedContacts, { itemsPerPage: ITEMS_PER_PAGE });
 
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     const handleViewMessage = (contact: ContactSubmission) => {
         setSelectedContact(contact);
         setIsModalOpen(true);
     };
 
-    const handleDelete = (contactId: string) => {
-        if (window.confirm('Are you sure you want to delete this message?')) {
-            deleteContact(contactId);
+    const handleDeleteRequest = (contact: ContactSubmission) => {
+        setContactToDelete(contact);
+        setIsConfirmModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (contactToDelete) {
+            deleteContact(contactToDelete.id);
         }
+        setIsConfirmModalOpen(false);
+        setContactToDelete(null);
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-xl font-bold text-gray-700 mb-4">Contact Form Submissions</h2>
             {contacts.length > 0 ? (
             <>
@@ -66,7 +85,7 @@ const ContactManagement: React.FC = () => {
                                     <button onClick={() => handleViewMessage(contact)} className="text-blue-500 hover:text-blue-700" aria-label={`View message from ${contact.name}`}>
                                         <Icon name="eye" />
                                     </button>
-                                    <button onClick={() => handleDelete(contact.id)} className="text-red-500 hover:text-red-700" aria-label={`Delete message from ${contact.name}`}>
+                                    <button onClick={() => handleDeleteRequest(contact)} className="text-red-500 hover:text-red-700" aria-label={`Delete message from ${contact.name}`}>
                                         <Icon name="trash" />
                                     </button>
                                 </td>
@@ -75,7 +94,7 @@ const ContactManagement: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </>
             ) : (
                 <EmptyState message="No contact messages have been received yet." />
@@ -106,6 +125,14 @@ const ContactManagement: React.FC = () => {
                     </div>
                 )}
             </Modal>
+             <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+                message={<>Are you sure you want to delete the message with subject: <strong>"{contactToDelete?.subject}"</strong>?</>}
+                confirmText="Delete"
+            />
         </div>
     );
 };

@@ -137,7 +137,6 @@ export interface AdSettings {
         enabled: boolean;
         rules: GeoTargetedAd[];
     };
-    sponsoredAds: SponsoredAd[];
     adNetworks: AdNetworkSettings;
     activeTests: PlacementKey[];
 }
@@ -240,4 +239,5 @@ export interface BackupData {
     activityLogs: ActivityLog[];
     smtpSettings: SMTPSettings;
     rssSettings: RSSSettings;
+    sponsoredAds: SponsoredAd[];
 }

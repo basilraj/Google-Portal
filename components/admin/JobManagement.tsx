@@ -1,9 +1,10 @@
 
 
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { Job } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
@@ -312,6 +313,8 @@ const JobManagement: React.FC = () => {
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [confirmModalContent, setConfirmModalContent] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; }>({ title: '', message: '', onConfirm: () => {} });
     const [isExtractorModalOpen, setIsExtractorModalOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
 
     const uniqueCategories = useMemo(() => [...new Set(jobs.map(j => j.category))].sort(), [jobs]);
 
@@ -364,6 +367,11 @@ const JobManagement: React.FC = () => {
     }, [sortedJobs, statusFilter]);
     
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(filteredJobs, { itemsPerPage: ITEMS_PER_PAGE });
+
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     useEffect(() => {
         setSelectedJobIds([]);
@@ -570,7 +578,7 @@ const JobManagement: React.FC = () => {
     );
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
             {notification && (
                 <div
                     className={`p-4 mb-4 text-sm rounded-lg ${
@@ -670,7 +678,7 @@ const JobManagement: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </>
             ) : (
                 <EmptyState 
