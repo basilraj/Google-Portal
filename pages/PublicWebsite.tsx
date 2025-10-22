@@ -295,9 +295,21 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 <section id="newsletter" className="mt-16 bg-gradient-to-r from-purple-600 to-indigo-700 text-white p-8 rounded-lg text-center">
                     <h2 className="text-3xl font-bold mb-2">Get Job Alerts</h2>
                     <p className="mb-6">Subscribe to our newsletter and never miss an update.</p>
-                    <form onSubmit={handleSubscribe} className="max-w-md mx-auto flex">
-                        <input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="flex-grow px-4 py-2 rounded-l-md text-gray-800" required />
-                        <button type="submit" className="bg-yellow-400 text-black font-bold px-6 py-2 rounded-r-md hover:bg-yellow-500">Subscribe</button>
+                    <form onSubmit={handleSubscribe} className="max-w-md mx-auto sm:flex">
+                        <input 
+                            type="email" 
+                            placeholder="Enter your email" 
+                            value={email} 
+                            onChange={e => setEmail(e.target.value)} 
+                            className="w-full flex-grow px-4 py-2 rounded-md sm:rounded-l-md sm:rounded-r-none text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400" 
+                            required 
+                        />
+                        <button 
+                            type="submit" 
+                            className="w-full sm:w-auto mt-2 sm:mt-0 bg-yellow-400 text-black font-bold px-6 py-2 rounded-md sm:rounded-r-md sm:rounded-l-none hover:bg-yellow-500"
+                        >
+                            Subscribe
+                        </button>
                     </form>
                     {subscribeMessage && <p className={`mt-4 text-sm ${subscribeMessage.type === 'success' ? 'text-green-300' : 'text-red-300'}`}>{subscribeMessage.text}</p>}
                 </section>
