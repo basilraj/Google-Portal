@@ -1,9 +1,12 @@
 import React from 'react';
 import { useData } from '../contexts/DataContext.tsx';
 import Icon from './Icon.tsx';
+import AdComponent from './AdComponent.tsx';
+import { getAdCodeForPlacement } from '../utils/jobUtils.ts';
 
 const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const { posts, socialMediaSettings } = useData();
+    const { posts, socialMediaSettings, adSettings } = useData();
+    const footerAdCode = getAdCodeForPlacement('footerAd', adSettings);
 
     const latestPosts = posts
         .filter(p => p.type === 'posts' && p.status === 'published')
@@ -13,6 +16,11 @@ const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate
     return (
         <footer className="bg-[#1e3c72] text-white py-10 mt-8">
             <div className="container mx-auto px-4">
+                {footerAdCode && (
+                    <div className="border-b border-white/20 mb-8">
+                        <AdComponent code={footerAdCode} placement="footer" />
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
                     <div className="md:col-span-2">
                         <h3 className="text-lg font-bold mb-4">About Jobtica</h3>

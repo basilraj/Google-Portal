@@ -173,6 +173,12 @@
 </head>
   <body class="bg-gray-100">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script>
+      // Cache-busting to ensure mobile devices get the latest version of the app script.
+      const mainScript = document.createElement('script');
+      mainScript.type = 'module';
+      mainScript.src = `/index.tsx?v=${Date.now()}`;
+      document.body.appendChild(mainScript);
+    </script>
   </body>
 </html>

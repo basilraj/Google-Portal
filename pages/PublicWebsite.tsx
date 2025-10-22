@@ -80,7 +80,6 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     const headerAdCode = getAdCodeForPlacement('headerAd', adSettings);
     const inFeedJobsAdCode = getAdCodeForPlacement('inFeedJobsAd', adSettings);
     const sidebarAdCode = getAdCodeForPlacement('sidebarAd', adSettings);
-    const footerAdCode = getAdCodeForPlacement('footerAd', adSettings);
     
     const activeJobs = useMemo(() => jobs.filter(job => getEffectiveJobStatus(job) === 'active' || getEffectiveJobStatus(job) === 'closing-soon'), [jobs]);
 
@@ -113,6 +112,14 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     }, [activeJobs, searchTerm, departmentFilter, qualificationFilter, sortOption]);
     
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedAndFilteredJobs, { itemsPerPage: JOBS_PER_PAGE });
+
+    const handlePageChange = (page: number) => {
+        goToPage(page);
+        const jobListingsSection = document.getElementById('job-listings');
+        if (jobListingsSection) {
+            jobListingsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
     
     const departments = useMemo(() => ['All Departments', ...Array.from(new Set(activeJobs.map(j => j.department))).sort()], [activeJobs]);
     const qualifications = useMemo(() => ['All Qualifications', ...Array.from(new Set(activeJobs.map(j => j.qualification))).sort()], [activeJobs]);
@@ -238,7 +245,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                                 <Pagination 
                                     currentPage={currentPage} 
                                     totalPages={totalPages} 
-                                    onPageChange={goToPage} 
+                                    onPageChange={handlePageChange} 
                                 />
                             )}
                         </section>
@@ -295,7 +302,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 <section id="newsletter" className="mt-16 bg-gradient-to-r from-purple-600 to-indigo-700 text-white p-8 rounded-lg text-center">
                     <h2 className="text-3xl font-bold mb-2">Get Job Alerts</h2>
                     <p className="mb-6">Subscribe to our newsletter and never miss an update.</p>
-                    <form onSubmit={handleSubscribe} className="max-w-md mx-auto sm:flex">
+                    <form onSubmit={handleSubscribe} className="max-w-md mx-auto sm:flex sm:flex-row flex-col gap-2 sm:gap-0">
                         <input 
                             type="email" 
                             placeholder="Enter your email" 
@@ -306,7 +313,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                         />
                         <button 
                             type="submit" 
-                            className="w-full sm:w-auto mt-2 sm:mt-0 bg-yellow-400 text-black font-bold px-6 py-2 rounded-md sm:rounded-r-md sm:rounded-l-none hover:bg-yellow-500"
+                            className="w-full sm:w-auto bg-yellow-400 text-black font-bold px-6 py-2 rounded-md sm:rounded-r-md sm:rounded-l-none hover:bg-yellow-500"
                         >
                             Subscribe
                         </button>
@@ -315,11 +322,6 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 </section>
             </main>
 
-            {footerAdCode && (
-                <div className="container mx-auto px-4">
-                    <AdComponent code={footerAdCode} placement="footer" />
-                </div>
-            )}
             <PublicFooter navigate={navigate} />
         </div>
     );

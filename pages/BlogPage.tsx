@@ -18,7 +18,6 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
     const headerAdCode = getAdCodeForPlacement('headerAd', adSettings);
     const inFeedBlogAdCode = getAdCodeForPlacement('inFeedBlogAd', adSettings);
     const sidebarAdCode = getAdCodeForPlacement('sidebarAd', adSettings);
-    const footerAdCode = getAdCodeForPlacement('footerAd', adSettings);
     
     const blogPosts = useMemo(() => posts.filter(p => p.type === 'posts' && p.status === 'published')
                                       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()), [posts]);
@@ -91,11 +90,6 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                     </aside>
                 </div>
             </main>
-             {footerAdCode && (
-                <div className="container mx-auto px-4">
-                    <AdComponent code={footerAdCode} placement="footer" />
-                </div>
-            )}
             <PublicFooter navigate={navigate} />
         </div>
     );
