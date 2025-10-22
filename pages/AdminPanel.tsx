@@ -34,12 +34,20 @@ const AdminPanel: React.FC = () => {
         if (logoutTimer.current) {
             clearTimeout(logoutTimer.current);
         }
-        if (!isDemoUser && securitySettings.autoLogoutMinutes > 0) {
+
+        let timeoutMinutes = 0;
+        if (isDemoUser && securitySettings.demoSessionTimeoutMinutes > 0) {
+            timeoutMinutes = securitySettings.demoSessionTimeoutMinutes;
+        } else if (!isDemoUser && securitySettings.autoLogoutMinutes > 0) {
+            timeoutMinutes = securitySettings.autoLogoutMinutes;
+        }
+
+        if (timeoutMinutes > 0) {
             logoutTimer.current = window.setTimeout(() => {
                 logout();
-            }, securitySettings.autoLogoutMinutes * 60 * 1000);
+            }, timeoutMinutes * 60 * 1000);
         }
-    }, [logout, securitySettings.autoLogoutMinutes, isDemoUser]);
+    }, [logout, isDemoUser, securitySettings.autoLogoutMinutes, securitySettings.demoSessionTimeoutMinutes]);
 
     useEffect(() => {
         const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];

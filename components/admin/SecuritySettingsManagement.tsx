@@ -34,7 +34,7 @@ export const SecuritySettingsManagement: React.FC = () => {
         const checked = (e.target as HTMLInputElement).checked;
         setLocalSecurity(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : (name === 'autoLogoutMinutes' ? Number(value) : value)
+            [name]: type === 'checkbox' ? checked : (name === 'autoLogoutMinutes' || name === 'demoSessionTimeoutMinutes' ? Number(value) : value)
         }));
     };
 
@@ -127,6 +127,17 @@ export const SecuritySettingsManagement: React.FC = () => {
                     </div>
                 </label>
                 {localSecurity.demoModeEnabled && (
+                    <>
+                    <div className="mt-4 pl-4">
+                        <label className="block text-sm font-medium text-gray-700">Demo Session Timeout</label>
+                        <select name="demoSessionTimeoutMinutes" value={localSecurity.demoSessionTimeoutMinutes} onChange={handleSecurityChange} className="mt-1 block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md bg-white">
+                            <option value={0}>Never</option>
+                            <option value={5}>5 Minutes</option>
+                            <option value={10}>10 Minutes</option>
+                            <option value={15}>15 Minutes</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">Automatically log out demo users after a period of inactivity.</p>
+                    </div>
                     <div className="mt-4 p-4 border rounded-lg bg-gray-50 space-y-3">
                         <h4 className="font-medium text-gray-700">Demo User Permissions</h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
@@ -139,6 +150,7 @@ export const SecuritySettingsManagement: React.FC = () => {
                            <PermissionCheckbox name="canChangeTheme" label="Change Theme" settings={localDemo} onChange={handleDemoChange} />
                         </div>
                     </div>
+                    </>
                 )}
             </div>
 

@@ -166,6 +166,7 @@ export const initialSecuritySettings: SecuritySettings = {
     warnOnExternalLink: true,
     preventContentCopy: false,
     demoModeEnabled: false,
+    demoSessionTimeoutMinutes: 15,
 };
 
 export const initialDemoUserSettings: DemoUserSettings = {

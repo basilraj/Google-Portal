@@ -239,6 +239,7 @@ export interface SecuritySettings {
   warnOnExternalLink: boolean;
   preventContentCopy: boolean;
   demoModeEnabled: boolean;
+  demoSessionTimeoutMinutes: 0 | 5 | 10 | 15; // 0 means 'Never'
 }
 
 export interface DemoUserSettings {
