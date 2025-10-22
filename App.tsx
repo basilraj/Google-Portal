@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useAuth } from './contexts/AuthContext.tsx';
@@ -20,12 +18,15 @@ import JobDetailPage from './pages/JobDetailPage.tsx';
 import BlogDetailPage from './pages/BlogDetailPage.tsx';
 import TelegramFAB from './components/TelegramFAB.tsx';
 import ContactPage from './pages/ContactPage.tsx';
+import ThemeApplicator from './components/ThemeApplicator.tsx';
+import CSPEffect from './components/CSPEffect.tsx';
+import ContentProtection from './components/ContentProtection.tsx';
 
 export const basePath = '';
 
 const App: React.FC = () => {
   const { isLoggedIn } = useAuth();
-  const { generalSettings, seoSettings } = useData();
+  const { generalSettings, seoSettings, securitySettings } = useData();
   const [path, setPath] = useState(window.location.pathname);
 
   // This effect listens for browser navigation events (back/forward buttons)
@@ -113,6 +114,9 @@ const App: React.FC = () => {
 
   return (
     <>
+      <ThemeApplicator />
+      <CSPEffect />
+      {isPublicRoute && securitySettings.preventContentCopy && <ContentProtection />}
       {renderPage()}
       {isPublicRoute && !generalSettings.maintenanceMode && <TelegramFAB />}
     </>

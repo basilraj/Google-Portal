@@ -68,7 +68,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="font-bold py-3 px-6 rounded-md bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90"
+            className="font-bold py-3 px-6 rounded-md bg-gradient-to-r from-[var(--accent-color)] to-[var(--primary-color)] text-white filter hover:brightness-110"
           >
             Apply Now
           </button>
@@ -96,7 +96,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
             <button
               type="button"
               onClick={handleConfirmRedirect}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+              className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90"
             >
               Proceed to Apply
             </button>

@@ -4,6 +4,7 @@ import { SponsoredAd } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
     <div className="text-center py-16 border-t">
@@ -104,15 +105,27 @@ const SponsoredAdForm: React.FC<{ ad?: SponsoredAd; onSave: (ad: Omit<SponsoredA
 };
 
 const SponsoredAdManagement: React.FC = () => {
-    const { sponsoredAds, addSponsoredAd, updateSponsoredAd, deleteSponsoredAd } = useData();
+    const { sponsoredAds, addSponsoredAd, updateSponsoredAd, deleteSponsoredAd, securitySettings, demoUserSettings } = useData();
+    const { isDemoUser } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAd, setEditingAd] = useState<SponsoredAd | undefined>(undefined);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [adToDelete, setAdToDelete] = useState<SponsoredAd | null>(null);
+    const [confirmProps, setConfirmProps] = useState<{title: string, message: React.ReactNode, onConfirm: () => void, confirmText?: string, confirmButtonClass?: string}>({
+        title: '', message: '', onConfirm: () => {}
+    });
+
+    const canManage = !isDemoUser || demoUserSettings.canManageAds;
+
+    const openConfirmModal = (props: Partial<typeof confirmProps>) => {
+        setConfirmProps(prev => ({ ...prev, ...props }));
+        setIsConfirmModalOpen(true);
+    };
 
     const handleSave = (adData: Omit<SponsoredAd, 'id'>, id?: string) => {
-        if (id) {
-            updateSponsoredAd({ ...adData, id, clicks: adToDelete?.clicks || 0 });
+        if (!canManage) return;
+        const adToUpdate = sponsoredAds.find(ad => ad.id === id);
+        if (id && adToUpdate) {
+            updateSponsoredAd({ ...adData, id, clicks: adToUpdate.clicks || 0 });
         } else {
             addSponsoredAd(adData);
         }
@@ -121,30 +134,52 @@ const SponsoredAdManagement: React.FC = () => {
     };
 
     const handleEdit = (ad: SponsoredAd) => {
+        if (!canManage) return;
         setEditingAd(ad);
         setIsModalOpen(true);
     };
 
     const handleDeleteRequest = (ad: SponsoredAd) => {
-        setAdToDelete(ad);
-        setIsConfirmModalOpen(true);
+        if (!canManage) return;
+        openConfirmModal({
+            title: 'Confirm Deletion',
+            message: <>Are you sure you want to delete this sponsored ad?</>,
+            onConfirm: () => {
+                deleteSponsoredAd(ad.id);
+                setIsConfirmModalOpen(false);
+            },
+            confirmText: 'Delete',
+            confirmButtonClass: 'bg-red-600 hover:bg-red-700'
+        });
     };
 
-    const confirmDelete = () => {
-        if (adToDelete) {
-            deleteSponsoredAd(adToDelete.id);
+    const handleExternalLinkClick = (e: React.MouseEvent, url: string) => {
+        e.preventDefault();
+        if (securitySettings.warnOnExternalLink) {
+            openConfirmModal({
+                title: 'External Link Warning',
+                message: <>You are about to navigate to an external website: <strong>{url}</strong>. Do you wish to continue?</>,
+                onConfirm: () => {
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                    setIsConfirmModalOpen(false);
+                },
+                confirmText: 'Proceed',
+                confirmButtonClass: 'bg-blue-600 hover:bg-blue-700'
+            });
+        } else {
+            window.open(url, '_blank', 'noopener,noreferrer');
         }
-        setIsConfirmModalOpen(false);
-        setAdToDelete(null);
     };
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-700">Sponsored Ads</h2>
-                <button onClick={() => { setEditingAd(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
-                    <Icon name="plus" /> Add New Ad
-                </button>
+                {canManage && (
+                    <button onClick={() => { setEditingAd(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                        <Icon name="plus" /> Add New Ad
+                    </button>
+                )}
             </div>
             {sponsoredAds.length > 0 ? (
             <div className="overflow-x-auto">
@@ -165,15 +200,19 @@ const SponsoredAdManagement: React.FC = () => {
                                 <td data-label="Image" className="px-6 py-4">
                                     <img src={ad.imageUrl} alt="Ad" className="h-12 w-24 object-contain rounded-md bg-gray-100" />
                                 </td>
-                                <td data-label="Destination" className="px-6 py-4 truncate max-w-xs"><a href={ad.destinationUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{ad.destinationUrl}</a></td>
+                                <td data-label="Destination" className="px-6 py-4 truncate max-w-xs"><a href={ad.destinationUrl} onClick={(e) => handleExternalLinkClick(e, ad.destinationUrl)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{ad.destinationUrl}</a></td>
                                 <td data-label="Placement" className="px-6 py-4">{ad.placement}</td>
                                 <td data-label="Clicks" className="px-6 py-4 font-medium">{ad.clicks || 0}</td>
                                 <td data-label="Status" className="px-6 py-4">
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${ad.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{ad.status}</span>
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                    <button onClick={() => handleEdit(ad)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit ad`}><Icon name="edit" /></button>
-                                    <button onClick={() => handleDeleteRequest(ad)} className="text-red-500 hover:text-red-700" aria-label={`Delete ad`}><Icon name="trash" /></button>
+                                    {canManage && (
+                                        <>
+                                            <button onClick={() => handleEdit(ad)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit ad`}><Icon name="edit" /></button>
+                                            <button onClick={() => handleDeleteRequest(ad)} className="text-red-500 hover:text-red-700" aria-label={`Delete ad`}><Icon name="trash" /></button>
+                                        </>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -183,8 +222,8 @@ const SponsoredAdManagement: React.FC = () => {
             ) : (
                 <EmptyState 
                     message="No sponsored ads have been created yet."
-                    buttonText="Add New Ad"
-                    onButtonClick={() => { setEditingAd(undefined); setIsModalOpen(true); }}
+                    buttonText={canManage ? "Add New Ad" : undefined}
+                    onButtonClick={canManage ? () => { setEditingAd(undefined); setIsModalOpen(true); } : undefined}
                 />
             )}
              <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingAd ? 'Edit Sponsored Ad' : 'Add New Sponsored Ad'}>
@@ -193,10 +232,7 @@ const SponsoredAdManagement: React.FC = () => {
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                onConfirm={confirmDelete}
-                title="Confirm Deletion"
-                message={<>Are you sure you want to delete this sponsored ad?</>}
-                confirmText="Delete"
+                {...confirmProps}
             />
         </div>
     );

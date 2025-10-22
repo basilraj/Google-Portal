@@ -2,15 +2,19 @@ import React, { createContext, useContext, ReactNode, useCallback, useEffect } f
 import useLocalStorage from '../hooks/useLocalStorage.ts';
 import { 
     Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, 
-    SocialMediaSettings, SMTPSettings, ActivityLog, ContactSubmission, EmailNotification, CustomEmail, BackupData, SponsoredAd, RSSSettings,
-    PlacementKey
+    SocialMediaSettings, SMTPSettings, ActivityLog, ContactSubmission, EmailNotification, CustomEmail, 
+    BackupData, RSSSettings, AlertSettings, SponsoredAd, PlacementKey, PopupAdSettings, ThemeSettings,
+    SecuritySettings, DemoUserSettings, EmailTemplate
 } from '../types.ts';
 import { 
     INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, 
     initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, 
-    initialSmtpSettings, INITIAL_ACTIVITY_LOGS, initialRssSettings, INITIAL_SPONSORED_ADS
+    initialSmtpSettings, INITIAL_ACTIVITY_LOGS, initialRssSettings, initialAlertSettings, INITIAL_SPONSORED_ADS,
+    initialPopupAdSettings, initialThemeSettings, initialSecuritySettings, initialDemoUserSettings, INITIAL_EMAIL_TEMPLATES
 } from '../constants.ts';
 import { isLocalStorageAvailable } from '../utils/storage.ts';
+import { slugify } from '../utils/slugify.ts';
+import { basePath } from '../App.tsx';
 
 
 interface DataContextType {
@@ -18,7 +22,7 @@ interface DataContextType {
   addJob: (job: Omit<Job, 'id' | 'createdAt'>) => Promise<Job | null>;
   updateJob: (job: Job) => Promise<void>;
   deleteJob: (id: string) => Promise<void>;
-  addMultipleJobs: (jobs: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => Promise<number>;
+  addMultipleJobs: (jobs: Omit<Job, 'id' | 'status' | 'createdAt'>[]) => Promise<Job[]>;
   deleteMultipleJobs: (ids: string[]) => Promise<void>;
 
   quickLinks: QuickLink[];
@@ -66,6 +70,21 @@ interface DataContextType {
   rssSettings: RSSSettings;
   updateRssSettings: (settings: RSSSettings) => Promise<void>;
 
+  alertSettings: AlertSettings;
+  updateAlertSettings: (settings: AlertSettings) => Promise<void>;
+  
+  popupAdSettings: PopupAdSettings;
+  updatePopupAdSettings: (settings: PopupAdSettings) => Promise<void>;
+
+  themeSettings: ThemeSettings;
+  updateThemeSettings: (settings: ThemeSettings) => Promise<void>;
+
+  securitySettings: SecuritySettings;
+  updateSecuritySettings: (settings: SecuritySettings) => Promise<void>;
+
+  demoUserSettings: DemoUserSettings;
+  updateDemoUserSettings: (settings: DemoUserSettings) => Promise<void>;
+
   activityLogs: ActivityLog[];
   addActivityLog: (action: string, details: string) => Promise<void>;
   clearActivityLogs: () => void;
@@ -81,7 +100,15 @@ interface DataContextType {
   customEmails: CustomEmail[];
   sendCustomEmail: (subject: string, body: string) => void;
   deleteCustomEmail: (id: string) => void;
+
+  emailTemplates: EmailTemplate[];
+  addEmailTemplate: (template: Omit<EmailTemplate, 'id'>) => Promise<void>;
+  updateEmailTemplate: (template: EmailTemplate) => Promise<void>;
+  deleteEmailTemplate: (id: string) => Promise<void>;
   
+  sendNewJobAlert: (job: Job) => Promise<void>;
+  sendBulkJobAlerts: (jobs: Job[]) => Promise<void>;
+
   isPersistenceActive: boolean;
   
   createBackup: () => BackupData;
@@ -96,17 +123,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [posts, setPosts] = useLocalStorage<ContentPost[]>('posts', INITIAL_POSTS);
     const [subscribers, setSubscribers] = useLocalStorage<Subscriber[]>('subscribers', INITIAL_SUBSCRIBERS);
     const [breakingNews, setBreakingNews] = useLocalStorage<BreakingNews[]>('breaking-news', INITIAL_BREAKING_NEWS);
-    const [sponsoredAds, setSponsoredAds] = useLocalStorage<SponsoredAd[]>('sponsored-ads', INITIAL_SPONSORED_ADS);
     const [adSettings, setAdSettings] = useLocalStorage<AdSettings>('ad-settings', initialAdSettings);
     const [seoSettings, setSeoSettings] = useLocalStorage<SEOSettings>('seo-settings', initialSeoSettings);
     const [generalSettings, setGeneralSettings] = useLocalStorage<GeneralSettings>('general-settings', initialGeneralSettings);
     const [socialMediaSettings, setSocialMediaSettings] = useLocalStorage<SocialMediaSettings>('social-media-settings', initialSocialMediaSettings);
     const [smtpSettings, setSmtpSettings] = useLocalStorage<SMTPSettings>('smtp-settings', initialSmtpSettings);
     const [rssSettings, setRssSettings] = useLocalStorage<RSSSettings>('rss-settings', initialRssSettings);
+    const [alertSettings, setAlertSettings] = useLocalStorage<AlertSettings>('alert-settings', initialAlertSettings);
+    const [popupAdSettings, setPopupAdSettings] = useLocalStorage<PopupAdSettings>('popup-ad-settings', initialPopupAdSettings);
+    const [themeSettings, setThemeSettings] = useLocalStorage<ThemeSettings>('theme-settings', initialThemeSettings);
+    const [securitySettings, setSecuritySettings] = useLocalStorage<SecuritySettings>('security-settings', initialSecuritySettings);
+    const [demoUserSettings, setDemoUserSettings] = useLocalStorage<DemoUserSettings>('demo-user-settings', initialDemoUserSettings);
     const [activityLogs, setActivityLogs] = useLocalStorage<ActivityLog[]>('activity-logs', INITIAL_ACTIVITY_LOGS);
     const [contacts, setContacts] = useLocalStorage<ContactSubmission[]>('contacts', []);
     const [emailNotifications, setEmailNotifications] = useLocalStorage<EmailNotification[]>('email-notifications', []);
     const [customEmails, setCustomEmails] = useLocalStorage<CustomEmail[]>('custom-emails', []);
+    const [sponsoredAds, setSponsoredAds] = useLocalStorage<SponsoredAd[]>('sponsored-ads', INITIAL_SPONSORED_ADS);
+    const [emailTemplates, setEmailTemplates] = useLocalStorage<EmailTemplate[]>('email-templates', INITIAL_EMAIL_TEMPLATES);
 
     const addActivityLog = useCallback(async (action: string, details: string) => {
         const newLog: ActivityLog = {
@@ -172,6 +205,31 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await addActivityLog('Settings Updated', 'RSS settings were updated.');
     }, [setRssSettings, addActivityLog]);
 
+    const updateAlertSettings = useCallback(async (settings: AlertSettings) => {
+        setAlertSettings(settings);
+        await addActivityLog('Settings Updated', 'Alert settings were updated.');
+    }, [setAlertSettings, addActivityLog]);
+
+    const updatePopupAdSettings = useCallback(async (settings: PopupAdSettings) => {
+        setPopupAdSettings(settings);
+        await addActivityLog('Settings Updated', 'Popup ad settings were updated.');
+    }, [setPopupAdSettings, addActivityLog]);
+
+    const updateThemeSettings = useCallback(async (settings: ThemeSettings) => {
+        setThemeSettings(settings);
+        await addActivityLog('Settings Updated', 'Theme settings were updated.');
+    }, [setThemeSettings, addActivityLog]);
+
+    const updateSecuritySettings = useCallback(async (settings: SecuritySettings) => {
+        setSecuritySettings(settings);
+        await addActivityLog('Settings Updated', 'Security settings were updated.');
+    }, [setSecuritySettings, addActivityLog]);
+    
+    const updateDemoUserSettings = useCallback(async (settings: DemoUserSettings) => {
+        setDemoUserSettings(settings);
+        await addActivityLog('Settings Updated', 'Demo user permissions were updated.');
+    }, [setDemoUserSettings, addActivityLog]);
+
     const addJob = useCallback(async (job: Omit<Job, 'id' | 'createdAt'>) => {
         const newJob = { ...job, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         setJobs(prev => [...prev, newJob]);
@@ -196,7 +254,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newJobs = jobsData.map(job => ({ ...job, id: crypto.randomUUID(), status: 'active' as const, createdAt: new Date().toISOString() }));
         setJobs(prev => [...prev, ...newJobs]);
         await addActivityLog('Bulk Job Upload', `${newJobs.length} jobs added via bulk upload.`);
-        return newJobs.length;
+        return newJobs;
     }, [setJobs, addActivityLog]);
 
     const deleteMultipleJobs = useCallback(async (ids: string[]) => {
@@ -259,8 +317,31 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
         setSubscribers(prev => [...prev, newSubscriber]);
         await addActivityLog('New Subscriber', `New subscription from: ${email}`);
+
+        // Automatically send welcome email
+        if (generalSettings.emailNotificationsEnabled) {
+            const template = emailTemplates.find(t => t.id === 'template-welcome');
+            if (!template) {
+                console.error("Welcome Email template not found.");
+            } else {
+                const subject = template.subject.replace(/{{siteName}}/g, generalSettings.siteTitle);
+                const body = template.body.replace(/{{siteName}}/g, generalSettings.siteTitle);
+
+                const newNotification: EmailNotification = {
+                    id: crypto.randomUUID(),
+                    recipient: email,
+                    subject,
+                    body,
+                    sentAt: new Date().toISOString(),
+                };
+
+                setEmailNotifications(prev => [newNotification, ...prev]);
+                await addActivityLog('Welcome Email Sent', `Welcome email queued for new subscriber: ${email}`);
+            }
+        }
+        
         return { success: true };
-    }, [subscribers, setSubscribers, addActivityLog]);
+    }, [subscribers, setSubscribers, addActivityLog, generalSettings, emailTemplates, setEmailNotifications]);
 
     const deleteSubscriber = useCallback(async (id: string) => {
         const subToDelete = subscribers.find(s => s.id === id);
@@ -411,13 +492,122 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCustomEmails(prev => prev.filter(e => e.id !== id));
     }, [setCustomEmails]);
 
+    const addEmailTemplate = useCallback(async (template: Omit<EmailTemplate, 'id'>) => {
+        const newTemplate = { ...template, id: crypto.randomUUID() };
+        setEmailTemplates(prev => [...prev, newTemplate]);
+        await addActivityLog('Email Template Created', `New template created: "${template.name}"`);
+    }, [setEmailTemplates, addActivityLog]);
+
+    const updateEmailTemplate = useCallback(async (template: EmailTemplate) => {
+        setEmailTemplates(prev => prev.map(t => t.id === template.id ? template : t));
+        await addActivityLog('Email Template Updated', `Template updated: "${template.name}"`);
+    }, [setEmailTemplates, addActivityLog]);
+
+    const deleteEmailTemplate = useCallback(async (id: string) => {
+        const templateToDelete = emailTemplates.find(t => t.id === id);
+        setEmailTemplates(prev => prev.filter(t => t.id !== id));
+        if (templateToDelete) {
+            await addActivityLog('Email Template Deleted', `Template deleted: "${templateToDelete.name}"`);
+        }
+    }, [emailTemplates, setEmailTemplates, addActivityLog]);
+
+    const sendNewJobAlert = useCallback(async (job: Job) => {
+        if (!generalSettings.emailNotificationsEnabled) return;
+
+        const template = emailTemplates.find(t => t.id === 'template-new-job');
+        if (!template) {
+            console.error("New Job Alert email template not found.");
+            return;
+        }
+
+        const activeSubscribers = subscribers.filter(s => s.status === 'active');
+        if (activeSubscribers.length === 0) return;
+
+        const jobLink = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
+
+        const newNotifications: EmailNotification[] = activeSubscribers.map(sub => {
+            let subject = template.subject
+                .replace(/{{jobTitle}}/g, job.title)
+                .replace(/{{jobDepartment}}/g, job.department)
+                .replace(/{{siteName}}/g, generalSettings.siteTitle);
+            
+            let body = template.body
+                .replace(/{{jobTitle}}/g, job.title)
+                .replace(/{{jobDepartment}}/g, job.department)
+                .replace(/{{jobLastDate}}/g, job.lastDate)
+                .replace(/{{jobLink}}/g, jobLink)
+                .replace(/{{siteName}}/g, generalSettings.siteTitle);
+
+            return {
+                id: crypto.randomUUID(),
+                recipient: sub.email,
+                subject,
+                body,
+                sentAt: new Date().toISOString(),
+            };
+        });
+
+        setEmailNotifications(prev => [...newNotifications, ...prev]);
+        await addActivityLog('Job Alert Sent', `Alert for "${job.title}" queued for ${activeSubscribers.length} subscribers.`);
+
+    }, [emailTemplates, subscribers, generalSettings, setEmailNotifications, addActivityLog]);
+
+    const sendBulkJobAlerts = useCallback(async (jobs: Job[]) => {
+        if (!generalSettings.emailNotificationsEnabled || jobs.length === 0) return;
+        
+        const template = emailTemplates.find(t => t.id === 'template-new-job');
+        if (!template) {
+            console.error("New Job Alert email template not found.");
+            return;
+        }
+
+        const activeSubscribers = subscribers.filter(s => s.status === 'active');
+        if (activeSubscribers.length === 0) return;
+
+        let allNewNotifications: EmailNotification[] = [];
+
+        jobs.forEach(job => {
+            const jobLink = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
+
+            const newNotifications: EmailNotification[] = activeSubscribers.map(sub => {
+                let subject = template.subject
+                    .replace(/{{jobTitle}}/g, job.title)
+                    .replace(/{{jobDepartment}}/g, job.department)
+                    .replace(/{{siteName}}/g, generalSettings.siteTitle);
+                
+                let body = template.body
+                    .replace(/{{jobTitle}}/g, job.title)
+                    .replace(/{{jobDepartment}}/g, job.department)
+                    .replace(/{{jobLastDate}}/g, job.lastDate)
+                    .replace(/{{jobLink}}/g, jobLink)
+                    .replace(/{{siteName}}/g, generalSettings.siteTitle);
+
+                return {
+                    id: crypto.randomUUID(),
+                    recipient: sub.email,
+                    subject,
+                    body,
+                    sentAt: new Date().toISOString(),
+                };
+            });
+            allNewNotifications.push(...newNotifications);
+        });
+
+        if (allNewNotifications.length > 0) {
+            setEmailNotifications(prev => [...allNewNotifications, ...prev]);
+            await addActivityLog('Bulk Job Alerts Sent', `Alerts for ${jobs.length} new jobs queued for ${activeSubscribers.length} subscribers.`);
+        }
+
+    }, [emailTemplates, subscribers, generalSettings, setEmailNotifications, addActivityLog]);
+
     const createBackup = useCallback((): BackupData => {
         return {
             jobs, quickLinks, posts, subscribers, breakingNews, adSettings, 
             seoSettings, generalSettings, socialMediaSettings, activityLogs, 
-            smtpSettings, rssSettings, sponsoredAds
+            smtpSettings, rssSettings, alertSettings, sponsoredAds, popupAdSettings,
+            themeSettings, securitySettings, demoUserSettings, emailTemplates
         };
-    }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings, sponsoredAds]);
+    }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings, alertSettings, sponsoredAds, popupAdSettings, themeSettings, securitySettings, demoUserSettings, emailTemplates]);
 
     const restoreBackup = useCallback((data: BackupData): boolean => {
         try {
@@ -436,14 +626,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setActivityLogs(data.activityLogs || []);
             setSmtpSettings(data.smtpSettings || initialSmtpSettings);
             setRssSettings(data.rssSettings || initialRssSettings);
+            setAlertSettings(data.alertSettings || initialAlertSettings);
             setSponsoredAds(data.sponsoredAds || []);
+            setPopupAdSettings(data.popupAdSettings || initialPopupAdSettings);
+            setThemeSettings(data.themeSettings || initialThemeSettings);
+            setSecuritySettings(data.securitySettings || initialSecuritySettings);
+            setDemoUserSettings(data.demoUserSettings || initialDemoUserSettings);
+            setEmailTemplates(data.emailTemplates || []);
             addActivityLog('System Restore', 'Data was restored from a backup file.');
             return true;
         } catch (error) {
             console.error("Restore failed:", error);
             return false;
         }
-    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, setSponsoredAds, addActivityLog]);
+    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, setAlertSettings, setSponsoredAds, setPopupAdSettings, setThemeSettings, setSecuritySettings, setDemoUserSettings, setEmailTemplates, addActivityLog]);
 
     return (
         <DataContext.Provider value={{
@@ -459,10 +655,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             socialMediaSettings, updateSocialMediaSettings,
             smtpSettings, updateSmtpSettings,
             rssSettings, updateRssSettings,
+            alertSettings, updateAlertSettings,
+            popupAdSettings, updatePopupAdSettings,
+            themeSettings, updateThemeSettings,
+            securitySettings, updateSecuritySettings,
+            demoUserSettings, updateDemoUserSettings,
             activityLogs, addActivityLog, clearActivityLogs,
             contacts, addContact, deleteContact,
             emailNotifications, deleteEmailNotification, clearAllEmailNotifications,
             customEmails, sendCustomEmail, deleteCustomEmail,
+            emailTemplates, addEmailTemplate, updateEmailTemplate, deleteEmailTemplate,
+            sendNewJobAlert, sendBulkJobAlerts,
             isPersistenceActive: isLocalStorageAvailable,
             createBackup, restoreBackup,
         }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { ContentPost } from '../types.ts';
 import Icon from './Icon.tsx';
 import { basePath } from '../App.tsx';
@@ -23,7 +23,7 @@ const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost
     return (
         <div className="border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
             {post.imageUrl && (
-                <img src={post.imageUrl} alt={post.title} className="w-full aspect-video object-cover" />
+                <img src={post.imageUrl} alt={post.title} className="w-full aspect-video object-cover" loading="lazy" />
             )}
             <div className="p-6 flex flex-col flex-grow">
                 <div className="flex-grow">
@@ -56,7 +56,7 @@ const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost
                             <Icon name="envelope" className="text-lg" />
                         </a>
                     </div>
-                    <button onClick={() => onReadMore(post)} className="text-indigo-600 hover:underline text-sm font-semibold">
+                    <button onClick={() => onReadMore(post)} className="text-[var(--primary-color)] hover:underline text-sm font-semibold">
                         Read More &rarr;
                     </button>
                 </div>

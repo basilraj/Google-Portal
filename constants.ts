@@ -1,5 +1,5 @@
 // Fix: Import all types from the dedicated types.ts file to resolve circular dependencies.
-import { Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, SMTPSettings, ActivityLog, RSSSettings, SponsoredAd } from './types.ts';
+import { Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, SMTPSettings, ActivityLog, RSSSettings, AlertSettings, SponsoredAd, PopupAdSettings, ThemeSettings, SecuritySettings, DemoUserSettings, EmailTemplate } from './types.ts';
 
 export const INITIAL_JOBS: Job[] = [
   // 20 sample jobs for pagination and variety
@@ -98,7 +98,7 @@ export const initialSeoSettings: SEOSettings = {
 
 export const initialGeneralSettings: GeneralSettings = {
   siteTitle: 'Jobtica',
-  siteIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAYAAAAf/2i+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAfASURBVHhe7Z1/bBxlHMff8+4u1rGxti3btiQhJqStQpLQU0pIS5vQ0kAEWiilFAn/oUBqSflP+acCQn+VFiV4oKS1Bf9wQ+xQEbQ2IYQ2tsE2diS22LH2dWev4+O1+2FjO/bu2M52+fz+zsnO/njsszPvz/P7PPO2c6wBgN4wYq+1AF8HwmEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6eS/F2c/zV77FvX7X3+lX79lR9v1c9jW78H5d5/K4+R3+1zV8aNde/26o/d9Xv6+b81T1+Vz/j1Vd/aL/O3p3L335fP6e/2+ev91v1/K1B6d+r6+19Xh0m2/Nl61L9vq+Oq378/D1c/I6/c//Tdf8D/L7/d+H8dYBgN4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4eS/F2fD351z5vX7d17/ar9+1p+b6teRr9/V/U/K6jP+vnr/p91e/Luv9535on78qnfPrVX/ut+Xdn/u7e/q6eP8fP3+217vtb+YBePd++vP6d12/Lur/+fW3Pq6O0379s/ar/v5fP6e/8//t1/zP8vp8//8B79UuAAAAAElFTkSuQmCC',
+  siteIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAYAAAAf/2i+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAfASURBVHhe7Z1/bBxlHMff8+4u1rGxti3btiQhJqStQpLQU0pIS5vQ0kAEWiilFAn/oUBqSflP+acCQn+VFiV4oKS1Bf9wQ+xQEbQ2IYQ2tsE2diS22LH2dWev4+O1+2FjO/bu2M52+fz+zsnO/njsszPvz/P7PPO2c6wBgN4wYq+1AF8HwmEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6kUA4AOpFAOEAoBcJhAOAXiQQDgB6eS/F2c/zV77FvX7X3+lX79lR9v1c9jW78H5d5/K4+R3+1zV8aNde/26o/d9Xv6+b81T1+Vz/j1Vd/aL/O3p3L335fP6e/2+ev91v1/K1B6d+r6+19Xh0m2/Nl61L9vq+Oq378/D1c/I6/c//Tdf8D/L7/d+H8dYBgN4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4kEA4AepFAOADqRQDgAKAXCYQDgF4eS/F2fD351z5vX7d17/ar9+1p+b6teRr9/V/U/K6jP+vnr/p91e/Luv9535on78qnfPrVX/ut+Xdn/u7e/q6eP8fP3+217vtb+YBePd++vP6d12/Lur/+fW3Pq6O0379s/ar/v5fP6e/8//t1/zP8vp8//8B79UuAAAAAElFTSuQmCC',
   maintenanceMode: false,
   maintenanceMessage: 'Our website is currently undergoing scheduled maintenance. We should be back shortly. Thank you for your patience.',
   emailNotificationsEnabled: true,
@@ -129,3 +129,78 @@ export const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [];
 export const initialRssSettings: RSSSettings = {
     feedUrl: '',
 };
+
+export const initialAlertSettings: AlertSettings = {
+    whatsApp: {
+        enabled: false,
+        apiKey: '',
+        senderNumber: '',
+    },
+    sms: {
+        enabled: false,
+        twilioSid: '',
+        twilioToken: '',
+        twilioNumber: '',
+    }
+};
+
+export const initialPopupAdSettings: PopupAdSettings = {
+    enabled: false,
+    imageUrl: '',
+    destinationUrl: '',
+    size: 'medium',
+    openDelaySeconds: 3,
+    closeAfterSeconds: 15,
+    showOncePerSession: true,
+};
+
+export const initialThemeSettings: ThemeSettings = {
+    primaryColor: '#4f46e5', // Original indigo-600
+    accentColor: '#9333ea', // Original purple-600
+};
+
+export const initialSecuritySettings: SecuritySettings = {
+    enableCSP: true,
+    autoLogoutMinutes: 30,
+    enable2FASimulation: false,
+    warnOnExternalLink: true,
+    preventContentCopy: false,
+    demoModeEnabled: false,
+};
+
+export const initialDemoUserSettings: DemoUserSettings = {
+    canManageJobs: false,
+    canManageContent: false,
+    canManageLinks: false,
+    canManageAudience: false,
+    canSendEmails: false,
+    canManageAds: false,
+    canChangeTheme: false,
+};
+
+export const INITIAL_EMAIL_TEMPLATES: EmailTemplate[] = [
+  {
+    id: 'template-welcome',
+    name: 'Welcome Email',
+    subject: 'Welcome to {{siteName}}! Get Ready for Job Alerts',
+    body: 'Hi there,\n\nThank you for subscribing to {{siteName}}!\n\nWe are excited to have you with us. You will now receive the latest updates on government job notifications, exam results, and career-related articles directly in your inbox.\n\nStay tuned!\n\nBest regards,\nThe {{siteName}} Team'
+  },
+  {
+    id: 'template-new-job',
+    name: 'New Job Alert',
+    subject: 'New Job Alert: {{jobTitle}} at {{jobDepartment}}',
+    body: 'Hello,\n\nA new job has been posted that might interest you:\n\nJob Title: {{jobTitle}}\nDepartment: {{jobDepartment}}\nLast Date to Apply: {{jobLastDate}}\n\nFind more details and apply here:\n{{jobLink}}\n\nAll the best!\nThe {{siteName}} Team'
+  },
+  {
+    id: 'template-result',
+    name: 'Result Announcement',
+    subject: 'Result Declared: {{resultTitle}}',
+    body: 'Hello,\n\nThe results for the following examination have been announced:\n\n{{resultTitle}}\n\nYou can check the result and find more details here:\n{{resultLink}}\n\nCongratulations to all successful candidates!\n\nThe {{siteName}} Team'
+  },
+  {
+    id: 'template-blog',
+    name: 'New Blog Post',
+    subject: 'New on Our Blog: {{postTitle}}',
+    body: 'Hi there,\n\nWe just published a new article on our blog that you might find interesting:\n\n{{postTitle}}\n\nRead the full post here:\n{{postLink}}\n\nWe hope you enjoy it!\n\nThe {{siteName}} Team'
+  },
+];

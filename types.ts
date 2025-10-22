@@ -202,6 +202,55 @@ export interface RSSSettings {
     feedUrl: string;
 }
 
+export interface AlertSettings {
+    whatsApp: {
+        enabled: boolean;
+        apiKey: string;
+        senderNumber: string;
+    };
+    sms: {
+        enabled: boolean;
+        twilioSid: string;
+        twilioToken: string;
+
+        twilioNumber: string;
+    };
+}
+
+export interface PopupAdSettings {
+    enabled: boolean;
+    imageUrl: string;
+    destinationUrl: string;
+    size: 'small' | 'medium' | 'large';
+    openDelaySeconds: number;
+    closeAfterSeconds: number; // 0 means manual close only
+    showOncePerSession: boolean;
+}
+
+export interface ThemeSettings {
+    primaryColor: string;
+    accentColor: string;
+}
+
+export interface SecuritySettings {
+  enableCSP: boolean;
+  autoLogoutMinutes: 0 | 15 | 30 | 60; // 0 means 'Never'
+  enable2FASimulation: boolean;
+  warnOnExternalLink: boolean;
+  preventContentCopy: boolean;
+  demoModeEnabled: boolean;
+}
+
+export interface DemoUserSettings {
+    canManageJobs: boolean;
+    canManageContent: boolean;
+    canManageLinks: boolean;
+    canManageAudience: boolean;
+    canSendEmails: boolean;
+    canManageAds: boolean;
+    canChangeTheme: boolean;
+}
+
 export interface ContactSubmission {
     id: string;
     name: string;
@@ -226,6 +275,13 @@ export interface CustomEmail {
     sentAt: string; // ISO String
 }
 
+export interface EmailTemplate {
+    id: string;
+    name: string;
+    subject: string;
+    body: string;
+}
+
 export interface BackupData {
     jobs: Job[];
     quickLinks: QuickLink[];
@@ -239,5 +295,11 @@ export interface BackupData {
     activityLogs: ActivityLog[];
     smtpSettings: SMTPSettings;
     rssSettings: RSSSettings;
+    alertSettings: AlertSettings;
     sponsoredAds: SponsoredAd[];
+    popupAdSettings: PopupAdSettings;
+    themeSettings: ThemeSettings;
+    securitySettings: SecuritySettings;
+    demoUserSettings: DemoUserSettings;
+    emailTemplates: EmailTemplate[];
 }

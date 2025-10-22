@@ -5,8 +5,12 @@ import SEOManagement from './SEOManagement.tsx';
 import SocialMediaManagement from './SocialMediaManagement.tsx';
 import EmailSettings from './EmailSettings.tsx';
 import { useData } from '../../contexts/DataContext.tsx';
+import AlertSettingsManagement from './AlertSettingsManagement.tsx';
+import ThemeManagement from './ThemeManagement.tsx';
+// Fix: Use a named import for SecuritySettingsManagement as it does not have a default export.
+import { SecuritySettingsManagement } from './SecuritySettingsManagement.tsx';
 
-type SettingsTab = 'general' | 'seo' | 'ads' | 'social' | 'email';
+type SettingsTab = 'general' | 'seo' | 'ads' | 'social' | 'email' | 'alerts' | 'theme' | 'security';
 
 const GeneralSettingsManagement: React.FC = () => {
     const { generalSettings, updateGeneralSettings } = useData();
@@ -52,7 +56,7 @@ const GeneralSettingsManagement: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700">Website Logo</label>
                 <div className="mt-2 flex items-center gap-4">
                     {formData.siteIconUrl ? (
-                        <img src={formData.siteIconUrl} alt="Current Logo" className="h-16 w-auto max-w-[64px] object-contain rounded-md border p-1 bg-gray-100" />
+                        <img src={formData.siteIconUrl} alt="Current Logo" className="h-16 w-auto max-w-[64px] object-contain rounded-md border p-1 bg-gray-100" loading="lazy" />
                     ) : (
                         <div className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center border">
                             <Icon name="image" className="text-3xl text-gray-400" />
@@ -102,7 +106,7 @@ const GeneralSettingsManagement: React.FC = () => {
              </div>
             {message && <div className="p-3 bg-green-100 text-green-800 rounded-md text-sm text-center">{message}</div>}
              <div className="flex justify-end pt-4 border-t">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md hover:brightness-90 flex items-center gap-2 filter">
                     <Icon name="save" /> Save General Settings
                 </button>
             </div>
@@ -111,8 +115,8 @@ const GeneralSettingsManagement: React.FC = () => {
 }
 
 
-const SettingsManagement: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+const SettingsManagement: React.FC<{ defaultTab?: SettingsTab }> = ({ defaultTab = 'general' }) => {
+    const [activeTab, setActiveTab] = useState<SettingsTab>(defaultTab);
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -126,6 +130,12 @@ const SettingsManagement: React.FC = () => {
                 return <SocialMediaManagement />;
             case 'email':
                 return <EmailSettings />;
+            case 'alerts':
+                return <AlertSettingsManagement />;
+            case 'theme':
+                return <ThemeManagement />;
+            case 'security':
+                return <SecuritySettingsManagement />;
             default:
                 return null;
         }
@@ -136,7 +146,7 @@ const SettingsManagement: React.FC = () => {
             onClick={() => setActiveTab(tabName)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors w-full text-left ${
                 activeTab === tabName
-                    ? 'bg-indigo-100 text-indigo-700'
+                    ? 'bg-[var(--primary-color)]/20 text-[var(--primary-color)]'
                     : 'text-gray-600 hover:bg-gray-100'
             }`}
         >
@@ -154,6 +164,9 @@ const SettingsManagement: React.FC = () => {
                     <TabButton tabName="ads" label="Advertisements" icon="ad" />
                     <TabButton tabName="social" label="Social Media" icon="share-alt" />
                     <TabButton tabName="email" label="Email (SMTP)" icon="envelope" />
+                    <TabButton tabName="alerts" label="Alerts" icon="bullhorn" />
+                    <TabButton tabName="theme" label="Theme" icon="palette" />
+                    <TabButton tabName="security" label="Security" icon="shield-alt" />
                 </nav>
             </aside>
             <main className="flex-1">

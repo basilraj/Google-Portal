@@ -7,10 +7,12 @@ type AuthStage = 'signup' | 'login' | 'loggedIn' | 'forgotPassword' | 'resetPass
 
 interface AuthContextType {
   isLoggedIn: boolean;
+  isDemoUser: boolean;
   authStage: AuthStage;
   userEmail: string | null;
   createAdmin: (user: Omit<User, 'passwordHash'> & { password: string }) => Promise<boolean>;
   login: (username: string, password: string) => Promise<boolean>;
+  loginAsDemo: () => void;
   logout: () => void;
   updateCredentials: (currentPassword: string, newUsername: string, newPassword: string) => Promise<boolean>;
   goToForgotPassword: () => void;
@@ -37,6 +39,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { addActivityLog, smtpSettings } = useData();
   const [user, setUser] = useLocalStorage<User | null>('admin-user', null);
   const [sessionLoggedIn, setSessionLoggedIn] = useLocalStorage('session-is-logged-in', false);
+  const [isDemoUser, setIsDemoUser] = useLocalStorage('is-demo-user', false);
   const [authStage, setAuthStage] = useState<AuthStage>('login');
 
   useEffect(() => {
@@ -63,6 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (username: string, password: string): Promise<boolean> => {
     if (user && username === user.username && simpleHash(password) === user.passwordHash) {
+      setIsDemoUser(false);
       setSessionLoggedIn(true);
       setAuthStage('loggedIn');
       await addActivityLog('Admin Login', `User '${user?.username}' logged in successfully.`);
@@ -71,9 +75,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return false;
   };
 
+  const loginAsDemo = () => {
+    setIsDemoUser(true);
+    setSessionLoggedIn(true);
+    setAuthStage('loggedIn');
+    addActivityLog('Demo Login', 'Demo user logged in.');
+  };
+
   const logout = () => {
-    addActivityLog('Admin Logout', `User '${user?.username}' logged out.`);
+    addActivityLog(isDemoUser ? 'Demo Logout' : 'Admin Logout', `User '${isDemoUser ? 'demo' : user?.username}' logged out.`);
     setSessionLoggedIn(false);
+    setIsDemoUser(false);
     setAuthStage('login');
   };
 
@@ -122,10 +134,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider value={{ 
         isLoggedIn: authStage === 'loggedIn', 
+        isDemoUser,
         authStage,
         userEmail: user?.email || null,
         createAdmin,
         login, 
+        loginAsDemo,
         logout, 
         updateCredentials,
         goToForgotPassword,

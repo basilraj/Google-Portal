@@ -1,41 +1,45 @@
-
-
-
 import React, { useState, useRef } from 'react';
-// Fix: Add .tsx extension to local module import.
+// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module import.
+// Fix: Add .tsx extension to local module imports.
 import { CustomEmail } from '../../types.ts';
-// Fix: Add .tsx extension to local module import.
+// Fix: Add .tsx extension to local module imports.
 import Icon from '../Icon.tsx';
-// Fix: Add .tsx extension to local module import.
+// Fix: Add .tsx extension to local module imports.
 import Modal from '../Modal.tsx';
-// Fix: Add .tsx extension to local module import.
+// Fix: Add .tsx extension to local module imports.
 import Pagination from './Pagination.tsx';
-// Fix: Add .tsx extension to local module import.
+// Fix: Add .tsx extension to local module imports.
 import usePagination from '../../hooks/usePagination.ts';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const ITEMS_PER_PAGE = 5;
 
 const EmailMarketing: React.FC = () => {
-    const { customEmails, sendCustomEmail, deleteCustomEmail, subscribers, smtpSettings } = useData();
+    const { customEmails, sendCustomEmail, deleteCustomEmail, subscribers, smtpSettings, demoUserSettings, emailTemplates, generalSettings } = useData();
+    const { isDemoUser } = useAuth();
     const [subject, setSubject] = useState('');
     const [body, setBody] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEmail, setSelectedEmail] = useState<CustomEmail | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const canManage = !isDemoUser || demoUserSettings.canSendEmails;
     
     const sortedEmails = [...customEmails].sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedEmails, { itemsPerPage: ITEMS_PER_PAGE });
 
     const handlePageChange = (page: number) => {
         goToPage(page);
-        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const mainContent = document.getElementById('admin-main-content');
+        if (mainContent) {
+            mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!canManage) return;
         if (!subject || !body) {
             alert('Please fill in both subject and body.');
             return;
@@ -52,6 +56,26 @@ const EmailMarketing: React.FC = () => {
         setIsModalOpen(true);
     };
 
+    const handleDelete = (id: string) => {
+        if (!canManage) return;
+        if (window.confirm('Are you sure you want to delete this email record?')) {
+            deleteCustomEmail(id);
+        }
+    };
+
+    const handleLoadTemplate = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const templateId = e.target.value;
+        if (templateId) {
+            const template = emailTemplates.find(t => t.id === templateId);
+            if (template) {
+                const siteNameRegex = /{{siteName}}/g;
+                setSubject(template.subject.replace(siteNameRegex, generalSettings.siteTitle));
+                setBody(template.body.replace(siteNameRegex, generalSettings.siteTitle));
+            }
+        }
+        e.target.value = ''; // Reset dropdown after loading
+    };
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Email Composer */}
@@ -64,36 +88,55 @@ const EmailMarketing: React.FC = () => {
                         </p>
                     </div>
                 )}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Email Subject</label>
-                        <input
-                            type="text"
-                            id="subject"
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                            required
-                        />
+                {canManage ? (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                             <div className="flex justify-between items-center">
+                                <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Email Subject</label>
+                                <select
+                                    onChange={handleLoadTemplate}
+                                    className="text-sm border-gray-300 rounded-md bg-gray-50 hover:bg-gray-100"
+                                    aria-label="Load an email template"
+                                >
+                                    <option value="">Load Template...</option>
+                                    {emailTemplates.map(template => (
+                                        <option key={template.id} value={template.id}>{template.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <input
+                                type="text"
+                                id="subject"
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="body" className="block text-sm font-medium text-gray-700">Email Body</label>
+                            <textarea
+                                id="body"
+                                rows={10}
+                                value={body}
+                                onChange={(e) => setBody(e.target.value)}
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                placeholder="Write your email content here. HTML is not supported."
+                                required
+                            />
+                        </div>
+                        <div className="flex justify-end pt-2">
+                            <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                                <Icon name="paper-plane" /> Send to All Subscribers
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                     <div className="text-center py-10 border-dashed border-2 rounded-lg">
+                        <Icon name="lock" className="text-4xl text-gray-300 mb-3" />
+                        <p className="text-sm text-gray-500">Email campaigns are disabled in demo mode.</p>
                     </div>
-                    <div>
-                        <label htmlFor="body" className="block text-sm font-medium text-gray-700">Email Body</label>
-                        <textarea
-                            id="body"
-                            rows={10}
-                            value={body}
-                            onChange={(e) => setBody(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                            placeholder="Write your email content here. HTML is not supported."
-                            required
-                        />
-                    </div>
-                    <div className="flex justify-end pt-2">
-                        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
-                            <Icon name="paper-plane" /> Send to All Subscribers
-                        </button>
-                    </div>
-                </form>
+                )}
             </div>
 
             {/* Sent Emails History */}
@@ -110,7 +153,7 @@ const EmailMarketing: React.FC = () => {
                                     </div>
                                     <div className="flex-shrink-0 flex gap-3">
                                         <button onClick={() => handleViewEmail(email)} className="text-blue-500 hover:text-blue-700" title="View Email"><Icon name="eye" /></button>
-                                        <button onClick={() => deleteCustomEmail(email.id)} className="text-red-500 hover:text-red-700" title="Delete Record"><Icon name="trash" /></button>
+                                        {canManage && <button onClick={() => handleDelete(email.id)} className="text-red-500 hover:text-red-700" title="Delete Record"><Icon name="trash" /></button>}
                                     </div>
                                 </div>
                             ))}

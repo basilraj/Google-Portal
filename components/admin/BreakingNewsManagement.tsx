@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
@@ -8,6 +6,7 @@ import { BreakingNews } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick?: () => void; }> = ({ message, buttonText, onButtonClick }) => (
     <div className="text-center py-16 border-t">
@@ -65,13 +64,24 @@ const NewsForm: React.FC<{ newsItem?: BreakingNews; onSave: (news: Omit<Breaking
 
 
 const BreakingNewsManagement: React.FC = () => {
-    const { breakingNews, addNews, updateNews, deleteNews } = useData();
+    const { breakingNews, addNews, updateNews, deleteNews, securitySettings, demoUserSettings } = useData();
+    const { isDemoUser } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNews, setEditingNews] = useState<BreakingNews | undefined>(undefined);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState<BreakingNews | null>(null);
+    const [confirmProps, setConfirmProps] = useState<{title: string, message: React.ReactNode, onConfirm: () => void, confirmText?: string, confirmButtonClass?: string}>({
+        title: '', message: '', onConfirm: () => {}
+    });
+
+    const canManage = !isDemoUser || demoUserSettings.canManageLinks;
+
+    const openConfirmModal = (props: Partial<typeof confirmProps>) => {
+        setConfirmProps(prev => ({ ...prev, ...props }));
+        setIsConfirmModalOpen(true);
+    };
 
     const handleSave = (newsData: Omit<BreakingNews, 'id'>, id?: string) => {
+        if (!canManage) return;
         if (id) {
             updateNews({ ...newsData, id });
         } else {
@@ -82,30 +92,52 @@ const BreakingNewsManagement: React.FC = () => {
     };
 
     const handleEdit = (news: BreakingNews) => {
+        if (!canManage) return;
         setEditingNews(news);
         setIsModalOpen(true);
     };
 
     const handleDeleteRequest = (newsItem: BreakingNews) => {
-        setItemToDelete(newsItem);
-        setIsConfirmModalOpen(true);
+        if (!canManage) return;
+        openConfirmModal({
+            title: 'Confirm Deletion',
+            message: <>Are you sure you want to delete this news item: <strong>"{newsItem.text}"</strong>?</>,
+            onConfirm: () => {
+                deleteNews(newsItem.id);
+                setIsConfirmModalOpen(false);
+            },
+            confirmText: 'Delete',
+            confirmButtonClass: 'bg-red-600 hover:bg-red-700'
+        });
     };
     
-    const confirmDelete = () => {
-        if (itemToDelete) {
-            deleteNews(itemToDelete.id);
+    const handleExternalLinkClick = (e: React.MouseEvent, url: string) => {
+        e.preventDefault();
+        if (securitySettings.warnOnExternalLink) {
+            openConfirmModal({
+                title: 'External Link Warning',
+                message: <>You are about to navigate to an external website: <strong>{url}</strong>. Do you wish to continue?</>,
+                onConfirm: () => {
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                    setIsConfirmModalOpen(false);
+                },
+                confirmText: 'Proceed',
+                confirmButtonClass: 'bg-blue-600 hover:bg-blue-700'
+            });
+        } else {
+            window.open(url, '_blank', 'noopener,noreferrer');
         }
-        setIsConfirmModalOpen(false);
-        setItemToDelete(null);
     };
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-700">Breaking News Ticker</h2>
-                <button onClick={() => { setEditingNews(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
-                    <Icon name="plus" /> Add News Item
-                </button>
+                {canManage && (
+                    <button onClick={() => { setEditingNews(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                        <Icon name="plus" /> Add News Item
+                    </button>
+                )}
             </div>
             {breakingNews.length > 0 ? (
             <div className="overflow-x-auto">
@@ -122,13 +154,17 @@ const BreakingNewsManagement: React.FC = () => {
                         {breakingNews.map(news => (
                             <tr key={news.id} className="bg-white hover:bg-gray-50 border-b">
                                 <td data-label="Text" className="px-6 py-4 font-medium text-gray-900">{news.text}</td>
-                                <td data-label="Link" className="px-6 py-4 truncate max-w-xs"><a href={news.link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{news.link}</a></td>
+                                <td data-label="Link" className="px-6 py-4 truncate max-w-xs"><a href={news.link} onClick={(e) => handleExternalLinkClick(e, news.link)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{news.link}</a></td>
                                 <td data-label="Status" className="px-6 py-4">
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${news.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{news.status}</span>
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                    <button onClick={() => handleEdit(news)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit news: ${news.text}`}><Icon name="edit" /></button>
-                                    <button onClick={() => handleDeleteRequest(news)} className="text-red-500 hover:text-red-700" aria-label={`Delete news: ${news.text}`}><Icon name="trash" /></button>
+                                    {canManage && (
+                                        <>
+                                            <button onClick={() => handleEdit(news)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit news: ${news.text}`}><Icon name="edit" /></button>
+                                            <button onClick={() => handleDeleteRequest(news)} className="text-red-500 hover:text-red-700" aria-label={`Delete news: ${news.text}`}><Icon name="trash" /></button>
+                                        </>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -138,8 +174,8 @@ const BreakingNewsManagement: React.FC = () => {
             ) : (
                 <EmptyState 
                     message="No breaking news items found."
-                    buttonText="Add News Item"
-                    onButtonClick={() => { setEditingNews(undefined); setIsModalOpen(true); }}
+                    buttonText={canManage ? "Add News Item" : undefined}
+                    onButtonClick={canManage ? () => { setEditingNews(undefined); setIsModalOpen(true); } : undefined}
                 />
             )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingNews ? 'Edit News Item' : 'Add News Item'}>
@@ -148,10 +184,7 @@ const BreakingNewsManagement: React.FC = () => {
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                onConfirm={confirmDelete}
-                title="Confirm Deletion"
-                message={<>Are you sure you want to delete this news item: <strong>"{itemToDelete?.text}"</strong>?</>}
-                confirmText="Delete"
+                {...confirmProps}
             />
         </div>
     );

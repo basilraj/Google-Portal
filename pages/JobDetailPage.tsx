@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useData } from '../contexts/DataContext.tsx';
 import Icon from '../components/Icon.tsx';
@@ -44,67 +45,69 @@ const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => voi
             createMeta({ property: 'og:url', content: canonicalUrl });
             createMeta({ property: 'og:type', content: 'article' });
             createMeta({ property: 'og:site_name', content: generalSettings.siteTitle });
-            createMeta({ property: 'og:image', content: seoSettings.social.ogImageUrl }); // Add default OG image
-
+            createMeta({ property: 'og:image', content: seoSettings.social.ogImageUrl });
+            
             // Twitter Card
-            createMeta({ name: 'twitter:card', content: 'summary' });
+            createMeta({ name: 'twitter:card', content: 'summary_large_image' });
             createMeta({ name: 'twitter:title', content: job.title });
             createMeta({ name: 'twitter:description', content: metaDescription });
-            createMeta({ name: 'twitter:image', content: seoSettings.social.ogImageUrl }); // Add default Twitter image
-
+            createMeta({ name: 'twitter:image', content: seoSettings.social.ogImageUrl });
 
             // Canonical URL
             createLink({ rel: 'canonical', href: canonicalUrl });
 
-            // Structured Data
-            const jobPostingSchema = {
-                "@context": "https://schema.org",
-                "@type": "JobPosting",
-                "title": job.title,
-                "description": job.description,
-                "identifier": {
-                    "@type": "PropertyValue",
-                    "name": generalSettings.siteTitle,
-                    "value": job.id
-                },
-                "datePosted": job.postedDate,
-                "validThrough": job.lastDate,
-                "employmentType": "FULL_TIME",
-                "hiringOrganization": {
-                    "@type": "Organization",
-                    "name": job.department,
-                    "sameAs": window.location.origin
-                },
-                "jobLocation": {
-                    "@type": "Place",
-                    "address": {
-                        "@type": "PostalAddress",
-                        "addressCountry": "IN"
-                    }
-                },
-                "qualifications": job.qualification,
-            };
+            // Structured Data (JobPosting Schema)
+            if (seoSettings.structuredData.jobPostingSchemaEnabled) {
+                const jobSchema = {
+                    "@context": "https://schema.org",
+                    "@type": "JobPosting",
+                    "title": job.title,
+                    "description": `<p>${job.description.replace(/\n/g, '</p><p>')}</p>`,
+                    "identifier": {
+                        "@type": "PropertyValue",
+                        "name": generalSettings.siteTitle,
+                        "value": job.id
+                    },
+                    "datePosted": job.postedDate,
+                    "validThrough": job.lastDate,
+                    "employmentType": "FULL_TIME",
+                    "hiringOrganization": {
+                        "@type": "Organization",
+                        "name": job.department,
+                        "sameAs": window.location.origin
+                    },
+                    "jobLocation": {
+                        "@type": "Place",
+                        "address": {
+                            "@type": "PostalAddress",
+                            "addressCountry": "IN"
+                        }
+                    },
+                    "qualifications": job.qualification,
+                    "totalJobOpenings": job.vacancies,
+                };
 
-            const breadcrumbSchema = {
-                "@context": "https://schema.org",
-                "@type": "BreadcrumbList",
-                "itemListElement": [{
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "Home",
-                    "item": `${window.location.origin}${basePath}/`.replace(/([^:]\/)\/+/g, "$1")
-                }, {
-                    "@type": "ListItem",
-                    "position": 2,
-                    "name": job.title
-                }]
-            };
+                const breadcrumbSchema = {
+                    "@context": "https://schema.org",
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [{
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": `${window.location.origin}${basePath}/`.replace(/([^:]\/)\/+/g, "$1")
+                    }, {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": job.title
+                    }]
+                };
 
-            const script = document.createElement('script');
-            script.type = 'application/ld+json';
-            script.setAttribute('data-seo-managed', 'true');
-            script.innerHTML = JSON.stringify([jobPostingSchema, breadcrumbSchema]);
-            head.appendChild(script);
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.setAttribute('data-seo-managed', 'true');
+                script.innerHTML = JSON.stringify([jobSchema, breadcrumbSchema]);
+                head.appendChild(script);
+            }
 
         } else {
             document.title = `Job Not Found | ${seoSettings.global.siteTitle}`;
@@ -115,7 +118,6 @@ const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => voi
         };
     }, [job, seoSettings, generalSettings, jobSlug, canonicalUrl]);
 
-
     if (!job) {
         return (
             <div className="flex flex-col min-h-screen bg-gray-50">
@@ -125,8 +127,8 @@ const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => voi
                         <Icon name="exclamation-circle" className="text-5xl text-red-400 mb-4" />
                         <h1 className="text-3xl font-bold text-[#1e3c72] mb-6">Job Not Found</h1>
                         <p className="text-gray-600 mb-6">The job you are looking for does not exist or may have been removed.</p>
-                        <button onClick={() => navigate('/')} className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
-                            Back to Homepage
+                        <button onClick={() => navigate('/')} className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90">
+                            Back to Home
                         </button>
                     </div>
                 </main>
@@ -141,17 +143,9 @@ const JobDetailPage: React.FC<{ jobSlug: string; navigate: (path: string) => voi
             <nav aria-label="Breadcrumb" className="bg-gray-100 border-b">
                 <div className="container mx-auto px-4">
                     <ol className="flex items-center space-x-2 text-sm text-gray-500 py-3">
-                        <li>
-                            <a href={`${basePath}/`} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-indigo-600 flex items-center gap-2">
-                                <Icon name="home" /> Home
-                            </a>
-                        </li>
-                        <li>
-                            <Icon name="chevron-right" className="text-xs" />
-                        </li>
-                        <li className="font-semibold text-gray-700 truncate" aria-current="page">
-                            {job.title}
-                        </li>
+                        <li><a href={`${basePath}/`} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-[var(--primary-color)]">Home</a></li>
+                        <li><Icon name="chevron-right" className="text-xs" /></li>
+                        <li className="font-semibold text-gray-700 truncate" aria-current="page">{job.title}</li>
                     </ol>
                 </div>
             </nav>

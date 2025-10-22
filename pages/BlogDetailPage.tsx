@@ -126,7 +126,7 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
                         <Icon name="exclamation-circle" className="text-5xl text-red-400 mb-4" />
                         <h1 className="text-3xl font-bold text-[#1e3c72] mb-6">Post Not Found</h1>
                         <p className="text-gray-600 mb-6">The blog post you are looking for does not exist or may have been removed.</p>
-                        <button onClick={() => navigate('/blog')} className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
+                        <button onClick={() => navigate('/blog')} className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90">
                             Back to Blog
                         </button>
                     </div>
@@ -151,9 +151,9 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
              <nav aria-label="Breadcrumb" className="bg-gray-100 border-b">
                 <div className="container mx-auto px-4">
                     <ol className="flex items-center space-x-2 text-sm text-gray-500 py-3">
-                        <li><a href={`${basePath}/`} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-indigo-600">Home</a></li>
+                        <li><a href={`${basePath}/`} onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hover:text-[var(--primary-color)]">Home</a></li>
                         <li><Icon name="chevron-right" className="text-xs" /></li>
-                        <li><a href={`${basePath}/blog`} onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:text-indigo-600">Blog</a></li>
+                        <li><a href={`${basePath}/blog`} onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="hover:text-[var(--primary-color)]">Blog</a></li>
                         <li><Icon name="chevron-right" className="text-xs" /></li>
                         <li className="font-semibold text-gray-700 truncate" aria-current="page">{post.title}</li>
                     </ol>

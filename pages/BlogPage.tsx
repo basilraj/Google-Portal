@@ -47,7 +47,7 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-12">
                          <section id="blog-posts">
-                             <h2 className="text-3xl font-bold text-[#1e3c72] my-6 pb-2 border-b-4 border-purple-500">Blog Posts</h2>
+                             <h2 className="text-3xl font-bold text-[#1e3c72] my-6 pb-2 border-b-4 border-[var(--accent-color)]">Blog Posts</h2>
                              <div className="space-y-6">
                                 {filteredBlogPosts.length > 0 ? (
                                     filteredBlogPosts.reduce((acc, post, index) => {
@@ -70,16 +70,16 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                     </div>
                     <aside className="space-y-8 sticky top-24 h-fit">
                         <div className="widget bg-white p-6 rounded-lg shadow-md">
-                            <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Categories</h3>
+                            <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-[var(--accent-color)]">Categories</h3>
                             <ul className="space-y-2">
                                 {/* FIX: Add explicit type for 'category' to resolve potential type inference issues. */}
                                 {categories.map((category: string) => (
                                     <li key={category}>
                                         <button 
                                             onClick={() => setSelectedCategory(category)}
-                                            className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center ${selectedCategory === category ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-100'}`}
+                                            className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center ${selectedCategory === category ? 'bg-[var(--primary-color)]/20 text-[var(--primary-color)] font-bold' : 'text-gray-700 hover:bg-gray-100'}`}
                                         >
-                                           <Icon name="chevron-right" className={`mr-2 text-xs ${selectedCategory === category ? 'text-indigo-500' : 'text-purple-500'}`}/>
+                                           <Icon name="chevron-right" className={`mr-2 text-xs ${selectedCategory === category ? 'text-[var(--primary-color)]' : 'text-[var(--accent-color)]'}`}/>
                                            {category}
                                         </button>
                                     </li>

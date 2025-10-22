@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
@@ -12,6 +9,7 @@ import Pagination from './Pagination.tsx';
 import usePagination from '../../hooks/usePagination.ts';
 import PostForm from './PostForm.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -23,7 +21,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
       <Icon name="file-alt" className="text-5xl text-gray-300 mb-4" />
       <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
       {buttonText && onButtonClick && (
-        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+        <button onClick={onButtonClick} className="mt-4 bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
           <Icon name="plus" /> {buttonText}
         </button>
       )}
@@ -31,7 +29,8 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
 );
 
 const ContentPostManagement: React.FC = () => {
-    const { posts, addPost, updatePost, deletePost, deleteMultiplePosts } = useData();
+    const { posts, addPost, updatePost, deletePost, deleteMultiplePosts, demoUserSettings } = useData();
+    const { isDemoUser } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<ContentPost | undefined>(undefined);
     const [searchQuery, setSearchQuery] = useState('');
@@ -47,6 +46,7 @@ const ContentPostManagement: React.FC = () => {
     const [confirmModalContent, setConfirmModalContent] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; }>({ title: '', message: '', onConfirm: () => {} });
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const canManage = !isDemoUser || demoUserSettings.canManageContent;
 
     const filteredPostsSource = posts.filter(p => p.type === 'posts');
 
@@ -94,7 +94,10 @@ const ContentPostManagement: React.FC = () => {
 
     const handlePageChange = (page: number) => {
         goToPage(page);
-        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const mainContent = document.getElementById('admin-main-content');
+        if (mainContent) {
+            mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     useEffect(() => {
@@ -111,6 +114,7 @@ const ContentPostManagement: React.FC = () => {
     };
 
     const handleSave = (postData: Omit<ContentPost, 'id' | 'createdAt'>, id?: string) => {
+        if (!canManage) return;
         if (id) {
              const originalPost = posts.find(p => p.id === id);
              if (originalPost) {
@@ -126,6 +130,7 @@ const ContentPostManagement: React.FC = () => {
     };
 
     const handleEdit = (post: ContentPost) => {
+        if (!canManage) return;
         setEditingPost(post);
         setIsModalOpen(true);
     };
@@ -136,6 +141,7 @@ const ContentPostManagement: React.FC = () => {
     };
 
     const handleDelete = (post: ContentPost) => {
+        if (!canManage) return;
         openConfirmationModal(
             'Confirm Deletion',
             <>Are you sure you want to delete the post: <strong>"{post.title}"</strong>?</>,
@@ -148,6 +154,7 @@ const ContentPostManagement: React.FC = () => {
     };
     
     const handleStatusToggle = (post: ContentPost) => {
+        if (!canManage) return;
         const newStatus = post.status === 'published' ? 'draft' : 'published';
         updatePost({ ...post, status: newStatus });
         showNotification(`'${post.title}' status changed to ${newStatus}.`);
@@ -166,7 +173,7 @@ const ContentPostManagement: React.FC = () => {
     };
     
     const handleBulkDelete = () => {
-        if (selectedPostIds.length === 0) return;
+        if (!canManage || selectedPostIds.length === 0) return;
         openConfirmationModal(
             'Confirm Bulk Deletion',
             <>Are you sure you want to delete <strong>{selectedPostIds.length} selected post(s)</strong>?</>,
@@ -207,7 +214,7 @@ const ContentPostManagement: React.FC = () => {
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                  <div className="flex items-center gap-4">
                     <h2 className="text-xl font-bold text-gray-700">General Posts</h2>
-                    {selectedPostIds.length > 0 && (
+                    {selectedPostIds.length > 0 && canManage && (
                         <button
                             onClick={handleBulkDelete}
                             className="bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-red-700 transition-colors"
@@ -234,9 +241,11 @@ const ContentPostManagement: React.FC = () => {
                             <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
                         ))}
                     </select>
-                    <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 w-full sm:w-auto justify-center">
-                        <Icon name="plus" /> Add New Post
-                    </button>
+                    {canManage && (
+                        <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 w-full sm:w-auto justify-center">
+                            <Icon name="plus" /> Add New Post
+                        </button>
+                    )}
                 </div>
             </div>
             {paginatedData.length > 0 ? (
@@ -250,7 +259,7 @@ const ContentPostManagement: React.FC = () => {
                                         type="checkbox"
                                         onChange={handleSelectAll}
                                         checked={paginatedData.length > 0 && selectedPostIds.length === paginatedData.length}
-                                        className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                        className="w-4 h-4 text-[var(--primary-color)] bg-gray-100 border-gray-300 rounded focus:ring-[var(--primary-color)]"
                                     />
                                 </th>
                                 <th className="px-6 py-3">Image</th>
@@ -263,18 +272,18 @@ const ContentPostManagement: React.FC = () => {
                         </thead>
                         <tbody>
                             {paginatedData.map(post => (
-                                <tr key={post.id} className={`bg-white hover:bg-gray-50 ${selectedPostIds.includes(post.id) ? 'bg-indigo-50' : 'border-b'}`}>
+                                <tr key={post.id} className={`bg-white hover:bg-gray-50 ${selectedPostIds.includes(post.id) ? 'bg-[var(--primary-color)]/10' : 'border-b'}`}>
                                      <td data-label="Select" className="p-4">
                                         <input
                                             type="checkbox"
                                             checked={selectedPostIds.includes(post.id)}
                                             onChange={(e) => handleSelectOne(e, post.id)}
-                                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                            className="w-4 h-4 text-[var(--primary-color)] bg-gray-100 border-gray-300 rounded focus:ring-[var(--primary-color)]"
                                         />
                                     </td>
                                     <td data-label="Image" className="px-6 py-4">
                                         {post.imageUrl ? (
-                                            <img src={post.imageUrl} alt={post.title} className="w-16 h-10 object-cover rounded-md bg-gray-200" />
+                                            <img src={post.imageUrl} alt={post.title} className="w-16 h-10 object-cover rounded-md bg-gray-200" loading="lazy" />
                                         ) : (
                                             <div className="w-16 h-10 flex items-center justify-center bg-gray-100 rounded-md">
                                                 <Icon name="image" className="text-gray-400" />
@@ -291,8 +300,12 @@ const ContentPostManagement: React.FC = () => {
                                     </td>
                                     <td data-label="Actions" className="px-6 py-4 flex gap-4 items-center actions-cell">
                                         <button onClick={() => handlePreview(post)} className="text-blue-500 hover:text-blue-700" aria-label={`Preview post: ${post.title}`}><Icon name="eye" /></button>
-                                        <button onClick={() => handleEdit(post)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit post: ${post.title}`}><Icon name="edit" /></button>
-                                        <button onClick={() => handleDelete(post)} className="text-red-500 hover:text-red-700" aria-label={`Delete post: ${post.title}`}><Icon name="trash" /></button>
+                                        {canManage && (
+                                            <>
+                                                <button onClick={() => handleEdit(post)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit post: ${post.title}`}><Icon name="edit" /></button>
+                                                <button onClick={() => handleDelete(post)} className="text-red-500 hover:text-red-700" aria-label={`Delete post: ${post.title}`}><Icon name="trash" /></button>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -304,8 +317,8 @@ const ContentPostManagement: React.FC = () => {
             ) : (
                 <EmptyState 
                     message={searchQuery || categoryFilter !== 'all' ? "No posts match your filters." : "No general posts found."}
-                    buttonText="Add New Post"
-                    onButtonClick={() => { setEditingPost(undefined); setIsModalOpen(true); }}
+                    buttonText={canManage ? "Add New Post" : undefined}
+                    onButtonClick={canManage ? () => { setEditingPost(undefined); setIsModalOpen(true); } : undefined}
                 />
             )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingPost ? 'Edit Post' : 'Add New Post'}>

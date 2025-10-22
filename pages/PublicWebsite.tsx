@@ -9,9 +9,10 @@ import { slugify } from '../utils/slugify.ts';
 import usePagination from '../hooks/usePagination.ts';
 import Pagination from '../components/admin/Pagination.tsx';
 import AdComponent from '../components/AdComponent.tsx';
+import PopupAd from '../components/PopupAd.tsx';
 
 const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.memo(({ job, onView }) => (
-    <div className="group border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden hover:border-indigo-400">
+    <div className="group border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden hover:border-[var(--primary-color)]">
         <div className="p-4 sm:p-5 flex-grow">
             <h3 className="text-md sm:text-lg font-bold text-[#1e3c72] leading-tight mb-2">{job.title}</h3>
             <p className="text-sm text-gray-500 mb-3">{job.department}</p>
@@ -23,7 +24,7 @@ const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.me
             </div>
         </div>
         <div className="p-4 bg-gray-50 border-t">
-            <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} className="w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold group-hover:bg-indigo-700 transition-colors duration-200 block">View Details</a>
+            <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} className="w-full text-center bg-[var(--primary-color)] text-white px-4 py-2 rounded-md text-sm font-semibold filter group-hover:brightness-90 transition-all duration-200 block">View Details</a>
         </div>
     </div>
 ));
@@ -39,22 +40,22 @@ const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; 
     return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-3 mb-3 last:border-b-0 last:pb-0 last:mb-0">
         <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-md flex flex-col items-center justify-center font-bold text-center leading-none flex-shrink-0">
+            <div className="w-12 h-12 bg-[var(--accent-color)]/20 text-[var(--accent-color)] rounded-md flex flex-col items-center justify-center font-bold text-center leading-none flex-shrink-0">
                 <span className="text-lg">{new Date(post.publishedDate).getDate()}</span>
                 <span className="text-xs uppercase">{new Date(post.publishedDate).toLocaleString('default', { month: 'short' })}</span>
             </div>
             <div>
-                <span className="text-xs font-semibold text-purple-600 uppercase">{typeLabel}</span>
+                <span className="text-xs font-semibold text-[var(--accent-color)] uppercase">{typeLabel}</span>
                 <p className="font-semibold text-gray-800 leading-tight">{post.title}</p>
             </div>
         </div>
         <div className="w-full md:w-auto flex justify-end">
         {post.detailsUrl ? (
-            <a href={post.detailsUrl} target="_blank" rel="nofollow noopener noreferrer" className="w-full md:w-auto inline-flex items-center justify-center text-center flex-shrink-0 text-sm bg-purple-500 text-white px-3 py-2 rounded-md hover:bg-purple-600 font-semibold transition-colors whitespace-nowrap">
+            <a href={post.detailsUrl} target="_blank" rel="nofollow noopener noreferrer" className="w-full md:w-auto inline-flex items-center justify-center text-center flex-shrink-0 text-sm bg-[var(--accent-color)] text-white px-3 py-2 rounded-md filter hover:brightness-90 font-semibold transition-all whitespace-nowrap">
                 {getButtonText(post.title)}
             </a>
         ) : (
-            <button onClick={() => navigate(`/blog/${post.id}`)} className="flex-shrink-0 text-sm text-indigo-600 hover:underline font-semibold whitespace-nowrap">Read More</button>
+            <button onClick={() => navigate(`/blog/${post.id}`)} className="flex-shrink-0 text-sm text-[var(--primary-color)] hover:underline font-semibold whitespace-nowrap">Read More</button>
         )}
         </div>
     </div>
@@ -63,7 +64,7 @@ const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; 
 const JOBS_PER_PAGE = 10;
 
 const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const { jobs, posts, quickLinks, breakingNews, adSettings, sponsoredAds, addSubscriber, seoSettings, trackSponsoredAdClick } = useData();
+    const { jobs, posts, quickLinks, breakingNews, adSettings, sponsoredAds, addSubscriber, seoSettings, trackSponsoredAdClick, popupAdSettings } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All Departments');
     const [categoryFilter, setCategoryFilter] = useState('All Categories');
@@ -152,6 +153,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
+            {popupAdSettings.enabled && <PopupAd settings={popupAdSettings} />}
             {headerAdCode && <AdComponent code={headerAdCode} placement="header" />}
             
             {activeBreakingNews.length > 0 && (
@@ -192,7 +194,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                          <div className="mt-4 text-right">
                             <button 
                                 onClick={() => setIsAdvancedFilterOpen(!isAdvancedFilterOpen)}
-                                className="text-sm font-semibold text-indigo-600 hover:underline"
+                                className="text-sm font-semibold text-[var(--primary-color)] hover:underline"
                             >
                                 {isAdvancedFilterOpen ? 'Hide' : 'Show'} Advanced Filters <Icon name={isAdvancedFilterOpen ? 'chevron-up' : 'chevron-down'} className="ml-1 text-xs" />
                             </button>
@@ -277,17 +279,18 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                                         src={activeSidebarSponsoredAd.imageUrl} 
                                         alt="Sponsored Ad" 
                                         className="w-full h-auto" 
+                                        loading="lazy"
                                     />
                                 </a>
                             </div>
                         )}
                         <div className="widget bg-white p-6 rounded-lg shadow-md">
-                            <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Quick Links</h3>
+                            <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-[var(--accent-color)]">Quick Links</h3>
                             <ul className="space-y-2 text-sm">
                                 {quickLinks.filter(l => l.status === 'active').map(link => (
                                     <li key={link.id} className="flex items-start">
-                                        <Icon name="link" className="text-purple-500 mt-1 mr-2"/>
-                                        <a href={link.url} target="_blank" rel="nofollow noopener noreferrer" className="text-gray-700 hover:text-indigo-700">{link.title}</a>
+                                        <Icon name="link" className="text-[var(--accent-color)] mt-1 mr-2"/>
+                                        <a href={link.url} target="_blank" rel="nofollow noopener noreferrer" className="text-gray-700 hover:text-[var(--primary-color)]">{link.title}</a>
                                     </li>
                                 ))}
                             </ul>
@@ -299,13 +302,13 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 <section id="content-sections" className="mt-16">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="bg-white p-6 rounded-lg shadow-md">
-                             <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Exam Notices & Admit Cards</h3>
+                             <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-[var(--accent-color)]">Exam Notices & Admit Cards</h3>
                              <div className="space-y-4">
                                 {latestNotices.map(post => <PostCard key={post.id} post={post} navigate={navigate} typeLabel="Notice" />)}
                              </div>
                         </div>
                         <div className="bg-white p-6 rounded-lg shadow-md">
-                            <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-purple-500">Latest Results</h3>
+                            <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-[var(--accent-color)]">Latest Results</h3>
                             <div className="space-y-4">
                                 {latestResults.map(post => <PostCard key={post.id} post={post} navigate={navigate} typeLabel="Result" />)}
                             </div>
@@ -313,7 +316,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                     </div>
                 </section>
                 
-                <section id="newsletter" className="mt-16 bg-gradient-to-r from-purple-600 to-indigo-700 text-white p-8 rounded-lg text-center">
+                <section id="newsletter" className="mt-16 bg-gradient-to-r from-[var(--accent-color)] to-[var(--primary-color)] text-white p-8 rounded-lg text-center">
                     <h2 className="text-3xl font-bold mb-2">Get Job Alerts</h2>
                     <p className="mb-6">Subscribe to our newsletter and never miss an update.</p>
                     <form onSubmit={handleSubscribe} className="max-w-md mx-auto sm:flex sm:flex-row flex-col gap-2 sm:gap-0">

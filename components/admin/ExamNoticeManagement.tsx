@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
@@ -12,6 +9,7 @@ import Pagination from './Pagination.tsx';
 import usePagination from '../../hooks/usePagination.ts';
 import PostForm from './PostForm.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -28,12 +26,15 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
 );
 
 const ExamNoticeManagement: React.FC = () => {
-    const { posts, addPost, updatePost, deletePost } = useData();
+    const { posts, addPost, updatePost, deletePost, demoUserSettings } = useData();
+    const { isDemoUser } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<ContentPost | undefined>(undefined);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [postToDelete, setPostToDelete] = useState<ContentPost | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    const canManage = !isDemoUser || demoUserSettings.canManageContent;
 
     const filteredPosts = posts.filter(p => p.type === 'exam-notices');
     const sortedPosts = [...filteredPosts].sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
@@ -42,10 +43,14 @@ const ExamNoticeManagement: React.FC = () => {
 
     const handlePageChange = (page: number) => {
         goToPage(page);
-        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const mainContent = document.getElementById('admin-main-content');
+        if (mainContent) {
+            mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     const handleSave = (postData: Omit<ContentPost, 'id' | 'createdAt'>, id?: string) => {
+        if (!canManage) return;
         if (id) {
              const originalPost = posts.find(p => p.id === id);
              if (originalPost) {
@@ -59,11 +64,13 @@ const ExamNoticeManagement: React.FC = () => {
     };
 
     const handleEdit = (post: ContentPost) => {
+        if (!canManage) return;
         setEditingPost(post);
         setIsModalOpen(true);
     };
 
     const handleDeleteRequest = (post: ContentPost) => {
+        if (!canManage) return;
         setPostToDelete(post);
         setIsConfirmModalOpen(true);
     };
@@ -80,9 +87,11 @@ const ExamNoticeManagement: React.FC = () => {
         <div ref={containerRef} className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 className="text-xl font-bold text-gray-700">Exam Notices & Admit Cards</h2>
-                <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
-                    <Icon name="plus" /> Add New Notice
-                </button>
+                {canManage && (
+                    <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                        <Icon name="plus" /> Add New Notice
+                    </button>
+                )}
             </div>
             {paginatedData.length > 0 ? (
             <>
@@ -109,8 +118,12 @@ const ExamNoticeManagement: React.FC = () => {
                                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{post.status}</span>
                                 </td>
                                 <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                    <button onClick={() => handleEdit(post)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit notice: ${post.title}`}><Icon name="edit" /></button>
-                                    <button onClick={() => handleDeleteRequest(post)} className="text-red-500 hover:text-red-700" aria-label={`Delete notice: ${post.title}`}><Icon name="trash" /></button>
+                                    {canManage && (
+                                        <>
+                                            <button onClick={() => handleEdit(post)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit notice: ${post.title}`}><Icon name="edit" /></button>
+                                            <button onClick={() => handleDeleteRequest(post)} className="text-red-500 hover:text-red-700" aria-label={`Delete notice: ${post.title}`}><Icon name="trash" /></button>
+                                        </>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -122,8 +135,8 @@ const ExamNoticeManagement: React.FC = () => {
             ) : (
                 <EmptyState
                     message="No exam notices found."
-                    buttonText="Add New Notice"
-                    onButtonClick={() => { setEditingPost(undefined); setIsModalOpen(true); }}
+                    buttonText={canManage ? "Add New Notice" : undefined}
+                    onButtonClick={canManage ? () => { setEditingPost(undefined); setIsModalOpen(true); } : undefined}
                 />
             )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingPost ? 'Edit Notice' : 'Add New Notice'}>

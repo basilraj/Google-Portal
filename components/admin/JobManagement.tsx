@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
@@ -18,6 +15,7 @@ import { slugify } from '../../utils/slugify.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import NotificationExtractorModal from './NotificationExtractorModal.tsx';
 import { basePath } from '../../App.tsx';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -29,14 +27,14 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
       <Icon name="folder-open" className="text-5xl text-gray-300 mb-4" />
       <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
       {buttonText && onButtonClick && (
-        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+        <button onClick={onButtonClick} className="mt-4 bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
           <Icon name="plus" /> {buttonText}
         </button>
       )}
     </div>
 );
 
-const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; }) => void; onCancel: () => void; isLoading: boolean; uniqueCategories: string[]; }> = ({ job, onSave, onCancel, isLoading, uniqueCategories }) => {
+const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; sendEmailAlert: boolean; }) => void; onCancel: () => void; isLoading: boolean; uniqueCategories: string[]; }> = ({ job, onSave, onCancel, isLoading, uniqueCategories }) => {
     const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(job ? { ...job } : {
         title: '',
         department: '',
@@ -52,6 +50,7 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
     
     const [createNews, setCreateNews] = useState(true);
     const [createLink, setCreateLink] = useState(true);
+    const [sendEmailAlert, setSendEmailAlert] = useState(true);
 
     const titleInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,7 +69,7 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
         e.preventDefault();
         // Explicitly destructure id and createdAt to create a clean object for saving.
         const { id, createdAt, ...dataToSave } = formData as Job;
-        onSave(dataToSave, job?.id, !job ? { createNews, createLink } : undefined);
+        onSave(dataToSave, job?.id, !job ? { createNews, createLink, sendEmailAlert } : undefined);
     };
 
     return (
@@ -142,12 +141,16 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
                     <h3 className="text-md font-medium text-gray-800 mb-2">Automated Actions</h3>
                     <div className="space-y-2 text-sm text-gray-600">
                         <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
-                            <input type="checkbox" checked={createNews} onChange={e => setCreateNews(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                            <input type="checkbox" checked={createNews} onChange={e => setCreateNews(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]"/>
                             <span>Create a "Breaking News" item for this job</span>
                         </label>
                         <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
-                            <input type="checkbox" checked={createLink} onChange={e => setCreateLink(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                            <input type="checkbox" checked={createLink} onChange={e => setCreateLink(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" />
                             <span>Create a "Quick Link" for this job</span>
+                        </label>
+                        <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
+                            <input type="checkbox" checked={sendEmailAlert} onChange={e => setSendEmailAlert(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" />
+                            <span>Send email alert to all subscribers</span>
                         </label>
                     </div>
                 </div>
@@ -155,7 +158,7 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
 
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 w-28 text-center disabled:opacity-75" disabled={isLoading}>
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90 w-28 text-center disabled:opacity-75" disabled={isLoading}>
                     {isLoading ? <Icon name="spinner" className="animate-spin mx-auto" /> : 'Save Job'}
                 </button>
             </div>
@@ -166,11 +169,12 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
 const BulkUploadModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onUpload: (file: File) => Promise<void>;
+    onUpload: (file: File, options: { sendEmailAlert: boolean }) => Promise<void>;
     errorMessages: string[];
     isLoading: boolean;
 }> = ({ isOpen, onClose, onUpload, errorMessages, isLoading }) => {
     const [file, setFile] = useState<File | null>(null);
+    const [sendEmailAlert, setSendEmailAlert] = useState(true);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -180,7 +184,7 @@ const BulkUploadModal: React.FC<{
 
     const handleUpload = async () => {
         if (file) {
-            await onUpload(file);
+            await onUpload(file, { sendEmailAlert });
         }
     };
 
@@ -220,7 +224,7 @@ const BulkUploadModal: React.FC<{
                 <button
                     type="button"
                     onClick={handleDownloadSample}
-                    className="text-sm text-indigo-600 hover:underline inline-flex items-center"
+                    className="text-sm text-[var(--primary-color)] hover:underline inline-flex items-center"
                 >
                     <Icon name="download" className="mr-2" />
                     Download Sample CSV Template
@@ -239,16 +243,20 @@ const BulkUploadModal: React.FC<{
                         type="file"
                         accept=".csv"
                         onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100"
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[var(--primary-color)]/10 file:text-[var(--primary-color)] hover:file:bg-[var(--primary-color)]/20"
                     />
                 </div>
+                 <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 mt-4 border">
+                    <input type="checkbox" checked={sendEmailAlert} onChange={e => setSendEmailAlert(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" />
+                    <span>Send email alert for each new job</span>
+                </label>
                 <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                     <button type="button" onClick={onClose} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
                     <button
                         type="button"
                         onClick={handleUpload}
                         disabled={!file || isLoading}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                        className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                     >
                         {isLoading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="upload" />}
                         {isLoading ? 'Uploading...' : 'Upload & Save'}
@@ -297,7 +305,8 @@ const parseCsvLine = (line: string): string[] => {
 
 
 const JobManagement: React.FC = () => {
-    const { jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs, addNews, addQuickLink } = useData();
+    const { jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs, addNews, addQuickLink, sendNewJobAlert, sendBulkJobAlerts, demoUserSettings } = useData();
+    const { isDemoUser } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingJob, setEditingJob] = useState<Job | undefined>(undefined);
     const [statusFilter, setStatusFilter] = useState<'all' | Job['status']>('all');
@@ -315,6 +324,7 @@ const JobManagement: React.FC = () => {
     const [isExtractorModalOpen, setIsExtractorModalOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const canManage = !isDemoUser || demoUserSettings.canManageJobs;
 
     const uniqueCategories = useMemo(() => [...new Set(jobs.map(j => j.category))].sort(), [jobs]);
 
@@ -370,14 +380,18 @@ const JobManagement: React.FC = () => {
 
     const handlePageChange = (page: number) => {
         goToPage(page);
-        containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const mainContent = document.getElementById('admin-main-content');
+        if (mainContent) {
+            mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     useEffect(() => {
         setSelectedJobIds([]);
     }, [currentPage, statusFilter, sortKey, sortDirection]);
 
-    const handleSave = async (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; }) => {
+    const handleSave = async (jobData: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; sendEmailAlert: boolean; }) => {
+        if (!canManage) return;
         setIsLoading(true);
         try {
             if (id) {
@@ -390,6 +404,10 @@ const JobManagement: React.FC = () => {
                 const newJob = await addJob(jobData);
                 if (newJob) {
                     showNotification(`Job '${jobData.title}' added successfully!`);
+                    
+                    if (options?.sendEmailAlert) {
+                        await sendNewJobAlert(newJob);
+                    }
 
                     if (options?.createNews) {
                         const newsText = `'${newJob.title}' has been announced. Last date to apply is ${newJob.lastDate}.`;
@@ -413,6 +431,7 @@ const JobManagement: React.FC = () => {
     };
 
     const handleEdit = (job: Job) => {
+        if (!canManage) return;
         setEditingJob(job);
         setIsModalOpen(true);
     };
@@ -423,6 +442,7 @@ const JobManagement: React.FC = () => {
     };
 
     const handleDelete = (jobId: string) => {
+        if (!canManage) return;
         const jobToDelete = jobs.find(j => j.id === jobId);
         if (!jobToDelete) return;
 
@@ -444,7 +464,8 @@ const JobManagement: React.FC = () => {
         );
     };
     
-    const handleBulkUpload = async (file: File) => {
+    const handleBulkUpload = async (file: File, options: { sendEmailAlert: boolean }) => {
+        if (!canManage) return;
         setBulkUploadErrors([]);
         setIsLoading(true);
         try {
@@ -508,8 +529,11 @@ const JobManagement: React.FC = () => {
                 setBulkUploadErrors(errors);
                 showNotification('Upload failed. Please check the errors below the upload button.', 'error');
             } else {
-                const addedCount = await addMultipleJobs(jobsData);
-                showNotification(`${addedCount} jobs uploaded successfully.`);
+                const newJobs = await addMultipleJobs(jobsData);
+                if (options.sendEmailAlert) {
+                    await sendBulkJobAlerts(newJobs);
+                }
+                showNotification(`${newJobs.length} jobs uploaded successfully.`);
                 setIsBulkUploadModalOpen(false);
             }
         } catch (error) {
@@ -539,7 +563,7 @@ const JobManagement: React.FC = () => {
     };
 
     const handleBulkDelete = () => {
-        if (selectedJobIds.length === 0) {
+        if (!canManage || selectedJobIds.length === 0) {
             showNotification('Please select at least one job to delete.', 'error');
             return;
         }
@@ -594,7 +618,7 @@ const JobManagement: React.FC = () => {
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                  <div className="flex items-center gap-4">
                     <h2 className="text-xl font-bold text-gray-700">Job Listings</h2>
-                    {selectedJobIds.length > 0 && (
+                    {selectedJobIds.length > 0 && canManage && (
                         <button
                             onClick={handleBulkDelete}
                             disabled={isLoading}
@@ -615,15 +639,19 @@ const JobManagement: React.FC = () => {
                         <option value="closing-soon">Closing Soon</option>
                         <option value="expired">Expired</option>
                     </select>
-                    <button onClick={() => setIsExtractorModalOpen(true)} className="bg-teal-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-teal-700">
-                        <Icon name="wand-magic-sparkles" /> Extract Notification
-                    </button>
-                    <button onClick={() => { setIsBulkUploadModalOpen(true); setBulkUploadErrors([]); }} className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700">
-                        <Icon name="upload" /> Bulk Upload
-                    </button>
-                    <button onClick={() => { setEditingJob(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
-                        <Icon name="plus" /> Add New Job
-                    </button>
+                    {canManage && (
+                        <>
+                            <button onClick={() => setIsExtractorModalOpen(true)} className="bg-teal-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-teal-700">
+                                <Icon name="wand-magic-sparkles" /> Extract Notification
+                            </button>
+                            <button onClick={() => { setIsBulkUploadModalOpen(true); setBulkUploadErrors([]); }} className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700">
+                                <Icon name="upload" /> Bulk Upload
+                            </button>
+                            <button onClick={() => { setEditingJob(undefined); setIsModalOpen(true); }} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
+                                <Icon name="plus" /> Add New Job
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
             {paginatedData.length > 0 ? (
@@ -637,7 +665,7 @@ const JobManagement: React.FC = () => {
                                         type="checkbox"
                                         onChange={handleSelectAll}
                                         checked={paginatedData.length > 0 && selectedJobIds.length === paginatedData.length}
-                                        className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                        className="w-4 h-4 text-[var(--primary-color)] bg-gray-100 border-gray-300 rounded focus:ring-[var(--primary-color)]"
                                     />
                                 </th>
                                 <SortableHeader columnKey="title" title="Title" />
@@ -652,13 +680,13 @@ const JobManagement: React.FC = () => {
                             {paginatedData.map(job => {
                                 const effectiveStatus = getEffectiveJobStatus(job);
                                 return (
-                                <tr key={job.id} className={`bg-white hover:bg-gray-50 ${selectedJobIds.includes(job.id) ? 'bg-indigo-50' : 'border-b'}`}>
+                                <tr key={job.id} className={`bg-white hover:bg-gray-50 ${selectedJobIds.includes(job.id) ? 'bg-[var(--primary-color)]/10' : 'border-b'}`}>
                                     <td data-label="Select" className="p-4">
                                         <input
                                             type="checkbox"
                                             checked={selectedJobIds.includes(job.id)}
                                             onChange={(e) => handleSelectOne(e, job.id)}
-                                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                            className="w-4 h-4 text-[var(--primary-color)] bg-gray-100 border-gray-300 rounded focus:ring-[var(--primary-color)]"
                                         />
                                     </td>
                                     <td data-label="Title" className="px-6 py-4 font-medium text-gray-900">{job.title}</td>
@@ -670,8 +698,12 @@ const JobManagement: React.FC = () => {
                                     </td>
                                     <td data-label="Actions" className="px-6 py-4 flex gap-4 items-center actions-cell">
                                         <button onClick={() => handlePreview(job.id)} className="text-blue-500 hover:text-blue-700" aria-label={`Preview job: ${job.title}`}><Icon name="eye" /></button>
-                                        <button onClick={() => handleEdit(job)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit job: ${job.title}`}><Icon name="edit" /></button>
-                                        <button onClick={() => handleDelete(job.id)} disabled={isLoading} className="text-red-500 hover:text-red-700 disabled:text-gray-300 disabled:cursor-not-allowed" aria-label={`Delete job: ${job.title}`}><Icon name="trash" /></button>
+                                        {canManage && (
+                                            <>
+                                                <button onClick={() => handleEdit(job)} className="text-yellow-500 hover:text-yellow-700" aria-label={`Edit job: ${job.title}`}><Icon name="edit" /></button>
+                                                <button onClick={() => handleDelete(job.id)} disabled={isLoading} className="text-red-500 hover:text-red-700 disabled:text-gray-300 disabled:cursor-not-allowed" aria-label={`Delete job: ${job.title}`}><Icon name="trash" /></button>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             )})}
@@ -683,8 +715,8 @@ const JobManagement: React.FC = () => {
             ) : (
                 <EmptyState 
                     message="No jobs found."
-                    buttonText="Add New Job"
-                    onButtonClick={() => { setEditingJob(undefined); setIsModalOpen(true); }}
+                    buttonText={canManage ? "Add New Job" : undefined}
+                    onButtonClick={canManage ? () => { setEditingJob(undefined); setIsModalOpen(true); } : undefined}
                 />
             )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingJob ? 'Edit Job' : 'Add New Job'}>

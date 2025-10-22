@@ -1,8 +1,10 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
 import Icon from '../Icon.tsx';
+import ConfirmationModal from './ConfirmationModal.tsx';
+import { Subscriber } from '../../types.ts';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const EmptyState: React.FC<{ message: string; }> = ({ message }) => (
     <div className="text-center py-16 border-t">
@@ -12,12 +14,25 @@ const EmptyState: React.FC<{ message: string; }> = ({ message }) => (
 );
 
 const SubscriberManagement: React.FC = () => {
-    const { subscribers, deleteSubscriber } = useData();
+    const { subscribers, deleteSubscriber, demoUserSettings } = useData();
+    const { isDemoUser } = useAuth();
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [subscriberToDelete, setSubscriberToDelete] = useState<Subscriber | null>(null);
 
-    const handleDelete = (id: string, email: string) => {
-        if (window.confirm(`Are you sure you want to delete the subscriber "${email}"?`)) {
-            deleteSubscriber(id);
+    const canManage = !isDemoUser || demoUserSettings.canManageAudience;
+
+    const handleDeleteRequest = (subscriber: Subscriber) => {
+        if (!canManage) return;
+        setSubscriberToDelete(subscriber);
+        setIsConfirmModalOpen(true);
+    };
+    
+    const confirmDelete = () => {
+        if (subscriberToDelete) {
+            deleteSubscriber(subscriberToDelete.id);
         }
+        setIsConfirmModalOpen(false);
+        setSubscriberToDelete(null);
     };
 
     const handleExportCSV = () => {
@@ -72,9 +87,11 @@ const SubscriberManagement: React.FC = () => {
                                 <td data-label="Subscribed On" className="px-6 py-4">{sub.subscriptionDate}</td>
                                 <td data-label="Status" className="px-6 py-4"><span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">{sub.status}</span></td>
                                 <td data-label="Actions" className="px-6 py-4 actions-cell">
-                                     <button onClick={() => handleDelete(sub.id, sub.email)} className="text-red-500 hover:text-red-700" aria-label={`Delete subscriber: ${sub.email}`}>
-                                        <Icon name="trash" />
-                                    </button>
+                                     {canManage && (
+                                        <button onClick={() => handleDeleteRequest(sub)} className="text-red-500 hover:text-red-700" aria-label={`Delete subscriber: ${sub.email}`}>
+                                            <Icon name="trash" />
+                                        </button>
+                                     )}
                                 </td>
                             </tr>
                         ))}
@@ -84,6 +101,14 @@ const SubscriberManagement: React.FC = () => {
             ) : (
                 <EmptyState message="There are no subscribers yet." />
             )}
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+                message={<>Are you sure you want to delete the subscriber: <strong>"{subscriberToDelete?.email}"</strong>?</>}
+                confirmText="Delete"
+            />
         </div>
     );
 };

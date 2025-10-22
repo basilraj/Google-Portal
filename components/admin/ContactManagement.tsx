@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
@@ -11,6 +8,7 @@ import Modal from '../Modal.tsx';
 import Pagination from './Pagination.tsx';
 import usePagination from '../../hooks/usePagination.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -22,13 +20,15 @@ const EmptyState: React.FC<{ message: string; }> = ({ message }) => (
 );
 
 const ContactManagement: React.FC = () => {
-    const { contacts, deleteContact } = useData();
+    const { contacts, deleteContact, demoUserSettings } = useData();
+    const { isDemoUser } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [contactToDelete, setContactToDelete] = useState<ContactSubmission | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const canManage = !isDemoUser || demoUserSettings.canManageAudience;
 
     // Sort contacts by most recent first
     const sortedContacts = [...contacts].sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
@@ -46,6 +46,7 @@ const ContactManagement: React.FC = () => {
     };
 
     const handleDeleteRequest = (contact: ContactSubmission) => {
+        if (!canManage) return;
         setContactToDelete(contact);
         setIsConfirmModalOpen(true);
     };
@@ -85,9 +86,11 @@ const ContactManagement: React.FC = () => {
                                     <button onClick={() => handleViewMessage(contact)} className="text-blue-500 hover:text-blue-700" aria-label={`View message from ${contact.name}`}>
                                         <Icon name="eye" />
                                     </button>
-                                    <button onClick={() => handleDeleteRequest(contact)} className="text-red-500 hover:text-red-700" aria-label={`Delete message from ${contact.name}`}>
-                                        <Icon name="trash" />
-                                    </button>
+                                    {canManage && (
+                                        <button onClick={() => handleDeleteRequest(contact)} className="text-red-500 hover:text-red-700" aria-label={`Delete message from ${contact.name}`}>
+                                            <Icon name="trash" />
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

@@ -48,7 +48,8 @@ const SignupForm: React.FC = () => {
 };
 
 const LoginForm: React.FC = () => {
-    const { login, goToForgotPassword } = useAuth();
+    const { login, goToForgotPassword, loginAsDemo } = useAuth();
+    const { securitySettings } = useData();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -89,6 +90,25 @@ const LoginForm: React.FC = () => {
                     {isLoading ? 'Verifying...' : 'Sign in'}
                 </button>
             </form>
+            {securitySettings.demoModeEnabled && (
+                <>
+                    <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-white text-gray-500">Or</span>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={loginAsDemo}
+                        className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                        <Icon name="user-secret" className="mr-2" />
+                        Login as Demo User
+                    </button>
+                </>
+            )}
         </>
     );
 };
