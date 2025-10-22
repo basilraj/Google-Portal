@@ -4,10 +4,11 @@ import Icon from '../components/Icon.tsx';
 import PublicFooter from '../components/PublicFooter.tsx';
 import PublicHeader from '../components/PublicHeader.tsx';
 import { basePath } from '../App.tsx';
+import AdComponent from '../components/AdComponent.tsx';
 
 const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => void }> = ({ postId, navigate }) => {
-    const { posts, seoSettings, generalSettings } = useData();
-    const post = posts.find(p => p.id === postId && p.type === 'posts');
+    const { posts, seoSettings, generalSettings, adSettings } = useData();
+    const post = posts.find(p => p.id === postId);
     const canonicalUrl = `${window.location.origin}${basePath}/blog/${postId}`.replace(/([^:]\/)\/+/g, "$1");
 
     useEffect(() => {
@@ -132,6 +133,12 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
             </div>
         );
     }
+    
+    const shareTitle = post.title;
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`;
+    const twitterShareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(canonicalUrl)}&text=${encodeURIComponent(shareTitle)}`;
+    const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + canonicalUrl)}`;
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(canonicalUrl)}&text=${encodeURIComponent(shareTitle)}`;
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
@@ -149,6 +156,11 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
             </nav>
             <main className="flex-grow container mx-auto px-4 py-12">
                  <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+                    {adSettings.blogDetailTopAdEnabled && (
+                        <div className="mb-6 -mx-6 -mt-6 md:-mx-8 md:-mt-8 rounded-t-lg overflow-hidden">
+                            <AdComponent code={adSettings.blogDetailTopAdCode} placement="header" />
+                        </div>
+                    )}
                     {post.imageUrl && (
                         <img src={post.imageUrl} alt={post.title} className="w-full h-auto max-h-96 object-cover rounded-lg mb-6" loading="lazy" />
                     )}
@@ -160,6 +172,16 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
 
                     <div className="static-content">
                         <p className="whitespace-pre-wrap">{post.content}</p>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <span className="text-sm font-semibold text-gray-500">Share this post:</span>
+                        <div className="flex items-center gap-4 text-gray-500">
+                            <a href={facebookShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Facebook" className="hover:text-blue-600 transition-colors"><Icon prefix="fab" name="facebook-f" className="text-2xl" /></a>
+                            <a href={twitterShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Twitter" className="hover:text-sky-500 transition-colors"><Icon prefix="fab" name="twitter" className="text-2xl" /></a>
+                            <a href={whatsappShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on WhatsApp" className="hover:text-green-500 transition-colors"><Icon prefix="fab" name="whatsapp" className="text-2xl" /></a>
+                            <a href={telegramShareUrl} target="_blank" rel="nofollow noopener noreferrer" aria-label="Share on Telegram" className="hover:text-blue-400 transition-colors"><Icon prefix="fab" name="telegram-plane" className="text-2xl" /></a>
+                        </div>
                     </div>
                 </div>
             </main>

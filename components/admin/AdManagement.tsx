@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, ReactNode } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { AdSettings, ABTest, GeoTargetedAd } from '../../types.ts';
 import Icon from '../Icon.tsx';
 
@@ -157,6 +156,34 @@ const AdManagement: React.FC = () => {
                                     <span className="font-medium text-gray-700">Enable Footer Ad</span>
                                 </label>
                                 <textarea name="footerAdCode" value={formData.footerAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.footerAdEnabled}/>
+                            </div>
+                            <div>
+                                <label className="flex items-center gap-3 mb-2">
+                                    <input type="checkbox" name="inFeedJobsAdEnabled" checked={formData.inFeedJobsAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
+                                    <span className="font-medium text-gray-700">Enable In-Feed Job List Ad</span>
+                                </label>
+                                <textarea name="inFeedJobsAdCode" value={formData.inFeedJobsAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.inFeedJobsAdEnabled}/>
+                            </div>
+                             <div>
+                                <label className="flex items-center gap-3 mb-2">
+                                    <input type="checkbox" name="inFeedBlogAdEnabled" checked={formData.inFeedBlogAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
+                                    <span className="font-medium text-gray-700">Enable In-Feed Blog List Ad</span>
+                                </label>
+                                <textarea name="inFeedBlogAdCode" value={formData.inFeedBlogAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.inFeedBlogAdEnabled}/>
+                            </div>
+                            <div>
+                                <label className="flex items-center gap-3 mb-2">
+                                    <input type="checkbox" name="jobDetailTopAdEnabled" checked={formData.jobDetailTopAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
+                                    <span className="font-medium text-gray-700">Enable Ad on Top of Job Detail Page</span>
+                                </label>
+                                <textarea name="jobDetailTopAdCode" value={formData.jobDetailTopAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.jobDetailTopAdEnabled}/>
+                            </div>
+                            <div>
+                                <label className="flex items-center gap-3 mb-2">
+                                    <input type="checkbox" name="blogDetailTopAdEnabled" checked={formData.blogDetailTopAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
+                                    <span className="font-medium text-gray-700">Enable Ad on Top of Blog Detail Page</span>
+                                </label>
+                                <textarea name="blogDetailTopAdCode" value={formData.blogDetailTopAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.blogDetailTopAdEnabled}/>
                             </div>
                          </div>
                     </div>

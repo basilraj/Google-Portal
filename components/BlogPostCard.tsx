@@ -1,4 +1,3 @@
-
 import React from 'react';
 // Fix: Add .ts extension to local module imports.
 import { ContentPost } from '../types.ts';
@@ -10,7 +9,9 @@ const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost
     const postUrl = `${window.location.origin}${basePath}/blog/${post.id}`.replace(/([^:]\/)\/+/g, "$1");
     const shareTitle = `Read on our blog: ${post.title}`;
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}&quote=${encodeURIComponent(shareTitle)}`;
+    const twitterShareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(shareTitle)}`;
     const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + "\n\n" + postUrl)}`;
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(shareTitle)}`;
     
     // Truncate content for snippet
     const snippet = post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content;
@@ -35,8 +36,14 @@ const BlogPostCard: React.FC<{ post: ContentPost; onReadMore: (post: ContentPost
                         <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" title="Share on Facebook" className="hover:text-blue-600 transition-colors">
                             <Icon prefix="fab" name="facebook-f" className="text-lg" />
                         </a>
+                        <a href={twitterShareUrl} target="_blank" rel="noopener noreferrer" title="Share on Twitter" className="hover:text-sky-500 transition-colors">
+                            <Icon prefix="fab" name="twitter" className="text-lg" />
+                        </a>
                         <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" title="Share on WhatsApp" className="hover:text-green-500 transition-colors">
                             <Icon prefix="fab" name="whatsapp" className="text-lg" />
+                        </a>
+                         <a href={telegramShareUrl} target="_blank" rel="noopener noreferrer" title="Share on Telegram" className="hover:text-blue-400 transition-colors">
+                            <Icon prefix="fab" name="telegram-plane" className="text-lg" />
                         </a>
                     </div>
                     <button onClick={() => onReadMore(post)} className="text-indigo-600 hover:underline text-sm font-semibold">

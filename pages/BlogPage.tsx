@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../contexts/DataContext.tsx';
@@ -10,10 +8,7 @@ import PublicFooter from '../components/PublicFooter.tsx';
 import { ContentPost } from '../types.ts';
 // Fix: Add .tsx extension to local module imports.
 import PublicHeader from '../components/PublicHeader.tsx';
-
-const AdComponent: React.FC<{ code: string }> = ({ code }) => (
-    <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />
-);
+import AdComponent from '../components/AdComponent.tsx';
 
 const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { posts, adSettings } = useData();
@@ -41,7 +36,7 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
-            {adSettings.headerAdEnabled && <AdComponent code={adSettings.headerAdCode} />}
+            {adSettings.headerAdEnabled && <AdComponent code={adSettings.headerAdCode} placement="header" />}
 
             <main className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -50,7 +45,18 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                              <h2 className="text-3xl font-bold text-[#1e3c72] my-6 pb-2 border-b-4 border-purple-500">Blog Posts</h2>
                              <div className="space-y-6">
                                 {filteredBlogPosts.length > 0 ? (
-                                    filteredBlogPosts.map(post => <BlogPostCard key={post.id} post={post} onReadMore={handleReadMore} />)
+                                    filteredBlogPosts.reduce((acc, post, index) => {
+                                        acc.push(<BlogPostCard key={post.id} post={post} onReadMore={handleReadMore} />);
+                                        // Insert ad after the 2nd item (index 1)
+                                        if (index === 1 && adSettings.inFeedBlogAdEnabled) {
+                                            acc.push(
+                                                <div key="ad-in-feed-blog">
+                                                    <AdComponent code={adSettings.inFeedBlogAdCode} placement="in-feed" />
+                                                </div>
+                                            );
+                                        }
+                                        return acc;
+                                    }, [] as React.ReactNode[])
                                 ) : (
                                     <p className="text-gray-500 bg-gray-100 p-4 rounded-md text-center">No blog posts found for the selected category.</p>
                                 )}
@@ -75,13 +81,13 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                                 ))}
                             </ul>
                         </div>
-                        {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} />}
+                        {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} placement="sidebar" />}
                     </aside>
                 </div>
             </main>
              {adSettings.footerAdEnabled && (
                 <div className="container mx-auto px-4">
-                    <AdComponent code={adSettings.footerAdCode} />
+                    <AdComponent code={adSettings.footerAdCode} placement="footer" />
                 </div>
             )}
             <PublicFooter navigate={navigate} />

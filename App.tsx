@@ -19,6 +19,7 @@ import JobDetailPage from './pages/JobDetailPage.tsx';
 // Fix: Add .tsx extension to import to fix module resolution error.
 import BlogDetailPage from './pages/BlogDetailPage.tsx';
 import TelegramFAB from './components/TelegramFAB.tsx';
+import ContactPage from './pages/ContactPage.tsx';
 
 export const basePath = '';
 
@@ -54,6 +55,7 @@ const App: React.FC = () => {
     else if (route === '/terms') title = `Terms & Conditions | ${title}`;
     else if (route === '/about') title = `About Us | ${title}`;
     else if (route === '/disclaimer') title = `Disclaimer | ${title}`;
+    else if (route === '/contact') title = `Contact Us | ${title}`;
     document.title = title;
   }, [path, seoSettings.global.siteTitle]);
 
@@ -102,6 +104,8 @@ const App: React.FC = () => {
           return <Disclaimer navigate={navigate} />;
       case '/terms':
           return <TermsAndConditions navigate={navigate} />;
+      case '/contact':
+          return <ContactPage navigate={navigate} />;
       default:
           return <PublicWebsite navigate={navigate} />;
     }

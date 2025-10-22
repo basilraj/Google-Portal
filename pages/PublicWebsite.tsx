@@ -6,32 +6,14 @@ import Icon from '../components/Icon.tsx';
 import PublicHeader from '../components/PublicHeader.tsx';
 import PublicFooter from '../components/PublicFooter.tsx';
 import { slugify } from '../utils/slugify.ts';
-
-const AdComponent: React.FC<{ code: string; placement: 'header' | 'sidebar' | 'footer' }> = ({ code, placement }) => {
-    const isPlaceholder = code.trim().startsWith('<!--') && code.trim().endsWith('-->');
-
-    if (isPlaceholder) {
-        const dimensions = {
-            header: { width: '728px', height: '90px', text: '728x90 Ad Space' },
-            sidebar: { width: '300px', height: '250px', text: '300x250 Ad Space' },
-            footer: { width: '728px', height: '90px', text: '728x90 Ad Space' },
-        };
-        const style = dimensions[placement];
-
-        return (
-            <div className="my-6 flex items-center justify-center bg-gray-200 border-2 border-dashed border-gray-400 rounded-md mx-auto" style={{ maxWidth: style.width, height: style.height }}>
-                <span className="text-gray-500 font-semibold">{style.text}</span>
-            </div>
-        );
-    }
-    
-    return <div className="my-6" dangerouslySetInnerHTML={{ __html: code }} />;
-};
+import usePagination from '../hooks/usePagination.ts';
+import Pagination from '../components/admin/Pagination.tsx';
+import AdComponent from '../components/AdComponent.tsx';
 
 const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.memo(({ job, onView }) => (
-    <div className="border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
-        <div className="p-5 flex-grow">
-            <h3 className="text-lg font-bold text-[#1e3c72] leading-tight mb-2">{job.title}</h3>
+    <div className="group border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden hover:border-indigo-400">
+        <div className="p-4 sm:p-5 flex-grow">
+            <h3 className="text-md sm:text-lg font-bold text-[#1e3c72] leading-tight mb-2">{job.title}</h3>
             <p className="text-sm text-gray-500 mb-3">{job.department}</p>
             <div className="text-xs text-gray-600 space-y-2">
                 <p className="flex items-center gap-2"><Icon name="graduation-cap" className="w-4 text-gray-400" />{job.qualification}</p>
@@ -40,7 +22,7 @@ const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.me
             </div>
         </div>
         <div className="p-4 bg-gray-50 border-t">
-            <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} className="w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-700 block">View Details</a>
+            <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} className="w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold group-hover:bg-indigo-700 transition-colors duration-200 block">View Details</a>
         </div>
     </div>
 ));
@@ -71,12 +53,13 @@ const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; 
                 {getButtonText(post.title)}
             </a>
         ) : (
-            <button onClick={() => navigate(`/post/${post.id}`)} className="flex-shrink-0 text-sm text-indigo-600 hover:underline font-semibold whitespace-nowrap">View Details</button>
+            <button onClick={() => navigate(`/blog/${post.id}`)} className="flex-shrink-0 text-sm text-indigo-600 hover:underline font-semibold whitespace-nowrap">Read More</button>
         )}
         </div>
     </div>
 )});
 
+const JOBS_PER_PAGE = 10;
 
 const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { jobs, posts, quickLinks, breakingNews, adSettings, addSubscriber, seoSettings, trackSponsoredAdClick } = useData();
@@ -123,6 +106,8 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
 
         return filtered;
     }, [activeJobs, searchTerm, departmentFilter, qualificationFilter, sortOption]);
+    
+    const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedAndFilteredJobs, { itemsPerPage: JOBS_PER_PAGE });
     
     const departments = useMemo(() => ['All Departments', ...Array.from(new Set(activeJobs.map(j => j.department))).sort()], [activeJobs]);
     const qualifications = useMemo(() => ['All Qualifications', ...Array.from(new Set(activeJobs.map(j => j.qualification))).sort()], [activeJobs]);
@@ -231,10 +216,26 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                         <section id="job-listings">
                             <h2 className="text-2xl font-bold text-[#1e3c72] mb-4">Latest Jobs</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {sortedAndFilteredJobs.slice(0, 10).map(job => (
-                                    <JobCard key={job.id} job={job} onView={(slug) => navigate(`/job/${slug}`)} />
-                                ))}
+                                {paginatedData.reduce((acc, job, index) => {
+                                    acc.push(<JobCard key={job.id} job={job} onView={(slug) => navigate(`/job/${slug}`)} />);
+                                    // Insert ad after the 4th item (index 3)
+                                    if (index === 3 && adSettings.inFeedJobsAdEnabled) {
+                                        acc.push(
+                                            <div key="ad-in-feed" className="md:col-span-2">
+                                                <AdComponent code={adSettings.inFeedJobsAdCode} placement="in-feed" />
+                                            </div>
+                                        );
+                                    }
+                                    return acc;
+                                }, [] as React.ReactNode[])}
                             </div>
+                            {totalPages > 1 && (
+                                <Pagination 
+                                    currentPage={currentPage} 
+                                    totalPages={totalPages} 
+                                    onPageChange={goToPage} 
+                                />
+                            )}
                         </section>
                     </div>
                     <aside className="space-y-8 sticky top-24 h-fit">

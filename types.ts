@@ -90,6 +90,14 @@ export interface AdSettings {
     sidebarAdCode: string;
     footerAdEnabled: boolean;
     footerAdCode: string;
+    inFeedJobsAdEnabled: boolean;
+    inFeedJobsAdCode: string;
+    inFeedBlogAdEnabled: boolean;
+    inFeedBlogAdCode: string;
+    jobDetailTopAdEnabled: boolean;
+    jobDetailTopAdCode: string;
+    blogDetailTopAdEnabled: boolean;
+    blogDetailTopAdCode: string;
     adFrequency: 'low' | 'medium' | 'high';
     adStartTime: string; // HH:mm
     adEndTime: string; // HH:mm

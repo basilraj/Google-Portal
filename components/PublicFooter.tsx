@@ -24,6 +24,7 @@ const PublicFooter: React.FC<{ navigate: (path: string) => void }> = ({ navigate
                         <h3 className="text-lg font-bold mb-4">Quick Links</h3>
                         <ul className="space-y-2 text-sm">
                              <li><a href="/about" onClick={(e) => { e.preventDefault(); navigate('/about'); }} className="text-gray-300 hover:underline">About Us</a></li>
+                             <li><a href="/contact" onClick={(e) => { e.preventDefault(); navigate('/contact'); }} className="text-gray-300 hover:underline">Contact Us</a></li>
                              <li><a href="/blog" onClick={(e) => { e.preventDefault(); navigate('/blog'); }} className="text-gray-300 hover:underline">Blog</a></li>
                              <li><a href="/privacy" onClick={(e) => { e.preventDefault(); navigate('/privacy'); }} className="text-gray-300 hover:underline">Privacy Policy</a></li>
                              <li><a href="/terms" onClick={(e) => { e.preventDefault(); navigate('/terms'); }} className="text-gray-300 hover:underline">Terms & Conditions</a></li>

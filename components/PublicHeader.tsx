@@ -19,7 +19,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
         { name: 'Home', path: '/' },
         { name: 'Blog', path: '/blog' },
         { name: 'About Us', path: '/about' },
-        { name: 'Privacy Policy', path: '/privacy' }
+        { name: 'Contact Us', path: '/contact' }
     ];
 
     const NavLink: React.FC<{ path: string; name: string; isMobile?: boolean; }> = ({ path, name, isMobile = false }) => (
