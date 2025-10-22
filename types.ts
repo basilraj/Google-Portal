@@ -83,6 +83,14 @@ export interface SponsoredAd {
     clicks?: number;
 }
 
+export interface AdNetworkSettings {
+    googleAdSense: { code: string; notes: string; };
+    adsterra: { code: string; notes: string; };
+    mediaNet: { code: string; notes: string; };
+    ezoic: { code: string; notes: string; };
+    propellerAds: { code: string; notes: string; };
+}
+
 export interface AdSettings {
     headerAdEnabled: boolean;
     headerAdCode: string;
@@ -121,6 +129,7 @@ export interface AdSettings {
         rules: GeoTargetedAd[];
     };
     sponsoredAds: SponsoredAd[];
+    adNetworks: AdNetworkSettings;
 }
 
 export interface SEOSettings {

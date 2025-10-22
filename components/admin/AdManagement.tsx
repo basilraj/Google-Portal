@@ -41,13 +41,22 @@ const AdManagement: React.FC = () => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
-        const [field, subfield] = name.split('.');
+        const keys = name.split('.');
 
-        if (subfield) { // Nested state e.g., adsense.enabled
-            setFormData(prev => ({
-                ...prev,
-                [field]: { ...prev[field as keyof AdSettings] as object, [subfield]: type === 'checkbox' ? checked : value }
-            }));
+        if (keys.length > 1) {
+            setFormData(prev => {
+                const newState = { ...prev };
+                let currentLevel = newState as any;
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (typeof currentLevel[keys[i]] !== 'object' || currentLevel[keys[i]] === null) {
+                        currentLevel[keys[i]] = {};
+                    }
+                    currentLevel[keys[i]] = { ...currentLevel[keys[i]] };
+                    currentLevel = currentLevel[keys[i]];
+                }
+                currentLevel[keys[keys.length - 1]] = type === 'checkbox' ? checked : value;
+                return newState;
+            });
         } else {
             setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
         }
@@ -93,6 +102,37 @@ const AdManagement: React.FC = () => {
         setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
     };
 
+    const AdNetworkInput: React.FC<{ networkKey: keyof AdSettings['adNetworks']; label: string; icon?: string; iconPrefix?: 'fab' | 'fas' }> = ({ networkKey, label, icon, iconPrefix = 'fab' }) => (
+        <div className="p-4 border rounded-lg bg-white">
+            <h4 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                {icon && <Icon prefix={iconPrefix} name={icon} />} {label}
+            </h4>
+            <div className="space-y-2">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Ad Code / Script</label>
+                    <textarea 
+                        name={`adNetworks.${networkKey}.code`}
+                        value={formData.adNetworks[networkKey]?.code || ''} 
+                        onChange={handleChange} 
+                        rows={4} 
+                        className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Notes</label>
+                    <input 
+                        type="text"
+                        name={`adNetworks.${networkKey}.notes`}
+                        value={formData.adNetworks[networkKey]?.notes || ''} 
+                        onChange={handleChange} 
+                        className="mt-1 block w-full text-sm border-gray-300 rounded-md"
+                        placeholder="e.g., '300x250 sidebar unit'"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm">
             <div className="p-4 border-b flex justify-between items-center">
@@ -130,7 +170,22 @@ const AdManagement: React.FC = () => {
                 </div>
             </AccordionSection>
 
-            <AccordionSection title="Ad Networks & Placements" isOpen={activeSection === 'networks'} onToggle={() => handleToggleSection('networks')}>
+            <AccordionSection title="Ad Network Management" isOpen={activeSection === 'ad_networks'} onToggle={() => handleToggleSection('ad_networks')}>
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-600">
+                        Use this section as a central repository to store your ad codes from different networks. You can then copy and paste these codes into the specific slots in the "Ad Placements" section below.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <AdNetworkInput networkKey="googleAdSense" label="Google AdSense" icon="google" />
+                        <AdNetworkInput networkKey="adsterra" label="Adsterra" />
+                        <AdNetworkInput networkKey="mediaNet" label="Media.net" />
+                        <AdNetworkInput networkKey="ezoic" label="Ezoic" />
+                        <AdNetworkInput networkKey="propellerAds" label="PropellerAds" />
+                    </div>
+                </div>
+            </AccordionSection>
+
+            <AccordionSection title="Ad Placements" isOpen={activeSection === 'placements'} onToggle={() => handleToggleSection('placements')}>
                  <div className="space-y-6">
                     {/* Direct Placements */}
                     <div>
@@ -192,11 +247,11 @@ const AdManagement: React.FC = () => {
                          <h3 className="text-lg font-semibold text-gray-800 mb-4">Custom Ads Network</h3>
                          <div className="space-y-4">
                             <label className="flex items-center gap-3">
-                                <input type="checkbox" checked={formData.customAds.enabled} onChange={e => handleNestedChange(['customAds', 'enabled'], e.target.checked)} className="h-4 w-4 rounded border-gray-300"/>
+                                <input type="checkbox" name="customAds.enabled" checked={formData.customAds.enabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
                                 <span>Enable Custom Ads</span>
                             </label>
                             <label className="flex items-center gap-3">
-                                <input type="checkbox" checked={formData.customAds.rotation} onChange={e => handleNestedChange(['customAds', 'rotation'], e.target.checked)} className="h-4 w-4 rounded border-gray-300"/>
+                                <input type="checkbox" name="customAds.rotation" checked={formData.customAds.rotation} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
                                 <span>Enable Ad Rotation</span>
                             </label>
                             {formData.customAds.codes.map((code, index) => (
