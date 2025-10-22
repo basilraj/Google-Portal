@@ -37,9 +37,10 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
                 <AdComponent code={jobDetailTopAdCode} placement="header" />
             </div>
         )}
-        <h1 className="text-3xl font-bold text-[#1e3c72] mb-4">{job.title}</h1>
-        <div className="text-sm text-gray-600 mb-6 border-b pb-4 flex flex-wrap gap-x-6 gap-y-2">
+        <h1 className="text-4xl font-bold text-[#1e3c72] mb-4">{job.title}</h1>
+        <div className="text-base text-gray-600 mb-6 border-b pb-4 flex flex-wrap gap-x-6 gap-y-2">
           <span><Icon name="building" className="mr-2 text-gray-400" />{job.department}</span>
+          <span><Icon name="tag" className="mr-2 text-gray-400" />{job.category}</span>
           <span><Icon name="graduation-cap" className="mr-2 text-gray-400" />{job.qualification}</span>
           <span><Icon name="briefcase" className="mr-2 text-gray-400" />{job.vacancies} Vacancies</span>
           <span><Icon name="calendar-check" className="mr-2 text-gray-400" />Posted: {job.postedDate}</span>

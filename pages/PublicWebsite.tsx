@@ -15,7 +15,8 @@ const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.me
         <div className="p-4 sm:p-5 flex-grow">
             <h3 className="text-md sm:text-lg font-bold text-[#1e3c72] leading-tight mb-2">{job.title}</h3>
             <p className="text-sm text-gray-500 mb-3">{job.department}</p>
-            <div className="text-xs text-gray-600 space-y-2">
+            <div className="text-sm text-gray-700 space-y-3">
+                <p className="flex items-center gap-2"><Icon name="tag" className="w-4 text-gray-400" />{job.category}</p>
                 <p className="flex items-center gap-2"><Icon name="graduation-cap" className="w-4 text-gray-400" />{job.qualification}</p>
                 <p className="flex items-center gap-2"><Icon name="briefcase" className="w-4 text-gray-400" />{job.vacancies} Vacancies</p>
                 <p className="flex items-center gap-2"><Icon name="calendar-alt" className="w-4 text-gray-400" />Last Date: {job.lastDate}</p>
@@ -65,6 +66,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     const { jobs, posts, quickLinks, breakingNews, adSettings, addSubscriber, seoSettings, trackSponsoredAdClick } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [departmentFilter, setDepartmentFilter] = useState('All Departments');
+    const [categoryFilter, setCategoryFilter] = useState('All Categories');
     const [qualificationFilter, setQualificationFilter] = useState('All Qualifications');
     const [sortOption, setSortOption] = useState('postedDate-desc');
     const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
@@ -87,6 +89,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         let filtered = activeJobs.filter(job => 
             (job.title.toLowerCase().includes(searchTerm.toLowerCase()) || job.department.toLowerCase().includes(searchTerm.toLowerCase())) &&
             (departmentFilter === 'All Departments' || job.department === departmentFilter) &&
+            (categoryFilter === 'All Categories' || job.category === categoryFilter) &&
             (qualificationFilter === 'All Qualifications' || job.qualification === qualificationFilter)
         );
 
@@ -109,7 +112,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         });
 
         return filtered;
-    }, [activeJobs, searchTerm, departmentFilter, qualificationFilter, sortOption]);
+    }, [activeJobs, searchTerm, departmentFilter, categoryFilter, qualificationFilter, sortOption]);
     
     const { currentPage, totalPages, paginatedData, goToPage } = usePagination(sortedAndFilteredJobs, { itemsPerPage: JOBS_PER_PAGE });
 
@@ -122,6 +125,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     };
     
     const departments = useMemo(() => ['All Departments', ...Array.from(new Set(activeJobs.map(j => j.department))).sort()], [activeJobs]);
+    const categories = useMemo(() => ['All Categories', ...Array.from(new Set(activeJobs.map(j => j.category))).sort()], [activeJobs]);
     const qualifications = useMemo(() => ['All Qualifications', ...Array.from(new Set(activeJobs.map(j => j.qualification))).sort()], [activeJobs]);
     const latestNotices = useMemo(() => posts.filter(p => p.type === 'exam-notices' && p.status === 'published').slice(0, 5), [posts]);
     const latestResults = useMemo(() => posts.filter(p => p.type === 'results' && p.status === 'published').slice(0, 5), [posts]);
@@ -194,7 +198,17 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                             </button>
                         </div>
                         <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isAdvancedFilterOpen ? 'max-h-40 mt-4 pt-4 border-t' : 'max-h-0'}`}>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
+                                    <select 
+                                        value={categoryFilter}
+                                        onChange={e => setCategoryFilter(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                                    >
+                                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
                                 <div>
                                     <label className="block text-xs font-medium text-gray-500 mb-1">Qualification</label>
                                     <select 

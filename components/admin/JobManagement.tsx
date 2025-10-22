@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
@@ -34,10 +35,11 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
     </div>
 );
 
-const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; }) => void; onCancel: () => void; isLoading: boolean; }> = ({ job, onSave, onCancel, isLoading }) => {
+const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; }) => void; onCancel: () => void; isLoading: boolean; uniqueCategories: string[]; }> = ({ job, onSave, onCancel, isLoading, uniqueCategories }) => {
     const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(job ? { ...job } : {
         title: '',
         department: '',
+        category: '',
         description: '',
         qualification: '',
         vacancies: '',
@@ -76,10 +78,25 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
                 <label className="block text-sm font-medium text-gray-700">Job Title *</label>
                 <input ref={titleInputRef} type="text" name="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                  <div>
                     <label className="block text-sm font-medium text-gray-700">Department *</label>
                     <input type="text" name="department" value={formData.department} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Category *</label>
+                    <input 
+                        type="text" 
+                        name="category" 
+                        value={formData.category} 
+                        onChange={handleChange} 
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+                        required 
+                        list="category-list"
+                    />
+                    <datalist id="category-list">
+                        {uniqueCategories.map(cat => <option key={cat} value={cat} />)}
+                    </datalist>
                 </div>
                  <div>
                     <label className="block text-sm font-medium text-gray-700">Qualification *</label>
@@ -167,10 +184,11 @@ const BulkUploadModal: React.FC<{
     };
 
     const handleDownloadSample = () => {
-        const headers = ['title', 'department', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
+        const headers = ['title', 'department', 'category', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
         const exampleRow = [
             '"SSC CGL Recruitment, 2025"', // Example with comma
             'Staff Selection Commission',
+            'Central Government',
             '"Combined Graduate Level Examination for various Group B and C posts."',
             'Graduate',
             '5000',
@@ -294,6 +312,8 @@ const JobManagement: React.FC = () => {
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [confirmModalContent, setConfirmModalContent] = useState<{ title: string; message: React.ReactNode; onConfirm: () => void; }>({ title: '', message: '', onConfirm: () => {} });
     const [isExtractorModalOpen, setIsExtractorModalOpen] = useState(false);
+
+    const uniqueCategories = useMemo(() => [...new Set(jobs.map(j => j.category))].sort(), [jobs]);
 
     const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
         setNotification({ type, message });
@@ -439,7 +459,7 @@ const JobManagement: React.FC = () => {
             const headerLine = lines[0];
             const headers = parseCsvLine(headerLine).map(h => h.trim());
             
-            const requiredHeaders = ['title', 'department', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
+            const requiredHeaders = ['title', 'department', 'category', 'description', 'qualification', 'vacancies', 'postedDate', 'lastDate', 'applyLink'];
             if (JSON.stringify(headers) !== JSON.stringify(requiredHeaders)) {
                  const errorMsg = `Invalid CSV header. Expected: ${requiredHeaders.join(',')}`;
                  setBulkUploadErrors([errorMsg]);
@@ -463,6 +483,7 @@ const JobManagement: React.FC = () => {
                 
                 if (!jobEntry.title) errors.push(`Line ${rowNum}: 'title' is required.`);
                 if (!jobEntry.department) errors.push(`Line ${rowNum}: 'department' is required.`);
+                if (!jobEntry.category) errors.push(`Line ${rowNum}: 'category' is required.`);
                 if (!jobEntry.postedDate || isNaN(new Date(jobEntry.postedDate).getTime())) {
                     errors.push(`Line ${rowNum}: Invalid or missing 'postedDate'. Use YYYY-MM-DD.`);
                 }
@@ -613,6 +634,7 @@ const JobManagement: React.FC = () => {
                                 </th>
                                 <SortableHeader columnKey="title" title="Title" />
                                 <SortableHeader columnKey="department" title="Department" />
+                                <SortableHeader columnKey="category" title="Category" />
                                 <SortableHeader columnKey="lastDate" title="Last Date" />
                                 <th className="px-6 py-3">Status</th>
                                 <th className="px-6 py-3">Actions</th>
@@ -633,6 +655,7 @@ const JobManagement: React.FC = () => {
                                     </td>
                                     <td data-label="Title" className="px-6 py-4 font-medium text-gray-900">{job.title}</td>
                                     <td data-label="Department" className="px-6 py-4">{job.department}</td>
+                                    <td data-label="Category" className="px-6 py-4">{job.category}</td>
                                     <td data-label="Last Date" className="px-6 py-4">{job.lastDate}</td>
                                     <td data-label="Status" className="px-6 py-4">
                                          <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${effectiveStatus === 'active' ? 'bg-green-100 text-green-800' : effectiveStatus === 'closing-soon' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>{effectiveStatus.replace('-', ' ')}</span>
@@ -657,7 +680,7 @@ const JobManagement: React.FC = () => {
                 />
             )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingJob ? 'Edit Job' : 'Add New Job'}>
-                <JobForm job={editingJob} onSave={handleSave} onCancel={() => setIsModalOpen(false)} isLoading={isLoading} />
+                <JobForm job={editingJob} onSave={handleSave} onCancel={() => setIsModalOpen(false)} isLoading={isLoading} uniqueCategories={uniqueCategories} />
             </Modal>
             <BulkUploadModal
                 isOpen={isBulkUploadModalOpen}

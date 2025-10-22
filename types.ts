@@ -5,6 +5,7 @@ export interface Job {
   id: string;
   title: string;
   department: string;
+  category: string;
   description: string;
   qualification: string;
   vacancies: string;
