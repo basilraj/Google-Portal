@@ -9,10 +9,16 @@ import { ContentPost } from '../types.ts';
 // Fix: Add .tsx extension to local module imports.
 import PublicHeader from '../components/PublicHeader.tsx';
 import AdComponent from '../components/AdComponent.tsx';
+import { getAdCodeForPlacement } from '../utils/jobUtils.ts';
 
 const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { posts, adSettings } = useData();
     const [selectedCategory, setSelectedCategory] = useState('All Categories');
+
+    const headerAdCode = getAdCodeForPlacement(adSettings.headerAd, adSettings.adNetworks);
+    const inFeedBlogAdCode = getAdCodeForPlacement(adSettings.inFeedBlogAd, adSettings.adNetworks);
+    const sidebarAdCode = getAdCodeForPlacement(adSettings.sidebarAd, adSettings.adNetworks);
+    const footerAdCode = getAdCodeForPlacement(adSettings.footerAd, adSettings.adNetworks);
     
     const blogPosts = useMemo(() => posts.filter(p => p.type === 'posts' && p.status === 'published')
                                       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()), [posts]);
@@ -36,7 +42,7 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
-            {adSettings.headerAdEnabled && <AdComponent code={adSettings.headerAdCode} placement="header" />}
+            {headerAdCode && <AdComponent code={headerAdCode} placement="header" />}
 
             <main className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -48,10 +54,10 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                                     filteredBlogPosts.reduce((acc, post, index) => {
                                         acc.push(<BlogPostCard key={post.id} post={post} onReadMore={handleReadMore} />);
                                         // Insert ad after the 2nd item (index 1)
-                                        if (index === 1 && adSettings.inFeedBlogAdEnabled) {
+                                        if (index === 1 && inFeedBlogAdCode) {
                                             acc.push(
                                                 <div key="ad-in-feed-blog">
-                                                    <AdComponent code={adSettings.inFeedBlogAdCode} placement="in-feed" />
+                                                    <AdComponent code={inFeedBlogAdCode} placement="in-feed" />
                                                 </div>
                                             );
                                         }
@@ -81,13 +87,13 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                                 ))}
                             </ul>
                         </div>
-                        {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} placement="sidebar" />}
+                        {sidebarAdCode && <AdComponent code={sidebarAdCode} placement="sidebar" />}
                     </aside>
                 </div>
             </main>
-             {adSettings.footerAdEnabled && (
+             {footerAdCode && (
                 <div className="container mx-auto px-4">
-                    <AdComponent code={adSettings.footerAdCode} placement="footer" />
+                    <AdComponent code={footerAdCode} placement="footer" />
                 </div>
             )}
             <PublicFooter navigate={navigate} />

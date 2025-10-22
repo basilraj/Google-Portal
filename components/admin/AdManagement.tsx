@@ -1,8 +1,8 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module imports.
-import { AdSettings, ABTest, GeoTargetedAd } from '../../types.ts';
+// Fix: Add .ts extension to local module imports.
+import { AdSettings, ABTest, GeoTargetedAd, PlacementSetting } from '../../types.ts';
 import Icon from '../Icon.tsx';
 
 const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: boolean; onToggle: () => void; }> = ({ title, children, isOpen, onToggle }) => (
@@ -26,7 +26,7 @@ const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: b
 const AdManagement: React.FC = () => {
     const { adSettings, updateAdSettings } = useData();
     const [formData, setFormData] = useState<AdSettings>(adSettings);
-    const [activeSection, setActiveSection] = useState<string>('display');
+    const [activeSection, setActiveSection] = useState<string>('placements');
     const [message, setMessage] = useState('');
     
     // Ensure local form data is synced if context data changes externally
@@ -38,30 +38,6 @@ const AdManagement: React.FC = () => {
         setActiveSection(prev => prev === section ? '' : section);
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const checked = (e.target as HTMLInputElement).checked;
-        const keys = name.split('.');
-
-        if (keys.length > 1) {
-            setFormData(prev => {
-                const newState = { ...prev };
-                let currentLevel = newState as any;
-                for (let i = 0; i < keys.length - 1; i++) {
-                    if (typeof currentLevel[keys[i]] !== 'object' || currentLevel[keys[i]] === null) {
-                        currentLevel[keys[i]] = {};
-                    }
-                    currentLevel[keys[i]] = { ...currentLevel[keys[i]] };
-                    currentLevel = currentLevel[keys[i]];
-                }
-                currentLevel[keys[keys.length - 1]] = type === 'checkbox' ? checked : value;
-                return newState;
-            });
-        } else {
-            setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-        }
-    };
-    
     const handleNestedChange = (path: (string | number)[], value: any) => {
         setFormData(prev => {
             const newState = JSON.parse(JSON.stringify(prev)); // Deep copy for safety
@@ -111,9 +87,8 @@ const AdManagement: React.FC = () => {
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Ad Code / Script</label>
                     <textarea 
-                        name={`adNetworks.${networkKey}.code`}
                         value={formData.adNetworks[networkKey]?.code || ''} 
-                        onChange={handleChange} 
+                        onChange={e => handleNestedChange(['adNetworks', networkKey, 'code'], e.target.value)}
                         rows={4} 
                         className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"
                     />
@@ -122,9 +97,8 @@ const AdManagement: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">Notes</label>
                     <input 
                         type="text"
-                        name={`adNetworks.${networkKey}.notes`}
                         value={formData.adNetworks[networkKey]?.notes || ''} 
-                        onChange={handleChange} 
+                        onChange={e => handleNestedChange(['adNetworks', networkKey, 'notes'], e.target.value)}
                         className="mt-1 block w-full text-sm border-gray-300 rounded-md"
                         placeholder="e.g., '300x250 sidebar unit'"
                     />
@@ -133,6 +107,75 @@ const AdManagement: React.FC = () => {
         </div>
     );
 
+    type PlacementKey = keyof Pick<AdSettings, 'headerAd' | 'sidebarAd' | 'footerAd' | 'inFeedJobsAd' | 'inFeedBlogAd' | 'jobDetailTopAd' | 'blogDetailTopAd'>;
+
+    const PlacementEditor: React.FC<{
+        placementKey: PlacementKey;
+        label: string;
+    }> = ({ placementKey, label }) => {
+        const placement = formData[placementKey] as PlacementSetting;
+        
+        const handlePlacementChange = (field: keyof PlacementSetting, value: any) => {
+            handleNestedChange([placementKey, field], value);
+        };
+        
+        return (
+            <div>
+                <label className="flex items-center gap-3 mb-2">
+                    <input
+                        type="checkbox"
+                        checked={placement.enabled}
+                        onChange={(e) => handlePlacementChange('enabled', e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span className="font-medium text-gray-700">{label}</span>
+                </label>
+                <div className={`pl-7 space-y-2 ${!placement.enabled ? 'opacity-50' : ''}`}>
+                    <select
+                        value={placement.type}
+                        onChange={(e) => handlePlacementChange('type', e.target.value)}
+                        disabled={!placement.enabled}
+                        className="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                    >
+                        <option value="custom">Custom Code</option>
+                        <option value="network">From Ad Code Library</option>
+                    </select>
+                    
+                    {placement.type === 'network' ? (
+                        <select
+                            value={placement.networkKey}
+                            onChange={(e) => handlePlacementChange('networkKey', e.target.value)}
+                            disabled={!placement.enabled}
+                            className="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                        >
+                            <option value="">-- Select an Ad Network --</option>
+                            {/* FIX: Use Object.keys for proper type inference on ad network values. */}
+                            {Object.keys(formData.adNetworks).map((key) => {
+                                const networkKey = key as keyof AdSettings['adNetworks'];
+                                const value = formData.adNetworks[networkKey];
+                                return (
+                                <option key={key} value={key}>
+                                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                    {value.notes ? ` (${value.notes})` : ''}
+                                </option>
+                                );
+                            })}
+                        </select>
+                    ) : (
+                        <textarea
+                            value={placement.customCode}
+                            onChange={(e) => handlePlacementChange('customCode', e.target.value)}
+                            rows={3}
+                            className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                            disabled={!placement.enabled}
+                            placeholder="Paste your ad code here"
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm">
             <div className="p-4 border-b flex justify-between items-center">
@@ -140,40 +183,22 @@ const AdManagement: React.FC = () => {
                 {message && <div className="text-sm text-green-600 font-medium flex items-center gap-2"><Icon name="check-circle" /> {message}</div>}
             </div>
             
-            <AccordionSection title="Global Display Settings" isOpen={activeSection === 'display'} onToggle={() => handleToggleSection('display')}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Ad Frequency</label>
-                        <select name="adFrequency" value={formData.adFrequency} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
-                            <option value="low">Low (Every 5 posts)</option>
-                            <option value="medium">Medium (Every 3 posts)</option>
-                            <option value="high">High (Every post)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Ad Scheduling</label>
-                        <div className="flex items-center gap-2 mt-1">
-                            <input type="time" name="adStartTime" value={formData.adStartTime} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
-                            <span>to</span>
-                            <input type="time" name="adEndTime" value={formData.adEndTime} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
-                        </div>
-                    </div>
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700">Ad Types to Show</label>
-                        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2">
-                            <label className="flex items-center gap-2"><input type="checkbox" name="bannerAds" checked={formData.bannerAds} onChange={handleChange} /> Banner Ads</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" name="squareAds" checked={formData.squareAds} onChange={handleChange} /> Square Ads</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" name="skyscraperAds" checked={formData.skyscraperAds} onChange={handleChange} /> Skyscraper Ads</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" name="popupAds" checked={formData.popupAds} onChange={handleChange} /> Popup Ads</label>
-                        </div>
-                    </div>
+            <AccordionSection title="Ad Placements" isOpen={activeSection === 'placements'} onToggle={() => handleToggleSection('placements')}>
+                <div className="space-y-6">
+                    <PlacementEditor placementKey="headerAd" label="Header Ad" />
+                    <PlacementEditor placementKey="sidebarAd" label="Sidebar Ad" />
+                    <PlacementEditor placementKey="footerAd" label="Footer Ad" />
+                    <PlacementEditor placementKey="inFeedJobsAd" label="In-Feed Job List Ad" />
+                    <PlacementEditor placementKey="inFeedBlogAd" label="In-Feed Blog List Ad" />
+                    <PlacementEditor placementKey="jobDetailTopAd" label="Ad on Top of Job Detail Page" />
+                    <PlacementEditor placementKey="blogDetailTopAd" label="Ad on Top of Blog Detail Page" />
                 </div>
             </AccordionSection>
-
-            <AccordionSection title="Ad Network Management" isOpen={activeSection === 'ad_networks'} onToggle={() => handleToggleSection('ad_networks')}>
+            
+            <AccordionSection title="Ad Code Library" isOpen={activeSection === 'ad_networks'} onToggle={() => handleToggleSection('ad_networks')}>
                 <div className="space-y-4">
                     <p className="text-sm text-gray-600">
-                        Use this section as a central repository to store your ad codes from different networks. You can then copy and paste these codes into the specific slots in the "Ad Placements" section below.
+                        Use this section as a central library to store your ad codes from different networks. You can then select these codes in the "Ad Placements" section above.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <AdNetworkInput networkKey="googleAdSense" label="Google AdSense" icon="google" />
@@ -185,88 +210,34 @@ const AdManagement: React.FC = () => {
                 </div>
             </AccordionSection>
 
-            <AccordionSection title="Ad Placements" isOpen={activeSection === 'placements'} onToggle={() => handleToggleSection('placements')}>
-                 <div className="space-y-6">
-                    {/* Direct Placements */}
+            <AccordionSection title="Global Display Settings" isOpen={activeSection === 'display'} onToggle={() => handleToggleSection('display')}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Direct Placements</h3>
-                         <div className="space-y-4">
-                            <div>
-                                <label className="flex items-center gap-3 mb-2">
-                                    <input type="checkbox" name="headerAdEnabled" checked={formData.headerAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                    <span className="font-medium text-gray-700">Enable Header Ad</span>
-                                </label>
-                                <textarea name="headerAdCode" value={formData.headerAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.headerAdEnabled}/>
-                            </div>
-                            <div>
-                                <label className="flex items-center gap-3 mb-2">
-                                    <input type="checkbox" name="sidebarAdEnabled" checked={formData.sidebarAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                    <span className="font-medium text-gray-700">Enable Sidebar Ad</span>
-                                </label>
-                                <textarea name="sidebarAdCode" value={formData.sidebarAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.sidebarAdEnabled}/>
-                            </div>
-                             <div>
-                                <label className="flex items-center gap-3 mb-2">
-                                    <input type="checkbox" name="footerAdEnabled" checked={formData.footerAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                    <span className="font-medium text-gray-700">Enable Footer Ad</span>
-                                </label>
-                                <textarea name="footerAdCode" value={formData.footerAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.footerAdEnabled}/>
-                            </div>
-                            <div>
-                                <label className="flex items-center gap-3 mb-2">
-                                    <input type="checkbox" name="inFeedJobsAdEnabled" checked={formData.inFeedJobsAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                    <span className="font-medium text-gray-700">Enable In-Feed Job List Ad</span>
-                                </label>
-                                <textarea name="inFeedJobsAdCode" value={formData.inFeedJobsAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.inFeedJobsAdEnabled}/>
-                            </div>
-                             <div>
-                                <label className="flex items-center gap-3 mb-2">
-                                    <input type="checkbox" name="inFeedBlogAdEnabled" checked={formData.inFeedBlogAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                    <span className="font-medium text-gray-700">Enable In-Feed Blog List Ad</span>
-                                </label>
-                                <textarea name="inFeedBlogAdCode" value={formData.inFeedBlogAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.inFeedBlogAdEnabled}/>
-                            </div>
-                            <div>
-                                <label className="flex items-center gap-3 mb-2">
-                                    <input type="checkbox" name="jobDetailTopAdEnabled" checked={formData.jobDetailTopAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                    <span className="font-medium text-gray-700">Enable Ad on Top of Job Detail Page</span>
-                                </label>
-                                <textarea name="jobDetailTopAdCode" value={formData.jobDetailTopAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.jobDetailTopAdEnabled}/>
-                            </div>
-                            <div>
-                                <label className="flex items-center gap-3 mb-2">
-                                    <input type="checkbox" name="blogDetailTopAdEnabled" checked={formData.blogDetailTopAdEnabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                    <span className="font-medium text-gray-700">Enable Ad on Top of Blog Detail Page</span>
-                                </label>
-                                <textarea name="blogDetailTopAdCode" value={formData.blogDetailTopAdCode} onChange={handleChange} rows={3} className="block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm disabled:bg-gray-100" disabled={!formData.blogDetailTopAdEnabled}/>
-                            </div>
-                         </div>
+                        <label className="block text-sm font-medium text-gray-700">Ad Frequency (In-Feed)</label>
+                        <select name="adFrequency" value={formData.adFrequency} onChange={e => handleNestedChange(['adFrequency'], e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
                     </div>
-                    {/* Custom Ads */}
-                    <div className="border-t pt-6">
-                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Custom Ads Network</h3>
-                         <div className="space-y-4">
-                            <label className="flex items-center gap-3">
-                                <input type="checkbox" name="customAds.enabled" checked={formData.customAds.enabled} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                <span>Enable Custom Ads</span>
-                            </label>
-                            <label className="flex items-center gap-3">
-                                <input type="checkbox" name="customAds.rotation" checked={formData.customAds.rotation} onChange={handleChange} className="h-4 w-4 rounded border-gray-300"/>
-                                <span>Enable Ad Rotation</span>
-                            </label>
-                            {formData.customAds.codes.map((code, index) => (
-                                <div key={index}>
-                                    <label className="block text-sm font-medium text-gray-700">Custom Ad Code #{index + 1}</label>
-                                    <div className="flex items-center gap-2">
-                                        <textarea value={code} onChange={e => handleNestedChange(['customAds', 'codes', index], e.target.value)} rows={3} className="mt-1 block w-full font-mono text-sm border-gray-300 rounded-md"/>
-                                        <button type="button" onClick={() => handleRemoveCustomAd(index)} className="text-red-500 hover:text-red-700 p-2"><Icon name="trash" /></button>
-                                    </div>
-                                </div>
-                            ))}
-                            <button type="button" onClick={handleAddCustomAd} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle"/> Add Another Ad Code</button>
-                         </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Ad Scheduling</label>
+                        <div className="flex items-center gap-2 mt-1">
+                            <input type="time" name="adStartTime" value={formData.adStartTime} onChange={e => handleNestedChange(['adStartTime'], e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                            <span>to</span>
+                            <input type="time" name="adEndTime" value={formData.adEndTime} onChange={e => handleNestedChange(['adEndTime'], e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                        </div>
                     </div>
-                 </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Ad Types to Show</label>
+                        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2">
+                            <label className="flex items-center gap-2"><input type="checkbox" name="bannerAds" checked={formData.bannerAds} onChange={e => handleNestedChange(['bannerAds'], e.target.checked)} /> Banner Ads</label>
+                            <label className="flex items-center gap-2"><input type="checkbox" name="squareAds" checked={formData.squareAds} onChange={e => handleNestedChange(['squareAds'], e.target.checked)} /> Square Ads</label>
+                            <label className="flex items-center gap-2"><input type="checkbox" name="skyscraperAds" checked={formData.skyscraperAds} onChange={e => handleNestedChange(['skyscraperAds'], e.target.checked)} /> Skyscraper Ads</label>
+                            <label className="flex items-center gap-2"><input type="checkbox" name="popupAds" checked={formData.popupAds} onChange={e => handleNestedChange(['popupAds'], e.target.checked)} /> Popup Ads</label>
+                        </div>
+                    </div>
+                </div>
             </AccordionSection>
 
             <AccordionSection title="A/B Testing" isOpen={activeSection === 'abtesting'} onToggle={() => handleToggleSection('abtesting')}>

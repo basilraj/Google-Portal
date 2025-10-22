@@ -91,21 +91,26 @@ export interface AdNetworkSettings {
     propellerAds: { code: string; notes: string; };
 }
 
+export type AdPlacementType = 'network' | 'custom';
+
+export interface PlacementSetting {
+  enabled: boolean;
+  type: AdPlacementType;
+  networkKey: keyof AdNetworkSettings | ''; // Use empty string for 'none'
+  customCode: string;
+}
+
 export interface AdSettings {
-    headerAdEnabled: boolean;
-    headerAdCode: string;
-    sidebarAdEnabled: boolean;
-    sidebarAdCode: string;
-    footerAdEnabled: boolean;
-    footerAdCode: string;
-    inFeedJobsAdEnabled: boolean;
-    inFeedJobsAdCode: string;
-    inFeedBlogAdEnabled: boolean;
-    inFeedBlogAdCode: string;
-    jobDetailTopAdEnabled: boolean;
-    jobDetailTopAdCode: string;
-    blogDetailTopAdEnabled: boolean;
-    blogDetailTopAdCode: string;
+    // Refactored Ad Placements
+    headerAd: PlacementSetting;
+    sidebarAd: PlacementSetting;
+    footerAd: PlacementSetting;
+    inFeedJobsAd: PlacementSetting;
+    inFeedBlogAd: PlacementSetting;
+    jobDetailTopAd: PlacementSetting;
+    blogDetailTopAd: PlacementSetting;
+    
+    // Other Ad Settings
     adFrequency: 'low' | 'medium' | 'high';
     adStartTime: string; // HH:mm
     adEndTime: string; // HH:mm

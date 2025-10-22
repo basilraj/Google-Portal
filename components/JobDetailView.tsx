@@ -6,6 +6,7 @@ import { slugify } from '../utils/slugify.ts';
 import Modal from './Modal.tsx';
 import AdComponent from './AdComponent.tsx';
 import { useData } from '../contexts/DataContext.tsx';
+import { getAdCodeForPlacement } from '../utils/jobUtils.ts';
 
 interface JobDetailViewProps {
   job: Job;
@@ -14,6 +15,7 @@ interface JobDetailViewProps {
 const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { adSettings } = useData();
+  const jobDetailTopAdCode = getAdCodeForPlacement(adSettings.jobDetailTopAd, adSettings.adNetworks);
 
   const jobUrl = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
   const shareTitle = `Check out this job: ${job.title}`;
@@ -30,9 +32,9 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
   return (
     <>
       <article className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
-        {adSettings.jobDetailTopAdEnabled && (
+        {jobDetailTopAdCode && (
             <div className="mb-6 -mx-6 -mt-6 md:-mx-8 md:-mt-8 rounded-t-lg overflow-hidden">
-                <AdComponent code={adSettings.jobDetailTopAdCode} placement="header" />
+                <AdComponent code={jobDetailTopAdCode} placement="header" />
             </div>
         )}
         <h1 className="text-3xl font-bold text-[#1e3c72] mb-4">{job.title}</h1>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../contexts/DataContext.tsx';
 import { Job, ContentPost, QuickLink } from '../types.ts';
-import { getEffectiveJobStatus } from '../utils/jobUtils.ts';
+import { getEffectiveJobStatus, getAdCodeForPlacement } from '../utils/jobUtils.ts';
 import Icon from '../components/Icon.tsx';
 import PublicHeader from '../components/PublicHeader.tsx';
 import PublicFooter from '../components/PublicFooter.tsx';
@@ -76,6 +76,11 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', seoSettings.global.metaDescription);
     }, [seoSettings]);
+
+    const headerAdCode = getAdCodeForPlacement(adSettings.headerAd, adSettings.adNetworks);
+    const inFeedJobsAdCode = getAdCodeForPlacement(adSettings.inFeedJobsAd, adSettings.adNetworks);
+    const sidebarAdCode = getAdCodeForPlacement(adSettings.sidebarAd, adSettings.adNetworks);
+    const footerAdCode = getAdCodeForPlacement(adSettings.footerAd, adSettings.adNetworks);
     
     const activeJobs = useMemo(() => jobs.filter(job => getEffectiveJobStatus(job) === 'active' || getEffectiveJobStatus(job) === 'closing-soon'), [jobs]);
 
@@ -136,7 +141,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
-            {adSettings.headerAdEnabled && <AdComponent code={adSettings.headerAdCode} placement="header" />}
+            {headerAdCode && <AdComponent code={headerAdCode} placement="header" />}
             
             {activeBreakingNews.length > 0 && (
                 <div className="bg-yellow-400 text-black overflow-hidden">
@@ -219,10 +224,10 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                                 {paginatedData.reduce((acc, job, index) => {
                                     acc.push(<JobCard key={job.id} job={job} onView={(slug) => navigate(`/job/${slug}`)} />);
                                     // Insert ad after the 4th item (index 3)
-                                    if (index === 3 && adSettings.inFeedJobsAdEnabled) {
+                                    if (index === 3 && inFeedJobsAdCode) {
                                         acc.push(
                                             <div key="ad-in-feed" className="md:col-span-2">
-                                                <AdComponent code={adSettings.inFeedJobsAdCode} placement="in-feed" />
+                                                <AdComponent code={inFeedJobsAdCode} placement="in-feed" />
                                             </div>
                                         );
                                     }
@@ -266,7 +271,7 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                                 ))}
                             </ul>
                         </div>
-                         {adSettings.sidebarAdEnabled && <AdComponent code={adSettings.sidebarAdCode} placement="sidebar" />}
+                         {sidebarAdCode && <AdComponent code={sidebarAdCode} placement="sidebar" />}
                     </aside>
                 </div>
 
@@ -298,9 +303,9 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
                 </section>
             </main>
 
-            {adSettings.footerAdEnabled && (
+            {footerAdCode && (
                 <div className="container mx-auto px-4">
-                    <AdComponent code={adSettings.footerAdCode} placement="footer" />
+                    <AdComponent code={footerAdCode} placement="footer" />
                 </div>
             )}
             <PublicFooter navigate={navigate} />

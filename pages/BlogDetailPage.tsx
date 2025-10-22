@@ -5,11 +5,13 @@ import PublicFooter from '../components/PublicFooter.tsx';
 import PublicHeader from '../components/PublicHeader.tsx';
 import { basePath } from '../App.tsx';
 import AdComponent from '../components/AdComponent.tsx';
+import { getAdCodeForPlacement } from '../utils/jobUtils.ts';
 
 const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => void }> = ({ postId, navigate }) => {
     const { posts, seoSettings, generalSettings, adSettings } = useData();
     const post = posts.find(p => p.id === postId);
     const canonicalUrl = `${window.location.origin}${basePath}/blog/${postId}`.replace(/([^:]\/)\/+/g, "$1");
+    const blogDetailTopAdCode = getAdCodeForPlacement(adSettings.blogDetailTopAd, adSettings.adNetworks);
 
     useEffect(() => {
         document.querySelectorAll('[data-seo-managed]').forEach(el => el.remove());
@@ -156,9 +158,9 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
             </nav>
             <main className="flex-grow container mx-auto px-4 py-12">
                  <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
-                    {adSettings.blogDetailTopAdEnabled && (
+                    {blogDetailTopAdCode && (
                         <div className="mb-6 -mx-6 -mt-6 md:-mx-8 md:-mt-8 rounded-t-lg overflow-hidden">
-                            <AdComponent code={adSettings.blogDetailTopAdCode} placement="header" />
+                            <AdComponent code={blogDetailTopAdCode} placement="header" />
                         </div>
                     )}
                     {post.imageUrl && (
