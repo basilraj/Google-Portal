@@ -32,8 +32,7 @@ const simpleHash = (s: string) => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // @fix - Property 'addActivityLog' does not exist on type 'DataContextType'. This will be fixed by updating DataContext.tsx
-  const { addActivityLog } = useData();
+  const { addActivityLog, smtpSettings } = useData();
   const [user, setUser] = useLocalStorage<User | null>('admin-user', null);
   const [sessionLoggedIn, setSessionLoggedIn] = useLocalStorage('session-is-logged-in', false);
   const [authStage, setAuthStage] = useState<AuthStage>('login');
@@ -66,8 +65,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Simulate sending OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       setStoredOtp(otp);
-      // In a real app, you would send this via email. For this demo, we'll alert it.
-      alert(`Your One-Time Password is: ${otp}`);
+      
+      // In a real app, you would send this via email. For this demo, we'll alert it with context.
+      if (smtpSettings.configured) {
+        alert(`SMTP is configured. In a real-world application, an email would be sent to ${user.email}.\n\nYour OTP is: ${otp}`);
+      } else {
+        alert(`SMTP not configured. Please configure it in Settings for a production environment.\n\nYour OTP is: ${otp}`);
+      }
+      
       setAuthStage('otp');
       return true;
     }

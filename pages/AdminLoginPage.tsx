@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import Icon from '../components/Icon.tsx';
+import { useData } from '../contexts/DataContext.tsx';
 
 const SignupForm: React.FC = () => {
     const { createAdmin } = useAuth();
@@ -87,6 +88,7 @@ const LoginForm: React.FC = () => {
 
 const OtpForm: React.FC = () => {
     const { verifyOtp, cancelOtp, userEmail } = useAuth();
+    const { smtpSettings } = useData();
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -113,7 +115,16 @@ const OtpForm: React.FC = () => {
             <div className="text-center">
                 <Icon name="key" className="text-5xl text-indigo-600 mx-auto" />
                 <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Two-Factor Authentication</h1>
-                <p className="mt-2 text-sm text-gray-600">A One-Time Password (OTP) has been sent to your registered email: <strong>{userEmail}</strong></p>
+                <p className="mt-2 text-sm text-gray-600">
+                    An OTP is required to proceed. Please check the browser alert for your code.
+                </p>
+                 <div className={`mt-4 text-xs p-3 rounded-md ${smtpSettings.configured ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    <Icon name={smtpSettings.configured ? "check-circle" : "exclamation-triangle"} className="mr-2"/>
+                    {smtpSettings.configured 
+                        ? "SMTP is configured. In a real application, this OTP would be sent to your email. For this demo, please use the code from the alert."
+                        : "SMTP is not configured. Please complete setup in the admin panel to enable real email delivery."
+                    }
+                </div>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                 <div>
