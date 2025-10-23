@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useEffect } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useAuth } from './contexts/AuthContext.tsx';
@@ -30,7 +29,7 @@ export const basePath = '';
 
 const App: React.FC = () => {
   const { isLoggedIn } = useAuth();
-  const { generalSettings, seoSettings, securitySettings } = useData();
+  const { generalSettings, seoSettings, securitySettings, isLoading } = useData();
   const [path, setPath] = useState(window.location.pathname);
 
   // This effect listens for browser navigation events (back/forward buttons)
@@ -50,14 +49,16 @@ const App: React.FC = () => {
   
   // This effect updates the favicon dynamically.
   useEffect(() => {
+    if (isLoading) return;
     const link = document.querySelector<HTMLLinkElement>("link[rel*='icon']");
     if (link && generalSettings.siteIconUrl) {
       link.href = generalSettings.siteIconUrl;
     }
-  }, [generalSettings.siteIconUrl]);
+  }, [generalSettings.siteIconUrl, isLoading]);
 
   // Update document title based on SEO settings and current page
   useEffect(() => {
+    if (isLoading) return;
     const route = (path.replace(basePath, '') || '/').toLowerCase();
     let title = seoSettings.global.siteTitle;
     if (route.startsWith('/admin')) title = `Admin Panel | ${title}`;
@@ -71,20 +72,35 @@ const App: React.FC = () => {
     else if (route === '/disclaimer') title = `Disclaimer | ${title}`;
     else if (route === '/contact') title = `Contact Us | ${title}`;
     document.title = title;
-  }, [path, seoSettings.global.siteTitle]);
+  }, [path, seoSettings.global.siteTitle, isLoading]);
 
 
   const navigate = (newPath: string) => {
-    // Ensure the new path starts with a single slash
     const sanitizedPath = newPath.startsWith('/') ? newPath : `/${newPath}`;
     const fullPath = `${basePath}${sanitizedPath}`.replace('//', '/');
-    window.history.pushState({}, '', fullPath);
-    // Dispatch a popstate event so the listener in useEffect can update the path state
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    
+    try {
+        window.history.pushState({}, '', fullPath);
+        setPath(fullPath); // Update state directly to trigger re-render
+    } catch (e) {
+        if (e instanceof DOMException && e.name === 'SecurityError') {
+            console.error("History API error (this is expected in some sandboxed environments):", e);
+            // Fallback for sandboxed environments like iframes where pushState is restricted.
+            // This will render the correct component without changing the URL in the address bar.
+            setPath(fullPath);
+        } else {
+            throw e;
+        }
+    }
   };
 
   const route = (path.replace(basePath, '') || '/').toLowerCase();
   const isPublicRoute = !route.startsWith('/admin');
+
+  if (isLoading && isPublicRoute) {
+    // You can return a global loading spinner here for the public site
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
 
   const renderPage = () => {
     if (generalSettings.maintenanceMode && isPublicRoute) {

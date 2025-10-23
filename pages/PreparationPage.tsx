@@ -38,25 +38,29 @@ const UpcomingExamDeadlineCard: React.FC<{ exam: UpcomingExam }> = ({ exam }) =>
 };
 
 const CourseCard: React.FC<{ course: PreparationCourse }> = ({ course }) => (
-    <div className="border rounded-lg p-4 flex flex-col justify-between bg-white hover:shadow-md transition-shadow">
-        <div>
-            <p className="font-bold text-gray-800">{course.title}</p>
-            <p className="text-sm text-gray-500 mb-3">Platform: {course.platform}</p>
+    <div className="border rounded-lg p-5 flex flex-col bg-white hover:shadow-lg hover:border-[var(--primary-color)] transition-all duration-300">
+        <div className="flex-grow">
+            <p className="font-bold text-lg text-gray-800">{course.title}</p>
+            <p className="text-sm text-gray-500 mb-4">Platform: {course.platform}</p>
         </div>
-        <a href={course.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-2 text-sm bg-[var(--primary-color)] text-white text-center px-3 py-2 rounded-md font-semibold filter hover:brightness-90">
+        <a href={course.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-2 text-sm bg-[var(--primary-color)] text-white text-center px-4 py-2 rounded-md font-semibold filter hover:brightness-90 flex items-center justify-center gap-2">
+            <Icon name="external-link-alt" className="text-xs" />
             View Course
         </a>
     </div>
 );
 
 const BookCard: React.FC<{ book: PreparationBook }> = ({ book }) => (
-    <div className="border rounded-lg p-4 text-center flex flex-col justify-between bg-white hover:shadow-md transition-shadow">
-        {book.imageUrl && <img src={book.imageUrl} alt={book.title} className="h-40 mx-auto mb-3 object-contain" loading="lazy" />}
-        <div>
-            <p className="font-bold text-gray-800 text-sm">{book.title}</p>
-            <p className="text-xs text-gray-500 mb-3">by {book.author}</p>
+    <div className="border rounded-lg p-5 text-center flex flex-col bg-white hover:shadow-lg hover:border-[var(--primary-color)] transition-all duration-300">
+        <div className="flex-grow">
+            {book.imageUrl && <img src={book.imageUrl} alt={book.title} className="h-40 mx-auto mb-3 object-contain" loading="lazy" />}
+            <div>
+                <p className="font-bold text-gray-800 text-sm">{book.title}</p>
+                <p className="text-xs text-gray-500 mb-3">by {book.author}</p>
+            </div>
         </div>
-        <a href={book.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-2 text-sm bg-yellow-500 text-black px-3 py-2 rounded-md font-semibold hover:bg-yellow-600">
+        <a href={book.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-2 text-sm bg-yellow-500 text-black px-4 py-2 rounded-md font-semibold hover:bg-yellow-600 flex items-center justify-center gap-2">
+            <Icon prefix="fab" name="amazon" />
             Buy on Amazon
         </a>
     </div>

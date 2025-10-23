@@ -12,7 +12,6 @@ import SettingsManagement from '../components/admin/SettingsManagement.tsx';
 import UserProfile from '../components/admin/UserProfile.tsx';
 import ExamNoticeManagement from '../components/admin/ExamNoticeManagement.tsx';
 import ResultManagement from '../components/admin/ResultManagement.tsx';
-import BackupRestore from '../components/admin/BackupRestore.tsx';
 import EmailMarketing from '../components/admin/EmailMarketing.tsx';
 import NotificationHistory from '../components/admin/NotificationHistory.tsx';
 import SecurityLogs from '../components/admin/SecurityLogs.tsx';
@@ -25,7 +24,7 @@ import { AdminTab } from '../components/admin/types.ts';
 
 const AdminPanel: React.FC = () => {
     const { logout, isDemoUser } = useAuth();
-    const { generalSettings, isPersistenceActive, securitySettings, demoUserSettings } = useData();
+    const { generalSettings, securitySettings, demoUserSettings } = useData();
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const logoutTimer = useRef<number | null>(null);
@@ -90,7 +89,6 @@ const AdminPanel: React.FC = () => {
             case 'theme': return <SettingsManagement defaultTab="theme" />;
             case 'security': return <SettingsManagement defaultTab="security" />;
             case 'profile': return <UserProfile />;
-            case 'backup-restore': return <BackupRestore />;
             case 'activity-logs': return <SecurityLogs />;
             default: return <Dashboard setActiveTab={setActiveTab} />;
         }
@@ -156,7 +154,6 @@ const AdminPanel: React.FC = () => {
                         <NavLink tab="theme" icon="palette" label="Theme" permission={!isDemoUser || demoUserSettings.canChangeTheme} />
                         <NavLink tab="security" icon="shield-alt" label="Security" permission={!isDemoUser} />
                         <NavLink tab="profile" icon="user-circle" label="Admin Profile" permission={!isDemoUser} />
-                        <NavLink tab="backup-restore" icon="database" label="Backup & Restore" permission={!isDemoUser} />
                         <NavLink tab="activity-logs" icon="file-contract" label="Activity Logs" permission={!isDemoUser} />
                     </div>
                 </nav>
@@ -182,13 +179,6 @@ const AdminPanel: React.FC = () => {
                   </div>
                 )}
                 
-                {!isPersistenceActive && (
-                    <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 text-sm p-3 text-center font-medium shadow-inner">
-                        <Icon name="exclamation-triangle" className="mr-2" />
-                        <strong>Warning:</strong> Your browser's storage is not accessible. Any changes you make will be lost when you close the app.
-                    </div>
-                )}
-
                 {/* Main Content */}
                 <main id="admin-main-content" className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
                     {renderContent()}

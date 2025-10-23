@@ -181,140 +181,142 @@ const PreparationManagement: React.FC = () => {
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm space-y-8">
-            <h2 className="text-2xl font-bold text-gray-800">Exam Preparation Content</h2>
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+             <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b">Exam Preparation Content</h2>
 
-            {/* Upcoming Exam Deadlines Management */}
-            <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-700">Upcoming Exam Deadlines</h3>
-                    {canManage && (
-                        <button onClick={() => setModalState({ type: 'exam' })} className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 text-sm">
-                            <Icon name="plus" /> Add Deadline
-                        </button>
+            <div className="space-y-12">
+                 {/* Upcoming Exam Deadlines Management */}
+                 <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-bold text-gray-700">Upcoming Exam Deadlines</h3>
+                        {canManage && (
+                            <button onClick={() => setModalState({ type: 'exam' })} className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 text-sm">
+                                <Icon name="plus" /> Add Deadline
+                            </button>
+                        )}
+                    </div>
+                    {upcomingExams.length > 0 ? (
+                        <div className="overflow-x-auto border rounded-lg">
+                            <table className="w-full text-sm text-left text-gray-500 responsive-table">
+                               <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3">Exam Name</th>
+                                        <th className="px-6 py-3">Deadline</th>
+                                        <th className="px-6 py-3">Notification Link</th>
+                                        <th className="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {upcomingExams.map(exam => (
+                                        <tr key={exam.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
+                                            <td data-label="Name" className="px-6 py-4 font-medium">{exam.name}</td>
+                                            <td data-label="Deadline" className="px-6 py-4">{exam.deadline}</td>
+                                            <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={exam.notificationLink} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{exam.notificationLink}</a></td>
+                                            <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
+                                                {canManage && <>
+                                                    <button onClick={() => setModalState({ type: 'exam', item: exam })} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
+                                                    <button onClick={() => setConfirmState({ type: 'exam', item: exam })} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
+                                                </>}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        canManage && <EmptyState icon="calendar-check" message="No deadlines found. Add upcoming exam deadlines." buttonText="Add New Deadline" onButtonClick={() => setModalState({ type: 'exam' })} />
                     )}
                 </div>
-                {upcomingExams.length > 0 ? (
-                    <div className="overflow-x-auto border rounded-lg">
-                        <table className="w-full text-sm text-left text-gray-500 responsive-table">
-                           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3">Exam Name</th>
-                                    <th className="px-6 py-3">Deadline</th>
-                                    <th className="px-6 py-3">Notification Link</th>
-                                    <th className="px-6 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {upcomingExams.map(exam => (
-                                    <tr key={exam.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
-                                        <td data-label="Name" className="px-6 py-4 font-medium">{exam.name}</td>
-                                        <td data-label="Deadline" className="px-6 py-4">{exam.deadline}</td>
-                                        <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={exam.notificationLink} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{exam.notificationLink}</a></td>
-                                        <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                            {canManage && <>
-                                                <button onClick={() => setModalState({ type: 'exam', item: exam })} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
-                                                <button onClick={() => setConfirmState({ type: 'exam', item: exam })} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
-                                            </>}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    canManage && <EmptyState icon="calendar-check" message="No deadlines found. Add upcoming exam deadlines." buttonText="Add New Deadline" onButtonClick={() => setModalState({ type: 'exam' })} />
-                )}
-            </div>
-            
-            {/* Course Management */}
-            <div className="space-y-4 pt-8 border-t">
-                 <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-700">Manage Courses</h3>
-                    {canManage && (
-                        <button onClick={() => setModalState({ type: 'course' })} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 text-sm">
-                            <Icon name="plus" /> Add New Course
-                        </button>
-                    )}
-                </div>
-                {preparationCourses.length > 0 ? (
-                    <div className="overflow-x-auto border rounded-lg">
-                        <table className="w-full text-sm text-left text-gray-500 responsive-table">
-                           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3">Title</th>
-                                    <th className="px-6 py-3">Platform</th>
-                                    <th className="px-6 py-3">URL</th>
-                                    <th className="px-6 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {preparationCourses.map(course => (
-                                    <tr key={course.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
-                                        <td data-label="Title" className="px-6 py-4 font-medium">{course.title}</td>
-                                        <td data-label="Platform" className="px-6 py-4">{course.platform}</td>
-                                        <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={course.url} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{course.url}</a></td>
-                                        <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                            {canManage && <>
-                                                <button onClick={() => setModalState({ type: 'course', item: course })} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
-                                                <button onClick={() => setConfirmState({ type: 'course', item: course })} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
-                                            </>}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    canManage && <EmptyState icon="chalkboard-teacher" message="No courses found. Add recommended courses." buttonText="Add New Course" onButtonClick={() => setModalState({ type: 'course' })} />
-                )}
-            </div>
 
-            {/* Book Management */}
-            <div className="space-y-4 pt-8 border-t">
-                 <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-700">Manage Books</h3>
-                    {canManage && (
-                        <button onClick={() => setModalState({ type: 'book' })} className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700 text-sm">
-                            <Icon name="plus" /> Add New Book
-                        </button>
+                {/* Course Management */}
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-bold text-gray-700">Manage Courses</h3>
+                        {canManage && (
+                            <button onClick={() => setModalState({ type: 'course' })} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 text-sm">
+                                <Icon name="plus" /> Add New Course
+                            </button>
+                        )}
+                    </div>
+                    {preparationCourses.length > 0 ? (
+                        <div className="overflow-x-auto border rounded-lg">
+                            <table className="w-full text-sm text-left text-gray-500 responsive-table">
+                               <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3">Title</th>
+                                        <th className="px-6 py-3">Platform</th>
+                                        <th className="px-6 py-3">URL</th>
+                                        <th className="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {preparationCourses.map(course => (
+                                        <tr key={course.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
+                                            <td data-label="Title" className="px-6 py-4 font-medium">{course.title}</td>
+                                            <td data-label="Platform" className="px-6 py-4">{course.platform}</td>
+                                            <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={course.url} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{course.url}</a></td>
+                                            <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
+                                                {canManage && <>
+                                                    <button onClick={() => setModalState({ type: 'course', item: course })} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
+                                                    <button onClick={() => setConfirmState({ type: 'course', item: course })} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
+                                                </>}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        canManage && <EmptyState icon="chalkboard-teacher" message="No courses found. Add recommended courses." buttonText="Add New Course" onButtonClick={() => setModalState({ type: 'course' })} />
                     )}
                 </div>
-                 {preparationBooks.length > 0 ? (
-                    <div className="overflow-x-auto border rounded-lg">
-                         <table className="w-full text-sm text-left text-gray-500 responsive-table">
-                           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3">Image</th>
-                                    <th className="px-6 py-3">Title</th>
-                                    <th className="px-6 py-3">Author</th>
-                                    <th className="px-6 py-3">URL</th>
-                                    <th className="px-6 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {preparationBooks.map(book => (
-                                    <tr key={book.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
-                                        <td data-label="Image" className="px-6 py-4">
-                                            {book.imageUrl ? <img src={book.imageUrl} alt={book.title} className="h-10 w-auto object-contain bg-gray-100" /> : <span className="text-gray-400 text-xs">No Image</span>}
-                                        </td>
-                                        <td data-label="Title" className="px-6 py-4 font-medium">{book.title}</td>
-                                        <td data-label="Author" className="px-6 py-4">{book.author}</td>
-                                        <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={book.url} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{book.url}</a></td>
-                                        <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
-                                            {canManage && <>
-                                                <button onClick={() => setModalState({ type: 'book', item: book })} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
-                                                <button onClick={() => setConfirmState({ type: 'book', item: book })} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
-                                            </>}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+
+                {/* Book Management */}
+                <div className="space-y-4">
+                     <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-bold text-gray-700">Manage Books</h3>
+                        {canManage && (
+                            <button onClick={() => setModalState({ type: 'book' })} className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700 text-sm">
+                                <Icon name="plus" /> Add New Book
+                            </button>
+                        )}
                     </div>
-                ) : (
-                     canManage && <EmptyState icon="book-open" message="No books found. Add recommended books." buttonText="Add New Book" onButtonClick={() => setModalState({ type: 'book' })} />
-                )}
+                     {preparationBooks.length > 0 ? (
+                        <div className="overflow-x-auto border rounded-lg">
+                             <table className="w-full text-sm text-left text-gray-500 responsive-table">
+                               <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3">Image</th>
+                                        <th className="px-6 py-3">Title</th>
+                                        <th className="px-6 py-3">Author</th>
+                                        <th className="px-6 py-3">URL</th>
+                                        <th className="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {preparationBooks.map(book => (
+                                        <tr key={book.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
+                                            <td data-label="Image" className="px-6 py-4">
+                                                {book.imageUrl ? <img src={book.imageUrl} alt={book.title} className="h-10 w-auto object-contain bg-gray-100" /> : <span className="text-gray-400 text-xs">No Image</span>}
+                                            </td>
+                                            <td data-label="Title" className="px-6 py-4 font-medium">{book.title}</td>
+                                            <td data-label="Author" className="px-6 py-4">{book.author}</td>
+                                            <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={book.url} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{book.url}</a></td>
+                                            <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
+                                                {canManage && <>
+                                                    <button onClick={() => setModalState({ type: 'book', item: book })} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
+                                                    <button onClick={() => setConfirmState({ type: 'book', item: book })} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
+                                                </>}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                         canManage && <EmptyState icon="book-open" message="No books found. Add recommended books." buttonText="Add New Book" onButtonClick={() => setModalState({ type: 'book' })} />
+                    )}
+                </div>
             </div>
 
             {/* Modal for Forms */}

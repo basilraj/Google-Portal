@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from '../Modal';
-import Icon from '../Icon';
+import Icon from '../Icon.tsx';
 
 const JSON_TEMPLATE = JSON.stringify({
   "masterNotification": {
