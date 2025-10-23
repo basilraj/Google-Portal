@@ -4,7 +4,7 @@ import Icon from '../Icon.tsx';
 import { Job, ContentPost, Subscriber, ActivityLog, PlacementKey } from '../../types.ts';
 import { getEffectiveJobStatus } from '../../utils/jobUtils.ts';
 import { useAuth } from '../../contexts/AuthContext.tsx';
-import { AdminTab } from '../../pages/AdminPanel.tsx';
+import { AdminTab } from './types.ts';
 
 const StatCard: React.FC<{ title: string; value: number | string; icon: string; color: string; onClick?: () => void; }> = ({ title, value, icon, color, onClick }) => (
     <div

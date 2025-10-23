@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useAuth } from './contexts/AuthContext.tsx';
