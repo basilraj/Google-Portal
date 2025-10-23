@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import Icon from './Icon.tsx';
 
@@ -40,12 +41,10 @@ const AdComponent: React.FC<AdComponentProps> = ({ code, placement }) => {
         const scripts = Array.from(container.querySelectorAll("script"));
         
         // Re-create each script tag to force the browser to execute it.
-        // Fix: Explicitly type the 'oldScript' parameter to HTMLScriptElement to resolve property access errors.
         scripts.forEach((oldScript: HTMLScriptElement) => {
             const newScript = document.createElement("script");
             
             // Copy all attributes from the old script to the new one.
-            // Fix: Explicitly type the 'attr' parameter to Attr to resolve property access errors.
             Array.from(oldScript.attributes).forEach((attr: Attr) => {
                 newScript.setAttribute(attr.name, attr.value);
             });

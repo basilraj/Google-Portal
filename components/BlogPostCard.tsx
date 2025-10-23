@@ -1,5 +1,5 @@
+
 import React from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { ContentPost } from '../types.ts';
 import Icon from './Icon.tsx';
 import { basePath } from '../App.tsx';

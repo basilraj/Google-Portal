@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../../services/database.ts';
 
 // A simple (and insecure) hashing function for demonstration.
 const simpleHash = (s: string) => {
@@ -96,7 +94,6 @@ export async function POST(request: Request) {
         return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
     } catch (error) {
-        console.error('API Error:', error);
         return new Response(JSON.stringify({ error: 'An internal server error occurred' }), { status: 500 });
     }
 }
@@ -130,7 +127,6 @@ export async function GET(request: Request) {
         const data = await dbModel.findMany();
         return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
-        console.error('API GET Error:', error);
         return new Response(JSON.stringify({ error: 'An internal server error occurred' }), { status: 500 });
     }
 }

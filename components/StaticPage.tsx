@@ -1,7 +1,6 @@
 
 import React from 'react';
 import PublicFooter from './PublicFooter.tsx';
-// Fix: Add .tsx extension to local module imports.
 import PublicHeader from './PublicHeader.tsx';
 
 interface StaticPageProps {

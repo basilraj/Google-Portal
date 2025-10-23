@@ -1,8 +1,6 @@
 
 import React, { useEffect } from 'react';
-// Fix: Add .tsx extension to local module import.
 import { useData } from '../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module import.
 import Icon from '../components/Icon.tsx';
 
 const MaintenancePage: React.FC = () => {

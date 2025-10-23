@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Icon from '../Icon.tsx';
 import AdManagement from './AdManagement.tsx';
@@ -7,7 +8,6 @@ import EmailSettings from './EmailSettings.tsx';
 import { useData } from '../../contexts/DataContext.tsx';
 import AlertSettingsManagement from './AlertSettingsManagement.tsx';
 import ThemeManagement from './ThemeManagement.tsx';
-// Fix: Use a named import for SecuritySettingsManagement as it does not have a default export.
 import { SecuritySettingsManagement } from './SecuritySettingsManagement.tsx';
 
 type SettingsTab = 'general' | 'seo' | 'ads' | 'social' | 'email' | 'alerts' | 'theme' | 'security' | 'search-console';

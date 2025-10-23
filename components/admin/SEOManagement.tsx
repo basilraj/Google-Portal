@@ -1,10 +1,8 @@
 
+
 import React, { useState, useEffect, ReactNode } from 'react';
-// Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module import.
 import { SEOSettings } from '../../types.ts';
-// Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
 import { initialSeoSettings } from '../../constants.ts';
 

@@ -1,12 +1,10 @@
+
 import React, { useState, useMemo } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../contexts/DataContext.tsx';
 import BlogPostCard from '../components/BlogPostCard.tsx';
 import Icon from '../components/Icon.tsx';
 import PublicFooter from '../components/PublicFooter.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { ContentPost } from '../types.ts';
-// Fix: Add .tsx extension to local module imports.
 import PublicHeader from '../components/PublicHeader.tsx';
 import AdComponent from '../components/AdComponent.tsx';
 import { getAdCodeForPlacement } from '../utils/jobUtils.ts';
@@ -72,7 +70,6 @@ const BlogPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) 
                         <div className="widget bg-white p-6 rounded-lg shadow-md">
                             <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-[var(--accent-color)]">Categories</h3>
                             <ul className="space-y-2">
-                                {/* FIX: Add explicit type for 'category' to resolve potential type inference issues. */}
                                 {categories.map((category: string) => (
                                     <li key={category}>
                                         <button 

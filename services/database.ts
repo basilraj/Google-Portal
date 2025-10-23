@@ -1,20 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 
-declare global {
-  // allow global `var` declarations
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
-}
-
-// FIX: Replaced 'global' with 'globalThis' for cross-platform compatibility.
-export const prisma =
-  globalThis.prisma ||
-  new PrismaClient({
-    // Disable all logging to stdout to prevent polluting serverless function responses.
-    log: [],
-  });
-
-// FIX: Replaced 'global' with 'globalThis' for cross-platform compatibility.
-if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;
+// By instantiating the client outside of the handler, we can reuse the same
+// instance across multiple "warm" serverless function invocations.
+// A new instance will only be created on a "cold start".
+const prisma = new PrismaClient({
+  // Suppress all logs to prevent `stdout` pollution which corrupts JSON responses
+  // in serverless environments.
+  log: [],
+});
 
 export default prisma;

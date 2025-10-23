@@ -1,15 +1,10 @@
+
 import React, { useState, useRef } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { CustomEmail } from '../../types.ts';
-// Fix: Add .tsx extension to local module imports.
 import Icon from '../Icon.tsx';
-// Fix: Add .tsx extension to local module imports.
 import Modal from '../Modal.tsx';
-// Fix: Add .tsx extension to local module imports.
 import Pagination from './Pagination.tsx';
-// Fix: Add .tsx extension to local module imports.
 import usePagination from '../../hooks/usePagination.ts';
 import { useAuth } from '../../contexts/AuthContext.tsx';
 

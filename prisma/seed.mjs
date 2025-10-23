@@ -1,3 +1,4 @@
+
 import { PrismaClient } from '@prisma/client';
 import {
     INITIAL_JOBS,
@@ -23,7 +24,7 @@ import {
     initialDemoUserSettings,
     INITIAL_EMAIL_TEMPLATES,
     initialGoogleSearchConsoleSettings,
-} from '../src/constants.ts';
+} from '../constants.ts';
 
 const prisma = new PrismaClient();
 
@@ -100,7 +101,6 @@ async function main() {
 main()
     .catch((e) => {
         console.error(e);
-        // FIX: Supress type error for process.exit, which is valid in this Node.js script context.
         // @ts-ignore
         process.exit(1);
     })

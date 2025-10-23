@@ -1,8 +1,7 @@
 
+
 import React, { useState } from 'react';
-// Fix: Add .tsx extension to local module import.
 import { useAuth } from '../../contexts/AuthContext.tsx';
-// Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
 
 const UserProfile: React.FC = () => {

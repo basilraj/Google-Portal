@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import StaticPage from '../components/StaticPage.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../contexts/DataContext.tsx';
 
 const AboutUs: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {

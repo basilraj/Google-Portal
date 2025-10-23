@@ -1,18 +1,11 @@
 
 
-
 import React, { useState, useRef } from 'react';
-// Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module import.
 import { EmailNotification } from '../../types.ts';
-// Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
-// Fix: Add .tsx extension to local module import.
 import Modal from '../Modal.tsx';
-// Fix: Add .tsx extension to local module import.
 import Pagination from './Pagination.tsx';
-// Fix: Add .tsx extension to local module import.
 import usePagination from '../../hooks/usePagination.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 

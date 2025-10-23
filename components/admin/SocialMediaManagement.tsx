@@ -1,10 +1,8 @@
 
+
 import React, { useState, useEffect } from 'react';
-// Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module import.
 import { SocialMediaSettings } from '../../types.ts';
-// Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
 import { initialSocialMediaSettings } from '../../constants.ts';
 

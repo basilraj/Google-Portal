@@ -1,8 +1,6 @@
 
 import React from 'react';
-// Fix: Add .tsx extension to local module import.
 import Modal from '../Modal.tsx';
-// Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
 
 interface ConfirmationModalProps {
