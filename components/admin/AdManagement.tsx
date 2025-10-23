@@ -1,7 +1,5 @@
 import React, { useState, useEffect, ReactNode } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { AdSettings, ABTest, GeoTargetedAd, PlacementSetting } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import { initialAdSettings } from '../../constants.ts';
@@ -150,7 +148,6 @@ const AdManagement: React.FC = () => {
                             className="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
                         >
                             <option value="">-- Select an Ad Network --</option>
-                            {/* FIX: Use Object.keys for proper type inference on ad network values. */}
                             {Object.keys(formData.adNetworks).map((key) => {
                                 const networkKey = key as keyof AdSettings['adNetworks'];
                                 const value = formData.adNetworks[networkKey];

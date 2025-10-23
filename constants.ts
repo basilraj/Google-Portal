@@ -1,4 +1,3 @@
-// Fix: Import all types from the dedicated types.ts file to resolve circular dependencies.
 import { Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, SMTPSettings, ActivityLog, RSSSettings, AlertSettings, SponsoredAd, PopupAdSettings, ThemeSettings, SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings, PreparationCourse, PreparationBook, UpcomingExam } from './types.ts';
 
 export const INITIAL_JOBS: Job[] = [

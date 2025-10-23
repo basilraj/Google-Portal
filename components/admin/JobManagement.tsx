@@ -1,16 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { Job, PreparationCourse, PreparationBook } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import Pagination from './Pagination.tsx';
 import usePagination from '../../hooks/usePagination.ts';
-// Fix: Add .tsx extension to local module imports.
 import { getEffectiveJobStatus } from '../../utils/jobUtils.ts';
 import JobDetailView from '../JobDetailView.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { slugify } from '../../utils/slugify.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import NotificationExtractorModal from './NotificationExtractorModal.tsx';

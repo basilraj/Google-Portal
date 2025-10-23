@@ -216,7 +216,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     // All setter functions now become wrappers around the `api` helper
-    // FIX: Rewriting generic arrow function to a function declaration to avoid TSX parsing issues.
     function createSetter<T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, model: string, logName: string) {
         return {
             add: async (data: any) => { const newItem = await api(model, 'create', { data }); setter(prev => [...prev, newItem]); await addActivityLog(`${logName} Created`, `New ${logName.toLowerCase()} added.`); return newItem; },
@@ -227,7 +226,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
     
-    // FIX: Rewriting generic arrow function to a function declaration to avoid TSX parsing issues.
     function createSettingsSetter<T>(setter: React.Dispatch<React.SetStateAction<T>>, settingsKey: string) {
         return async (data: T) => {
             const payload = { [settingsKey]: data };

@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { ContentPost } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
@@ -237,7 +235,6 @@ const ContentPostManagement: React.FC = () => {
                         onChange={e => setCategoryFilter(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm w-full sm:w-auto"
                     >
-                        {/* FIX: Add explicit type for 'cat' to resolve potential type inference issues. */}
                         {categories.map((cat: string) => (
                             <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
                         ))}

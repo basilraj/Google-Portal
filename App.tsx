@@ -1,13 +1,8 @@
-
-
 import React, { useState, useEffect } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useAuth } from './contexts/AuthContext.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from './contexts/DataContext.tsx';
 import PublicWebsite from './pages/PublicWebsite.tsx';
 import AdminLoginPage from './pages/AdminLoginPage.tsx';
-// Fix: Add .tsx extension to local module imports.
 import AdminPanel from './pages/AdminPanel.tsx';
 import MaintenancePage from './pages/MaintenancePage.tsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.tsx';

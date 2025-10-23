@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
 import Icon from '../Icon.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';

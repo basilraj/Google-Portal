@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { QuickLink } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';

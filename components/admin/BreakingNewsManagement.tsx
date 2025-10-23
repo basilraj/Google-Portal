@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-// Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .tsx extension to local module imports.
 import { BreakingNews } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
@@ -62,23 +60,15 @@ const NewsForm: React.FC<{ newsItem?: BreakingNews; onSave: (news: Omit<Breaking
     );
 };
 
-
 const BreakingNewsManagement: React.FC = () => {
-    const { breakingNews, addNews, updateNews, deleteNews, securitySettings, demoUserSettings } = useData();
+    const { breakingNews, addNews, updateNews, deleteNews, demoUserSettings } = useData();
     const { isDemoUser } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNews, setEditingNews] = useState<BreakingNews | undefined>(undefined);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [confirmProps, setConfirmProps] = useState<{title: string, message: React.ReactNode, onConfirm: () => void, confirmText?: string, confirmButtonClass?: string}>({
-        title: '', message: '', onConfirm: () => {}
-    });
+    const [newsToDelete, setNewsToDelete] = useState<BreakingNews | null>(null);
 
     const canManage = !isDemoUser || demoUserSettings.canManageLinks;
-
-    const openConfirmModal = (props: Partial<typeof confirmProps>) => {
-        setConfirmProps(prev => ({ ...prev, ...props }));
-        setIsConfirmModalOpen(true);
-    };
 
     const handleSave = (newsData: Omit<BreakingNews, 'id'>, id?: string) => {
         if (!canManage) return;
@@ -97,36 +87,18 @@ const BreakingNewsManagement: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleDeleteRequest = (newsItem: BreakingNews) => {
+    const handleDeleteRequest = (news: BreakingNews) => {
         if (!canManage) return;
-        openConfirmModal({
-            title: 'Confirm Deletion',
-            message: <>Are you sure you want to delete this news item: <strong>"{newsItem.text}"</strong>?</>,
-            onConfirm: () => {
-                deleteNews(newsItem.id);
-                setIsConfirmModalOpen(false);
-            },
-            confirmText: 'Delete',
-            confirmButtonClass: 'bg-red-600 hover:bg-red-700'
-        });
+        setNewsToDelete(news);
+        setIsConfirmModalOpen(true);
     };
-    
-    const handleExternalLinkClick = (e: React.MouseEvent, url: string) => {
-        e.preventDefault();
-        if (securitySettings.warnOnExternalLink) {
-            openConfirmModal({
-                title: 'External Link Warning',
-                message: <>You are about to navigate to an external website: <strong>{url}</strong>. Do you wish to continue?</>,
-                onConfirm: () => {
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                    setIsConfirmModalOpen(false);
-                },
-                confirmText: 'Proceed',
-                confirmButtonClass: 'bg-[var(--primary-color)] filter hover:brightness-90'
-            });
-        } else {
-            window.open(url, '_blank', 'noopener,noreferrer');
+
+    const confirmDelete = () => {
+        if (newsToDelete) {
+            deleteNews(newsToDelete.id);
         }
+        setIsConfirmModalOpen(false);
+        setNewsToDelete(null);
     };
 
     return (
@@ -154,7 +126,7 @@ const BreakingNewsManagement: React.FC = () => {
                         {breakingNews.map(news => (
                             <tr key={news.id} className="bg-white hover:bg-gray-50 border-b">
                                 <td data-label="Text" className="px-6 py-4 font-medium text-gray-900">{news.text}</td>
-                                <td data-label="Link" className="px-6 py-4 truncate max-w-xs"><a href={news.link} onClick={(e) => handleExternalLinkClick(e, news.link)} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{news.link}</a></td>
+                                <td data-label="Link" className="px-6 py-4 truncate max-w-xs"><a href={news.link} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{news.link}</a></td>
                                 <td data-label="Status" className="px-6 py-4">
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${news.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{news.status}</span>
                                 </td>
@@ -173,18 +145,21 @@ const BreakingNewsManagement: React.FC = () => {
             </div>
             ) : (
                 <EmptyState 
-                    message="No breaking news items found."
+                    message="No breaking news items have been added yet."
                     buttonText={canManage ? "Add News Item" : undefined}
                     onButtonClick={canManage ? () => { setEditingNews(undefined); setIsModalOpen(true); } : undefined}
                 />
             )}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingNews ? 'Edit News Item' : 'Add News Item'}>
+             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingNews ? 'Edit News Item' : 'Add New News Item'}>
                 <NewsForm newsItem={editingNews} onSave={handleSave} onCancel={() => setIsModalOpen(false)} />
             </Modal>
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                {...confirmProps}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+                message={<>Are you sure you want to delete this news item: <strong>"{newsToDelete?.text}"</strong>?</>}
+                confirmText="Delete"
             />
         </div>
     );
