@@ -80,7 +80,7 @@ const PreparationPage: React.FC<{ navigate: (path: string) => void }> = ({ navig
             <PublicHeader navigate={navigate} />
 
             <main className="container mx-auto px-4 py-12">
-                <h1 className="text-4xl font-extrabold text-center text-[#1e3c72] mb-8">Government Exam Preparation Hub</h1>
+                <h1 className="text-4xl font-extrabold text-center text-[#1e3c72] mb-8">Government Exam Preparation</h1>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content Area */}

@@ -6,17 +6,17 @@ import Modal from '../Modal.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import { useAuth } from '../../contexts/AuthContext.tsx';
 
-// Reusable Empty State Component
-const EmptyState: React.FC<{ title: string; message: string; buttonText: string; onButtonClick: () => void; }> = ({ title, message, buttonText, onButtonClick }) => (
-    <div className="text-center py-10">
-      <Icon name="graduation-cap" className="text-4xl text-gray-300 mb-3" />
-      <h3 className="text-lg font-semibold text-gray-600">{title}</h3>
-      <p className="text-sm text-gray-500 mb-4">{message}</p>
-      <button onClick={onButtonClick} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
-        <Icon name="plus" /> {buttonText}
-      </button>
+// A styled empty state component for this page
+const EmptyState: React.FC<{ message: string; buttonText: string; onButtonClick: () => void; icon: string; }> = ({ message, buttonText, onButtonClick, icon }) => (
+    <div className="text-center py-12 border-2 border-dashed rounded-lg bg-gray-50/50">
+        <Icon name={icon} className="text-5xl text-gray-300 mb-4 mx-auto" />
+        <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
+        <button onClick={onButtonClick} className="mt-4 bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
+            <Icon name="plus" /> {buttonText}
+        </button>
     </div>
 );
+
 
 // Form for Courses
 const CourseForm: React.FC<{ course?: PreparationCourse; onSave: (course: Omit<PreparationCourse, 'id'>, id?: string) => void; onCancel: () => void; }> = ({ course, onSave, onCancel }) => {
@@ -181,19 +181,21 @@ const PreparationManagement: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="bg-white p-6 rounded-lg shadow-sm space-y-8">
+            <h2 className="text-2xl font-bold text-gray-800">Exam Preparation Content</h2>
+
             {/* Upcoming Exam Deadlines Management */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-gray-700">Upcoming Exam Deadlines</h2>
+            <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-gray-700">Upcoming Exam Deadlines</h3>
                     {canManage && (
-                        <button onClick={() => setModalState({ type: 'exam' })} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
-                            <Icon name="plus" /> Add New Deadline
+                        <button onClick={() => setModalState({ type: 'exam' })} className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 text-sm">
+                            <Icon name="plus" /> Add Deadline
                         </button>
                     )}
                 </div>
                 {upcomingExams.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto border rounded-lg">
                         <table className="w-full text-sm text-left text-gray-500 responsive-table">
                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                                 <tr>
@@ -205,7 +207,7 @@ const PreparationManagement: React.FC = () => {
                             </thead>
                             <tbody>
                                 {upcomingExams.map(exam => (
-                                    <tr key={exam.id} className="bg-white hover:bg-gray-50 border-b">
+                                    <tr key={exam.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
                                         <td data-label="Name" className="px-6 py-4 font-medium">{exam.name}</td>
                                         <td data-label="Deadline" className="px-6 py-4">{exam.deadline}</td>
                                         <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={exam.notificationLink} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{exam.notificationLink}</a></td>
@@ -221,22 +223,22 @@ const PreparationManagement: React.FC = () => {
                         </table>
                     </div>
                 ) : (
-                    <EmptyState title="No Deadlines Found" message="Add upcoming exam deadlines to display on the prep page." buttonText="Add New Deadline" onButtonClick={() => setModalState({ type: 'exam' })} />
+                    canManage && <EmptyState icon="calendar-check" message="No deadlines found. Add upcoming exam deadlines." buttonText="Add New Deadline" onButtonClick={() => setModalState({ type: 'exam' })} />
                 )}
             </div>
             
             {/* Course Management */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-gray-700">Manage Courses</h2>
+            <div className="space-y-4 pt-8 border-t">
+                 <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-gray-700">Manage Courses</h3>
                     {canManage && (
-                        <button onClick={() => setModalState({ type: 'course' })} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
+                        <button onClick={() => setModalState({ type: 'course' })} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 text-sm">
                             <Icon name="plus" /> Add New Course
                         </button>
                     )}
                 </div>
                 {preparationCourses.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto border rounded-lg">
                         <table className="w-full text-sm text-left text-gray-500 responsive-table">
                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                                 <tr>
@@ -248,7 +250,7 @@ const PreparationManagement: React.FC = () => {
                             </thead>
                             <tbody>
                                 {preparationCourses.map(course => (
-                                    <tr key={course.id} className="bg-white hover:bg-gray-50 border-b">
+                                    <tr key={course.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
                                         <td data-label="Title" className="px-6 py-4 font-medium">{course.title}</td>
                                         <td data-label="Platform" className="px-6 py-4">{course.platform}</td>
                                         <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={course.url} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{course.url}</a></td>
@@ -264,22 +266,22 @@ const PreparationManagement: React.FC = () => {
                         </table>
                     </div>
                 ) : (
-                    <EmptyState title="No Courses Found" message="Add recommended courses for exam preparation." buttonText="Add New Course" onButtonClick={() => setModalState({ type: 'course' })} />
+                    canManage && <EmptyState icon="chalkboard-teacher" message="No courses found. Add recommended courses." buttonText="Add New Course" onButtonClick={() => setModalState({ type: 'course' })} />
                 )}
             </div>
 
             {/* Book Management */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-gray-700">Manage Books</h2>
+            <div className="space-y-4 pt-8 border-t">
+                 <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-gray-700">Manage Books</h3>
                     {canManage && (
-                        <button onClick={() => setModalState({ type: 'book' })} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
+                        <button onClick={() => setModalState({ type: 'book' })} className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700 text-sm">
                             <Icon name="plus" /> Add New Book
                         </button>
                     )}
                 </div>
                  {preparationBooks.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto border rounded-lg">
                          <table className="w-full text-sm text-left text-gray-500 responsive-table">
                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                                 <tr>
@@ -292,7 +294,7 @@ const PreparationManagement: React.FC = () => {
                             </thead>
                             <tbody>
                                 {preparationBooks.map(book => (
-                                    <tr key={book.id} className="bg-white hover:bg-gray-50 border-b">
+                                    <tr key={book.id} className="bg-white hover:bg-gray-50/50 border-b last:border-b-0">
                                         <td data-label="Image" className="px-6 py-4">
                                             {book.imageUrl ? <img src={book.imageUrl} alt={book.title} className="h-10 w-auto object-contain bg-gray-100" /> : <span className="text-gray-400 text-xs">No Image</span>}
                                         </td>
@@ -311,7 +313,7 @@ const PreparationManagement: React.FC = () => {
                         </table>
                     </div>
                 ) : (
-                     <EmptyState title="No Books Found" message="Add recommended books for exam preparation." buttonText="Add New Book" onButtonClick={() => setModalState({ type: 'book' })} />
+                     canManage && <EmptyState icon="book-open" message="No books found. Add recommended books." buttonText="Add New Book" onButtonClick={() => setModalState({ type: 'book' })} />
                 )}
             </div>
 
@@ -338,7 +340,7 @@ const PreparationManagement: React.FC = () => {
                 onClose={() => setConfirmState(null)}
                 onConfirm={confirmDelete}
                 title={`Confirm Deletion`}
-                message={<>Are you sure you want to delete this {confirmState?.type}: <strong>"{confirmState?.item.title || (confirmState?.item as UpcomingExam)?.name}"</strong>?</>}
+                message={<>Are you sure you want to delete this {confirmState?.type}: <strong>"{(confirmState?.item as any)?.title || (confirmState?.item as UpcomingExam)?.name}"</strong>?</>}
                 confirmText="Delete"
             />
         </div>

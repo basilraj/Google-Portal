@@ -581,7 +581,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         const jobLink = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
 
-        // FIX: Add a return statement inside the map function.
         const newNotifications: EmailNotification[] = activeSubscribers.map(sub => {
             const subscriberName = getNameFromEmail(sub.email);
             const subject = template.subject
@@ -721,7 +720,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [upcomingExams, setUpcomingExams, addActivityLog]);
 
 
-    // Fix: Remove function call parentheses as isLocalStorageAvailable is a boolean.
     const isPersistenceActive = isLocalStorageAvailable;
 
     const createBackup = useCallback((): BackupData => {
