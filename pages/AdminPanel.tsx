@@ -22,7 +22,7 @@ import PopupAdManagement from '../components/admin/PopupAdManagement.tsx';
 import EmailTemplateManagement from '../components/admin/EmailTemplateManagement.tsx';
 import PreparationManagement from '../components/admin/PreparationManagement.tsx';
 
-type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'exam-prep' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'email-templates' | 'sponsored-ads' | 'popup-ad' | 'alerts' | 'notification-history' | 'settings' | 'theme' | 'security' | 'profile' | 'backup-restore' | 'activity-logs';
+export type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'exam-prep' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'email-templates' | 'sponsored-ads' | 'popup-ad' | 'alerts' | 'notification-history' | 'settings' | 'theme' | 'security' | 'profile' | 'backup-restore' | 'activity-logs';
 
 const AdminPanel: React.FC = () => {
     const { logout, isDemoUser } = useAuth();
