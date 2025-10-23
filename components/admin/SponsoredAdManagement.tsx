@@ -11,7 +11,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
       <Icon name="dollar-sign" className="text-5xl text-gray-300 mb-4" />
       <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
       {buttonText && onButtonClick && (
-        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+        <button onClick={onButtonClick} className="mt-4 bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
           <Icon name="plus" /> {buttonText}
         </button>
       )}
@@ -98,7 +98,7 @@ const SponsoredAdForm: React.FC<{ ad?: SponsoredAd; onSave: (ad: Omit<SponsoredA
             </div>
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Save Ad</button>
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90">Save Ad</button>
             </div>
         </form>
     );
@@ -164,7 +164,7 @@ const SponsoredAdManagement: React.FC = () => {
                     setIsConfirmModalOpen(false);
                 },
                 confirmText: 'Proceed',
-                confirmButtonClass: 'bg-blue-600 hover:bg-blue-700'
+                confirmButtonClass: 'bg-[var(--primary-color)] filter hover:brightness-90'
             });
         } else {
             window.open(url, '_blank', 'noopener,noreferrer');
@@ -176,7 +176,7 @@ const SponsoredAdManagement: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-700">Sponsored Ads</h2>
                 {canManage && (
-                    <button onClick={() => { setEditingAd(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                    <button onClick={() => { setEditingAd(undefined); setIsModalOpen(true); }} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
                         <Icon name="plus" /> Add New Ad
                     </button>
                 )}
@@ -200,7 +200,7 @@ const SponsoredAdManagement: React.FC = () => {
                                 <td data-label="Image" className="px-6 py-4">
                                     <img src={ad.imageUrl} alt="Ad" className="h-12 w-24 object-contain rounded-md bg-gray-100" />
                                 </td>
-                                <td data-label="Destination" className="px-6 py-4 truncate max-w-xs"><a href={ad.destinationUrl} onClick={(e) => handleExternalLinkClick(e, ad.destinationUrl)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{ad.destinationUrl}</a></td>
+                                <td data-label="Destination" className="px-6 py-4 truncate max-w-xs"><a href={ad.destinationUrl} onClick={(e) => handleExternalLinkClick(e, ad.destinationUrl)} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{ad.destinationUrl}</a></td>
                                 <td data-label="Placement" className="px-6 py-4">{ad.placement}</td>
                                 <td data-label="Clicks" className="px-6 py-4 font-medium">{ad.clicks || 0}</td>
                                 <td data-label="Status" className="px-6 py-4">

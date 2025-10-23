@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
 // Fix: Add .tsx extension to local module imports.
-import { Job, AffiliateCourse, AffiliateBook } from '../../types.ts';
+import { Job, PreparationCourse, PreparationBook } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import Pagination from './Pagination.tsx';
@@ -16,6 +16,7 @@ import ConfirmationModal from './ConfirmationModal.tsx';
 import NotificationExtractorModal from './NotificationExtractorModal.tsx';
 import { basePath } from '../../App.tsx';
 import { useAuth } from '../../contexts/AuthContext.tsx';
+import MarkdownToolbar from './MarkdownToolbar.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -35,9 +36,6 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
 );
 
 const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; sendEmailAlert: boolean; }) => void; onCancel: () => void; isLoading: boolean; uniqueCategories: string[]; }> = ({ job, onSave, onCancel, isLoading, uniqueCategories }) => {
-    // This state initializer is robust. It handles both creating a new job and editing an existing one.
-    // For existing jobs, it ensures that the affiliate course/book arrays are always initialized
-    // as empty arrays if they don't exist, preventing runtime errors.
     const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(() => {
         if (job) {
             const { id, createdAt, ...rest } = job;
@@ -66,11 +64,13 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
     const [createNews, setCreateNews] = useState(true);
     const [createLink, setCreateLink] = useState(true);
     const [sendEmailAlert, setSendEmailAlert] = useState(true);
+    const [isAffiliateOpen, setIsAffiliateOpen] = useState(false);
+    const [isActionsOpen, setIsActionsOpen] = useState(false);
 
     const titleInputRef = useRef<HTMLInputElement>(null);
+    const contentRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
-        // Automatically focus the title input when the modal opens.
         titleInputRef.current?.focus();
     }, []);
 
@@ -78,6 +78,10 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value as any }));
+    };
+
+    const handleContentChange = (value: string) => {
+        setFormData(prev => ({ ...prev, description: value }));
     };
 
     const handleAffiliateChange = (type: 'Courses' | 'Books', index: number, field: string, value: string) => {
@@ -146,8 +150,9 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
                 </div>
             </div>
              <div>
-                <label className="block text-sm font-medium text-gray-700">Description *</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                <label className="block text-sm font-medium text-gray-700">Content *</label>
+                <MarkdownToolbar textareaRef={contentRef} onValueChange={handleContentChange} />
+                <textarea ref={contentRef} name="description" value={formData.description} onChange={handleChange} rows={6} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md rounded-t-none" required />
             </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div>
@@ -178,86 +183,103 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
                 </select>
             </div>
             
-             <div className="pt-4 border-t">
-                <h3 className="text-lg font-medium text-gray-800 mb-3">Affiliate Marketing</h3>
-                
-                <div className="space-y-2 p-3 border rounded-md bg-gray-50/50">
-                    <h4 className="font-semibold text-gray-700">Recommended Courses</h4>
-                    {formData.affiliateCourses?.map((course, index) => (
-                        <div key={index} className="p-3 border bg-white rounded-md space-y-2 relative">
-                             <button type="button" onClick={() => removeAffiliateItem('Courses', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Icon name="times-circle" /></button>
-                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <div>
-                                    <label className="text-xs font-medium text-gray-600">Course Title</label>
-                                    <input type="text" value={course.title} onChange={e => handleAffiliateChange('Courses', index, 'title', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+            <div className="border rounded-md">
+                <button
+                    type="button"
+                    onClick={() => setIsAffiliateOpen(v => !v)}
+                    className="w-full flex justify-between items-center p-3 text-left font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-t-md"
+                >
+                    <span>Affiliate Marketing</span>
+                    <Icon name={isAffiliateOpen ? 'chevron-up' : 'chevron-down'} />
+                </button>
+                {isAffiliateOpen && (
+                    <div className="p-4 border-t space-y-4">
+                        <div className="space-y-2 p-3 border rounded-md bg-gray-50/50">
+                            <h4 className="font-semibold text-gray-700">Recommended Courses</h4>
+                            {formData.affiliateCourses?.map((course, index) => (
+                                <div key={index} className="p-3 border bg-white rounded-md space-y-2 relative">
+                                    <button type="button" onClick={() => removeAffiliateItem('Courses', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Icon name="times-circle" /></button>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-600">Course Title</label>
+                                            <input type="text" value={course.title} onChange={e => handleAffiliateChange('Courses', index, 'title', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-600">Platform</label>
+                                            <select value={course.platform} onChange={e => handleAffiliateChange('Courses', index, 'platform', e.target.value)} className="w-full text-sm border-gray-300 rounded-md bg-white">
+                                                <option>Udemy</option> <option>Unacademy</option> <option>Coursera</option>
+                                                <option>Testbook</option> <option>Adda247</option> <option>Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-600">Affiliate URL</label>
+                                        <input type="url" value={course.url} onChange={e => handleAffiliateChange('Courses', index, 'url', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-medium text-gray-600">Platform</label>
-                                     <select value={course.platform} onChange={e => handleAffiliateChange('Courses', index, 'platform', e.target.value)} className="w-full text-sm border-gray-300 rounded-md bg-white">
-                                        <option>Udemy</option>
-                                        <option>Unacademy</option>
-                                        <option>Coursera</option>
-                                        <option>Testbook</option>
-                                        <option>Adda247</option>
-                                        <option>Other</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-600">Affiliate URL</label>
-                                <input type="url" value={course.url} onChange={e => handleAffiliateChange('Courses', index, 'url', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
-                            </div>
+                            ))}
+                            <button type="button" onClick={() => addAffiliateItem('Courses')} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle" /> Add Course</button>
                         </div>
-                    ))}
-                    <button type="button" onClick={() => addAffiliateItem('Courses')} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle" /> Add Course</button>
-                </div>
 
-                <div className="space-y-2 p-3 border rounded-md bg-gray-50/50 mt-4">
-                    <h4 className="font-semibold text-gray-700">Recommended Books</h4>
-                    {formData.affiliateBooks?.map((book, index) => (
-                        <div key={index} className="p-3 border bg-white rounded-md space-y-2 relative">
-                             <button type="button" onClick={() => removeAffiliateItem('Books', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Icon name="times-circle" /></button>
-                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <div>
-                                    <label className="text-xs font-medium text-gray-600">Book Title</label>
-                                    <input type="text" value={book.title} onChange={e => handleAffiliateChange('Books', index, 'title', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                        <div className="space-y-2 p-3 border rounded-md bg-gray-50/50">
+                            <h4 className="font-semibold text-gray-700">Recommended Books</h4>
+                            {formData.affiliateBooks?.map((book, index) => (
+                                <div key={index} className="p-3 border bg-white rounded-md space-y-2 relative">
+                                    <button type="button" onClick={() => removeAffiliateItem('Books', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Icon name="times-circle" /></button>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-600">Book Title</label>
+                                            <input type="text" value={book.title} onChange={e => handleAffiliateChange('Books', index, 'title', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-medium text-gray-600">Author</label>
+                                            <input type="text" value={book.author} onChange={e => handleAffiliateChange('Books', index, 'author', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-600">Affiliate URL</label>
+                                        <input type="url" value={book.url} onChange={e => handleAffiliateChange('Books', index, 'url', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-600">Image URL (Optional)</label>
+                                        <input type="url" value={book.imageUrl || ''} onChange={e => handleAffiliateChange('Books', index, 'imageUrl', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-medium text-gray-600">Author</label>
-                                    <input type="text" value={book.author} onChange={e => handleAffiliateChange('Books', index, 'author', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-600">Affiliate URL</label>
-                                <input type="url" value={book.url} onChange={e => handleAffiliateChange('Books', index, 'url', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-600">Image URL (Optional)</label>
-                                <input type="url" value={book.imageUrl || ''} onChange={e => handleAffiliateChange('Books', index, 'imageUrl', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
-                            </div>
+                            ))}
+                            <button type="button" onClick={() => addAffiliateItem('Books')} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle" /> Add Book</button>
                         </div>
-                    ))}
-                    <button type="button" onClick={() => addAffiliateItem('Books')} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle" /> Add Book</button>
-                </div>
+                    </div>
+                )}
             </div>
 
             {!job && (
-                <div className="pt-4 border-t">
-                    <h3 className="text-md font-medium text-gray-800 mb-2">Automated Actions</h3>
-                    <div className="space-y-2 text-sm text-gray-600">
-                        <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
-                            <input type="checkbox" checked={createNews} onChange={e => setCreateNews(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]"/>
-                            <span>Create a "Breaking News" item for this job</span>
-                        </label>
-                        <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
-                            <input type="checkbox" checked={createLink} onChange={e => setCreateLink(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" />
-                            <span>Create a "Quick Link" for this job</span>
-                        </label>
-                        <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
-                            <input type="checkbox" checked={sendEmailAlert} onChange={e => setSendEmailAlert(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" />
-                            <span>Send email alert to all subscribers</span>
-                        </label>
-                    </div>
+                 <div className="border rounded-md">
+                    <button
+                        type="button"
+                        onClick={() => setIsActionsOpen(v => !v)}
+                        className="w-full flex justify-between items-center p-3 text-left font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-t-md"
+                    >
+                        <span>Automated Actions</span>
+                        <Icon name={isActionsOpen ? 'chevron-up' : 'chevron-down'} />
+                    </button>
+                    {isActionsOpen && (
+                        <div className="p-4 border-t">
+                            <div className="space-y-2 text-sm text-gray-600">
+                                <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
+                                    <input type="checkbox" checked={createNews} onChange={e => setCreateNews(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]"/>
+                                    <span>Create a "Breaking News" item for this job</span>
+                                </label>
+                                <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
+                                    <input type="checkbox" checked={createLink} onChange={e => setCreateLink(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" />
+                                    <span>Create a "Quick Link" for this job</span>
+                                </label>
+                                <label className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
+                                    <input type="checkbox" checked={sendEmailAlert} onChange={e => setSendEmailAlert(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" />
+                                    <span>Send email alert to all subscribers</span>
+                                </label>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -821,7 +843,7 @@ const JobManagement: React.FC = () => {
                 <EmptyState 
                     message="No jobs found."
                     buttonText={canManage ? "Add New Job" : undefined}
-                    onButtonClick={canManage ? () => { setEditingJob(undefined); setIsModalOpen(true); } : undefined}
+                    onButtonClick={canManage ? (() => { setEditingJob(undefined); setIsModalOpen(true); }) : undefined}
                 />
             )}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingJob ? 'Edit Job' : 'Add New Job'}>

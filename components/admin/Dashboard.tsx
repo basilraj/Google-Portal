@@ -5,7 +5,7 @@ import { Job, ContentPost, Subscriber, ActivityLog, PlacementKey } from '../../t
 import { getEffectiveJobStatus } from '../../utils/jobUtils.ts';
 import { useAuth } from '../../contexts/AuthContext.tsx';
 
-type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'notification-history' | 'settings' | 'profile' | 'backup-restore' | 'activity-logs';
+type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'exam-prep' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'notification-history' | 'settings' | 'profile' | 'backup-restore' | 'activity-logs';
 
 const StatCard: React.FC<{ title: string; value: number | string; icon: string; color: string; onClick?: () => void; }> = ({ title, value, icon, color, onClick }) => (
     <div
@@ -102,7 +102,7 @@ const Dashboard: React.FC<{ setActiveTab: (tab: AdminTab) => void }> = ({ setAct
                                         disabled={isDemoUser}
                                         title={isDemoUser ? "Test mode cannot be changed in demo" : "Toggle test mode"}
                                         className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors ${
-                                            isTestActive ? 'bg-indigo-600' : 'bg-gray-200'
+                                            isTestActive ? 'bg-[var(--primary-color)]' : 'bg-gray-200'
                                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                                     >
                                         <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${

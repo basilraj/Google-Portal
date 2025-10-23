@@ -1,16 +1,18 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext.tsx';
 import { SMTPSettings } from '../../types.ts';
 import Icon from '../Icon.tsx';
+import { initialSmtpSettings } from '../../constants.ts';
 
 const EmailSettings: React.FC = () => {
     const { smtpSettings, updateSmtpSettings } = useData();
-    const [formData, setFormData] = useState<SMTPSettings>(smtpSettings);
+    const [formData, setFormData] = useState<SMTPSettings>(smtpSettings || initialSmtpSettings);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        setFormData(smtpSettings);
+        setFormData(smtpSettings || initialSmtpSettings);
     }, [smtpSettings]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +75,7 @@ const EmailSettings: React.FC = () => {
 
             {message && <div className="p-3 bg-green-100 text-green-800 rounded-md text-sm text-center">{message}</div>}
              <div className="flex justify-end pt-4 border-t">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90 flex items-center gap-2">
                     <Icon name="save" /> Save SMTP Settings
                 </button>
             </div>

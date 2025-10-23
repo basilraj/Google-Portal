@@ -11,7 +11,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
       <Icon name="envelope-open-text" className="text-5xl text-gray-300 mb-4" />
       <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
       {buttonText && onButtonClick && (
-        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+        <button onClick={onButtonClick} className="mt-4 bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
           <Icon name="plus" /> {buttonText}
         </button>
       )}
@@ -59,7 +59,7 @@ const TemplateForm: React.FC<{ template?: EmailTemplate; onSave: (template: Omit
 
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Save Template</button>
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90">Save Template</button>
             </div>
         </form>
     );
@@ -111,7 +111,7 @@ const EmailTemplateManagement: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-700">Email Templates</h2>
                 {canManage && (
-                    <button onClick={() => { setEditingTemplate(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                    <button onClick={() => { setEditingTemplate(undefined); setIsModalOpen(true); }} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
                         <Icon name="plus" /> Create Template
                     </button>
                 )}

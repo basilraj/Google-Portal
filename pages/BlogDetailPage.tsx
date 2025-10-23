@@ -6,6 +6,7 @@ import PublicHeader from '../components/PublicHeader.tsx';
 import { basePath } from '../App.tsx';
 import AdComponent from '../components/AdComponent.tsx';
 import { getAdCodeForPlacement } from '../utils/jobUtils.ts';
+import MarkdownRenderer from '../components/MarkdownRenderer.tsx';
 
 const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => void }> = ({ postId, navigate }) => {
     const { posts, seoSettings, generalSettings, adSettings } = useData();
@@ -176,7 +177,7 @@ const BlogDetailPage: React.FC<{ postId: string; navigate: (path: string) => voi
                     </div>
 
                     <div className="static-content">
-                        <p className="whitespace-pre-wrap">{post.content}</p>
+                        <MarkdownRenderer content={post.content} />
                     </div>
 
                     <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">

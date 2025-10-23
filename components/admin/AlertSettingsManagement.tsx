@@ -3,14 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext.tsx';
 import { AlertSettings } from '../../types.ts';
 import Icon from '../Icon.tsx';
+import { initialAlertSettings } from '../../constants.ts';
 
 const AlertSettingsManagement: React.FC = () => {
     const { alertSettings, updateAlertSettings } = useData();
-    const [formData, setFormData] = useState<AlertSettings>(alertSettings);
+    const [formData, setFormData] = useState<AlertSettings>(alertSettings || initialAlertSettings);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        setFormData(alertSettings);
+        setFormData(alertSettings || initialAlertSettings);
     }, [alertSettings]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +91,7 @@ const AlertSettingsManagement: React.FC = () => {
             
             {message && <div className="p-3 bg-green-100 text-green-800 rounded-md text-sm text-center">{message}</div>}
              <div className="flex justify-end pt-4 border-t">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2" disabled>
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90 flex items-center gap-2" disabled>
                     <Icon name="save" /> Save Alert Settings
                 </button>
             </div>

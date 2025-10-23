@@ -3,17 +3,18 @@ import { useData } from '../../contexts/DataContext.tsx';
 import { ThemeSettings } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import { useAuth } from '../../contexts/AuthContext.tsx';
+import { initialThemeSettings } from '../../constants.ts';
 
 const ThemeManagement: React.FC = () => {
     const { themeSettings, updateThemeSettings, demoUserSettings } = useData();
     const { isDemoUser } = useAuth();
-    const [localTheme, setLocalTheme] = useState<ThemeSettings>(themeSettings);
+    const [localTheme, setLocalTheme] = useState<ThemeSettings>(themeSettings || initialThemeSettings);
     const [message, setMessage] = useState('');
 
     const canManage = !isDemoUser || demoUserSettings.canChangeTheme;
 
     useEffect(() => {
-        setLocalTheme(themeSettings);
+        setLocalTheme(themeSettings || initialThemeSettings);
     }, [themeSettings]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -4,13 +4,14 @@ import {
     Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, 
     SocialMediaSettings, SMTPSettings, ActivityLog, ContactSubmission, EmailNotification, CustomEmail, 
     BackupData, RSSSettings, AlertSettings, SponsoredAd, PlacementKey, PopupAdSettings, ThemeSettings,
-    SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings
+    SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings, PreparationCourse, PreparationBook, UpcomingExam
 } from '../types.ts';
 import { 
     INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, 
     initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, 
     initialSmtpSettings, INITIAL_ACTIVITY_LOGS, initialRssSettings, initialAlertSettings, INITIAL_SPONSORED_ADS,
-    initialPopupAdSettings, initialThemeSettings, initialSecuritySettings, initialDemoUserSettings, INITIAL_EMAIL_TEMPLATES, initialGoogleSearchConsoleSettings
+    initialPopupAdSettings, initialThemeSettings, initialSecuritySettings, initialDemoUserSettings, INITIAL_EMAIL_TEMPLATES, initialGoogleSearchConsoleSettings,
+    INITIAL_PREPARATION_COURSES, INITIAL_PREPARATION_BOOKS, INITIAL_UPCOMING_EXAMS
 } from '../constants.ts';
 import { isLocalStorageAvailable } from '../utils/storage.ts';
 import { slugify } from '../utils/slugify.ts';
@@ -112,6 +113,21 @@ interface DataContextType {
   sendNewJobAlert: (job: Job) => Promise<void>;
   sendBulkJobAlerts: (jobs: Job[]) => Promise<void>;
 
+  preparationCourses: PreparationCourse[];
+  addPreparationCourse: (course: Omit<PreparationCourse, 'id'>) => Promise<void>;
+  updatePreparationCourse: (course: PreparationCourse) => Promise<void>;
+  deletePreparationCourse: (id: string) => Promise<void>;
+
+  preparationBooks: PreparationBook[];
+  addPreparationBook: (book: Omit<PreparationBook, 'id'>) => Promise<void>;
+  updatePreparationBook: (book: PreparationBook) => Promise<void>;
+  deletePreparationBook: (id: string) => Promise<void>;
+
+  upcomingExams: UpcomingExam[];
+  addUpcomingExam: (exam: Omit<UpcomingExam, 'id'>) => Promise<void>;
+  updateUpcomingExam: (exam: UpcomingExam) => Promise<void>;
+  deleteUpcomingExam: (id: string) => Promise<void>;
+
   isPersistenceActive: boolean;
   
   createBackup: () => BackupData;
@@ -144,6 +160,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [customEmails, setCustomEmails] = useLocalStorage<CustomEmail[]>('custom-emails', []);
     const [sponsoredAds, setSponsoredAds] = useLocalStorage<SponsoredAd[]>('sponsored-ads', INITIAL_SPONSORED_ADS);
     const [emailTemplates, setEmailTemplates] = useLocalStorage<EmailTemplate[]>('email-templates', INITIAL_EMAIL_TEMPLATES);
+    const [preparationCourses, setPreparationCourses] = useLocalStorage<PreparationCourse[]>('prep-courses', INITIAL_PREPARATION_COURSES);
+    const [preparationBooks, setPreparationBooks] = useLocalStorage<PreparationBook[]>('prep-books', INITIAL_PREPARATION_BOOKS);
+    const [upcomingExams, setUpcomingExams] = useLocalStorage<UpcomingExam[]>('upcoming-exams', INITIAL_UPCOMING_EXAMS);
 
     const addActivityLog = useCallback(async (action: string, details: string) => {
         const newLog: ActivityLog = {
@@ -534,18 +553,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         const jobLink = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
 
+        // FIX: Add a return statement inside the map function.
         const newNotifications: EmailNotification[] = activeSubscribers.map(sub => {
-            let subject = template.subject
+            const subject = template.subject.replace(/{{siteName}}/g, generalSettings.siteTitle)
                 .replace(/{{jobTitle}}/g, job.title)
-                .replace(/{{jobDepartment}}/g, job.department)
-                .replace(/{{siteName}}/g, generalSettings.siteTitle);
+                .replace(/{{jobDepartment}}/g, job.department);
             
-            let body = template.body
+            const body = template.body.replace(/{{siteName}}/g, generalSettings.siteTitle)
                 .replace(/{{jobTitle}}/g, job.title)
                 .replace(/{{jobDepartment}}/g, job.department)
                 .replace(/{{jobLastDate}}/g, job.lastDate)
-                .replace(/{{jobLink}}/g, jobLink)
-                .replace(/{{siteName}}/g, generalSettings.siteTitle);
+                .replace(/{{jobLink}}/g, jobLink);
 
             return {
                 id: crypto.randomUUID(),
@@ -555,41 +573,36 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 sentAt: new Date().toISOString(),
             };
         });
-
+        
         setEmailNotifications(prev => [...newNotifications, ...prev]);
-        await addActivityLog('Job Alert Sent', `Alert for "${job.title}" queued for ${activeSubscribers.length} subscribers.`);
+        await addActivityLog('Job Alert Sent', `New job alert for "${job.title}" sent to ${activeSubscribers.length} subscribers.`);
 
-    }, [emailTemplates, subscribers, generalSettings, setEmailNotifications, addActivityLog]);
+    }, [generalSettings, emailTemplates, subscribers, setEmailNotifications, addActivityLog]);
 
     const sendBulkJobAlerts = useCallback(async (jobs: Job[]) => {
-        if (!generalSettings.emailNotificationsEnabled || jobs.length === 0) return;
-        
-        const template = emailTemplates.find(t => t.id === 'template-new-job');
-        if (!template) {
-            console.error("New Job Alert email template not found.");
-            return;
-        }
+        if (!generalSettings.emailNotificationsEnabled) return;
 
-        const activeSubscribers = subscribers.filter(s => s.status === 'active');
-        if (activeSubscribers.length === 0) return;
+        let allNotifications: EmailNotification[] = [];
 
-        let allNewNotifications: EmailNotification[] = [];
+        for (const job of jobs) {
+            const template = emailTemplates.find(t => t.id === 'template-new-job');
+            if (!template) continue;
 
-        jobs.forEach(job => {
+            const activeSubscribers = subscribers.filter(s => s.status === 'active');
+            if (activeSubscribers.length === 0) continue;
+            
             const jobLink = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
 
-            const newNotifications: EmailNotification[] = activeSubscribers.map(sub => {
-                let subject = template.subject
+            const notificationsForThisJob: EmailNotification[] = activeSubscribers.map(sub => {
+                const subject = template.subject.replace(/{{siteName}}/g, generalSettings.siteTitle)
                     .replace(/{{jobTitle}}/g, job.title)
-                    .replace(/{{jobDepartment}}/g, job.department)
-                    .replace(/{{siteName}}/g, generalSettings.siteTitle);
+                    .replace(/{{jobDepartment}}/g, job.department);
                 
-                let body = template.body
+                const body = template.body.replace(/{{siteName}}/g, generalSettings.siteTitle)
                     .replace(/{{jobTitle}}/g, job.title)
                     .replace(/{{jobDepartment}}/g, job.department)
                     .replace(/{{jobLastDate}}/g, job.lastDate)
-                    .replace(/{{jobLink}}/g, jobLink)
-                    .replace(/{{siteName}}/g, generalSettings.siteTitle);
+                    .replace(/{{jobLink}}/g, jobLink);
 
                 return {
                     id: crypto.randomUUID(),
@@ -599,96 +612,179 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     sentAt: new Date().toISOString(),
                 };
             });
-            allNewNotifications.push(...newNotifications);
-        });
-
-        if (allNewNotifications.length > 0) {
-            setEmailNotifications(prev => [...allNewNotifications, ...prev]);
-            await addActivityLog('Bulk Job Alerts Sent', `Alerts for ${jobs.length} new jobs queued for ${activeSubscribers.length} subscribers.`);
+            allNotifications = [...allNotifications, ...notificationsForThisJob];
         }
 
-    }, [emailTemplates, subscribers, generalSettings, setEmailNotifications, addActivityLog]);
+        if(allNotifications.length > 0) {
+            setEmailNotifications(prev => [...allNotifications, ...prev]);
+            await addActivityLog('Bulk Job Alerts Sent', `${jobs.length} new job alerts sent to ${subscribers.filter(s => s.status === 'active').length} subscribers.`);
+        }
+    }, [generalSettings, emailTemplates, subscribers, setEmailNotifications, addActivityLog]);
+
+    const addPreparationCourse = useCallback(async (course: Omit<PreparationCourse, 'id'>) => {
+        const newCourse = { ...course, id: crypto.randomUUID() };
+        setPreparationCourses(prev => [...prev, newCourse]);
+        await addActivityLog('Preparation Course Added', `New course: "${course.title}"`);
+    }, [setPreparationCourses, addActivityLog]);
+
+    const updatePreparationCourse = useCallback(async (course: PreparationCourse) => {
+        setPreparationCourses(prev => prev.map(c => c.id === course.id ? course : c));
+        await addActivityLog('Preparation Course Updated', `Course updated: "${course.title}"`);
+    }, [setPreparationCourses, addActivityLog]);
+
+    const deletePreparationCourse = useCallback(async (id: string) => {
+        const courseToDelete = preparationCourses.find(c => c.id === id);
+        setPreparationCourses(prev => prev.filter(c => c.id !== id));
+        if (courseToDelete) {
+            await addActivityLog('Preparation Course Deleted', `Course deleted: "${courseToDelete.title}"`);
+        }
+    }, [preparationCourses, setPreparationCourses, addActivityLog]);
+
+    const addPreparationBook = useCallback(async (book: Omit<PreparationBook, 'id'>) => {
+        const newBook = { ...book, id: crypto.randomUUID() };
+        setPreparationBooks(prev => [...prev, newBook]);
+        await addActivityLog('Preparation Book Added', `New book: "${book.title}"`);
+    }, [setPreparationBooks, addActivityLog]);
+
+    const updatePreparationBook = useCallback(async (book: PreparationBook) => {
+        setPreparationBooks(prev => prev.map(b => b.id === book.id ? book : b));
+        await addActivityLog('Preparation Book Updated', `Book updated: "${book.title}"`);
+    }, [setPreparationBooks, addActivityLog]);
+
+    const deletePreparationBook = useCallback(async (id: string) => {
+        const bookToDelete = preparationBooks.find(b => b.id === id);
+        setPreparationBooks(prev => prev.filter(b => b.id !== id));
+        if (bookToDelete) {
+            await addActivityLog('Preparation Book Deleted', `Book deleted: "${bookToDelete.title}"`);
+        }
+    }, [preparationBooks, setPreparationBooks, addActivityLog]);
+
+    const addUpcomingExam = useCallback(async (exam: Omit<UpcomingExam, 'id'>) => {
+        const newExam = { ...exam, id: crypto.randomUUID() };
+        setUpcomingExams(prev => [...prev, newExam]);
+        await addActivityLog('Upcoming Exam Added', `New exam: "${exam.name}"`);
+    }, [setUpcomingExams, addActivityLog]);
+
+    const updateUpcomingExam = useCallback(async (exam: UpcomingExam) => {
+        setUpcomingExams(prev => prev.map(e => e.id === exam.id ? exam : e));
+        await addActivityLog('Upcoming Exam Updated', `Exam updated: "${exam.name}"`);
+    }, [setUpcomingExams, addActivityLog]);
+
+    const deleteUpcomingExam = useCallback(async (id: string) => {
+        const examToDelete = upcomingExams.find(e => e.id === id);
+        setUpcomingExams(prev => prev.filter(e => e.id !== id));
+        if (examToDelete) {
+            await addActivityLog('Upcoming Exam Deleted', `Exam deleted: "${examToDelete.name}"`);
+        }
+    }, [upcomingExams, setUpcomingExams, addActivityLog]);
+
+
+    // Fix: Remove function call parentheses as isLocalStorageAvailable is a boolean.
+    const isPersistenceActive = isLocalStorageAvailable;
 
     const createBackup = useCallback((): BackupData => {
         return {
-            jobs, quickLinks, posts, subscribers, breakingNews, adSettings, 
-            seoSettings, generalSettings, socialMediaSettings, activityLogs, 
-            smtpSettings, rssSettings, alertSettings, sponsoredAds, popupAdSettings,
-            themeSettings, securitySettings, demoUserSettings, emailTemplates, googleSearchConsoleSettings
+            jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, 
+            generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings,
+            alertSettings, sponsoredAds, popupAdSettings, themeSettings, securitySettings,
+            demoUserSettings, emailTemplates, googleSearchConsoleSettings,
+            preparationCourses, preparationBooks, upcomingExams
         };
-    }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings, alertSettings, sponsoredAds, popupAdSettings, themeSettings, securitySettings, demoUserSettings, emailTemplates, googleSearchConsoleSettings]);
+    }, [
+        jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, 
+        generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings,
+        alertSettings, sponsoredAds, popupAdSettings, themeSettings, securitySettings,
+        demoUserSettings, emailTemplates, googleSearchConsoleSettings,
+        preparationCourses, preparationBooks, upcomingExams
+    ]);
 
     const restoreBackup = useCallback((data: BackupData): boolean => {
-        try {
-            if (!data.jobs || !data.posts || !data.generalSettings) {
-                return false;
-            }
-            setJobs(data.jobs || []);
-            setQuickLinks(data.quickLinks || []);
-            setPosts(data.posts || []);
-            setSubscribers(data.subscribers || []);
-            setBreakingNews(data.breakingNews || []);
-            setAdSettings(data.adSettings || initialAdSettings);
-            setSeoSettings(data.seoSettings || initialSeoSettings);
-            setGeneralSettings(data.generalSettings || initialGeneralSettings);
-            setSocialMediaSettings(data.socialMediaSettings || initialSocialMediaSettings);
-            setActivityLogs(data.activityLogs || []);
-            setSmtpSettings(data.smtpSettings || initialSmtpSettings);
-            setRssSettings(data.rssSettings || initialRssSettings);
-            setAlertSettings(data.alertSettings || initialAlertSettings);
-            setSponsoredAds(data.sponsoredAds || []);
-            setPopupAdSettings(data.popupAdSettings || initialPopupAdSettings);
-            setThemeSettings(data.themeSettings || initialThemeSettings);
-            setSecuritySettings(data.securitySettings || initialSecuritySettings);
-            setDemoUserSettings(data.demoUserSettings || initialDemoUserSettings);
-            setEmailTemplates(data.emailTemplates || []);
-            setGoogleSearchConsoleSettings(data.googleSearchConsoleSettings || initialGoogleSearchConsoleSettings);
-            addActivityLog('System Restore', 'Data was restored from a backup file.');
-            return true;
-        } catch (error) {
-            console.error("Restore failed:", error);
+        // Basic validation
+        if (!data.jobs || !data.generalSettings || !data.seoSettings) {
             return false;
         }
-    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, setAlertSettings, setSponsoredAds, setPopupAdSettings, setThemeSettings, setSecuritySettings, setDemoUserSettings, setEmailTemplates, setGoogleSearchConsoleSettings, addActivityLog]);
+        
+        setJobs(data.jobs || INITIAL_JOBS);
+        setQuickLinks(data.quickLinks || INITIAL_QUICK_LINKS);
+        setPosts(data.posts || INITIAL_POSTS);
+        setSubscribers(data.subscribers || INITIAL_SUBSCRIBERS);
+        setBreakingNews(data.breakingNews || INITIAL_BREAKING_NEWS);
+        setAdSettings(data.adSettings || initialAdSettings);
+        setSeoSettings(data.seoSettings || initialSeoSettings);
+        setGeneralSettings(data.generalSettings || initialGeneralSettings);
+        setSocialMediaSettings(data.socialMediaSettings || initialSocialMediaSettings);
+        setActivityLogs(data.activityLogs || INITIAL_ACTIVITY_LOGS);
+        setSmtpSettings(data.smtpSettings || initialSmtpSettings);
+        setRssSettings(data.rssSettings || initialRssSettings);
+        setAlertSettings(data.alertSettings || initialAlertSettings);
+        setSponsoredAds(data.sponsoredAds || INITIAL_SPONSORED_ADS);
+        setPopupAdSettings(data.popupAdSettings || initialPopupAdSettings);
+        setThemeSettings(data.themeSettings || initialThemeSettings);
+        setSecuritySettings(data.securitySettings || initialSecuritySettings);
+        setDemoUserSettings(data.demoUserSettings || initialDemoUserSettings);
+        setEmailTemplates(data.emailTemplates || INITIAL_EMAIL_TEMPLATES);
+        setGoogleSearchConsoleSettings(data.googleSearchConsoleSettings || initialGoogleSearchConsoleSettings);
+        setPreparationCourses(data.preparationCourses || INITIAL_PREPARATION_COURSES);
+        setPreparationBooks(data.preparationBooks || INITIAL_PREPARATION_BOOKS);
+        setUpcomingExams(data.upcomingExams || INITIAL_UPCOMING_EXAMS);
+        setContacts([]); // Don't restore contact submissions
+        setEmailNotifications([]); // Don't restore notification history
+        setCustomEmails([]); // Don't restore custom email history
+        
+        addActivityLog('System Restored', 'Data was restored from a backup file.');
+        return true;
+    }, [
+        setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings,
+        setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings,
+        setAlertSettings, setSponsoredAds, setPopupAdSettings, setThemeSettings, setSecuritySettings,
+        setDemoUserSettings, setEmailTemplates, setGoogleSearchConsoleSettings,
+        setPreparationCourses, setPreparationBooks, setUpcomingExams, addActivityLog,
+        setContacts, setEmailNotifications, setCustomEmails
+    ]);
+
+    const value = {
+        jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs,
+        quickLinks, addQuickLink, updateQuickLink, deleteQuickLink,
+        posts, addPost, updatePost, deletePost, deleteMultiplePosts,
+        subscribers, addSubscriber, deleteSubscriber,
+        breakingNews, addNews, updateNews, deleteNews,
+        sponsoredAds, addSponsoredAd, updateSponsoredAd, deleteSponsoredAd,
+        adSettings, updateAdSettings, trackSponsoredAdClick, toggleAdTest,
+        seoSettings, updateSEOSettings,
+        generalSettings, updateGeneralSettings,
+        socialMediaSettings, updateSocialMediaSettings,
+        smtpSettings, updateSmtpSettings,
+        rssSettings, updateRssSettings,
+        alertSettings, updateAlertSettings,
+        popupAdSettings, updatePopupAdSettings,
+        themeSettings, updateThemeSettings,
+        securitySettings, updateSecuritySettings,
+        demoUserSettings, updateDemoUserSettings,
+        googleSearchConsoleSettings, updateGoogleSearchConsoleSettings,
+        activityLogs, addActivityLog, clearActivityLogs,
+        contacts, addContact, deleteContact,
+        emailNotifications, deleteEmailNotification, clearAllEmailNotifications,
+        customEmails, sendCustomEmail, deleteCustomEmail,
+        emailTemplates, addEmailTemplate, updateEmailTemplate, deleteEmailTemplate,
+        sendNewJobAlert, sendBulkJobAlerts,
+        preparationCourses, addPreparationCourse, updatePreparationCourse, deletePreparationCourse,
+        preparationBooks, addPreparationBook, updatePreparationBook, deletePreparationBook,
+        upcomingExams, addUpcomingExam, updateUpcomingExam, deleteUpcomingExam,
+        isPersistenceActive,
+        createBackup, restoreBackup
+    };
 
     return (
-        <DataContext.Provider value={{
-            jobs, addJob, updateJob, deleteJob, addMultipleJobs, deleteMultipleJobs,
-            quickLinks, addQuickLink, updateQuickLink, deleteQuickLink,
-            posts, addPost, updatePost, deletePost, deleteMultiplePosts,
-            subscribers, addSubscriber, deleteSubscriber,
-            breakingNews, addNews, updateNews, deleteNews,
-            sponsoredAds, addSponsoredAd, updateSponsoredAd, deleteSponsoredAd,
-            adSettings, updateAdSettings, trackSponsoredAdClick, toggleAdTest,
-            seoSettings, updateSEOSettings,
-            generalSettings, updateGeneralSettings,
-            socialMediaSettings, updateSocialMediaSettings,
-            smtpSettings, updateSmtpSettings,
-            rssSettings, updateRssSettings,
-            alertSettings, updateAlertSettings,
-            popupAdSettings, updatePopupAdSettings,
-            themeSettings, updateThemeSettings,
-            securitySettings, updateSecuritySettings,
-            demoUserSettings, updateDemoUserSettings,
-            googleSearchConsoleSettings, updateGoogleSearchConsoleSettings,
-            activityLogs, addActivityLog, clearActivityLogs,
-            contacts, addContact, deleteContact,
-            emailNotifications, deleteEmailNotification, clearAllEmailNotifications,
-            customEmails, sendCustomEmail, deleteCustomEmail,
-            emailTemplates, addEmailTemplate, updateEmailTemplate, deleteEmailTemplate,
-            sendNewJobAlert, sendBulkJobAlerts,
-            isPersistenceActive: isLocalStorageAvailable,
-            createBackup, restoreBackup,
-        }}>
+        <DataContext.Provider value={value}>
             {children}
         </DataContext.Provider>
     );
 };
 
 export const useData = (): DataContextType => {
-    const context = useContext(DataContext);
-    if (context === undefined) {
-        throw new Error('useData must be used within a DataProvider');
-    }
-    return context;
+  const context = useContext(DataContext);
+  if (context === undefined) {
+    throw new Error('useData must be used within a DataProvider');
+  }
+  return context;
 };

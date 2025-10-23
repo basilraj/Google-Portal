@@ -1,5 +1,5 @@
 // Fix: Import all types from the dedicated types.ts file to resolve circular dependencies.
-import { Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, SMTPSettings, ActivityLog, RSSSettings, AlertSettings, SponsoredAd, PopupAdSettings, ThemeSettings, SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings } from './types.ts';
+import { Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, SocialMediaSettings, SMTPSettings, ActivityLog, RSSSettings, AlertSettings, SponsoredAd, PopupAdSettings, ThemeSettings, SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings, PreparationCourse, PreparationBook, UpcomingExam } from './types.ts';
 
 export const INITIAL_JOBS: Job[] = [
   // 20 sample jobs for pagination and variety
@@ -68,6 +68,24 @@ export const INITIAL_BREAKING_NEWS: BreakingNews[] = [
 
 export const INITIAL_SPONSORED_ADS: SponsoredAd[] = [
     { id: '1', imageUrl: 'https://via.placeholder.com/300x250.png/9333ea/ffffff?text=Sponsored+Ad', destinationUrl: '#', placement: 'sidebar-top', status: 'active', clicks: 125 },
+];
+
+export const INITIAL_PREPARATION_COURSES: PreparationCourse[] = [
+    { id: 'pc1', platform: 'Testbook', title: 'SSC CGL SuperCoaching', url: '#' },
+    { id: 'pc2', platform: 'Adda247', title: 'SSC CGL Mahapack', url: '#' },
+    { id: 'pc3', platform: 'Unacademy', title: 'Bank Exams Subscription', url: '#' },
+];
+
+export const INITIAL_PREPARATION_BOOKS: PreparationBook[] = [
+    { id: 'pb1', title: 'Quantitative Aptitude for Competitive Examinations', author: 'R.S. Aggarwal', url: '#', imageUrl: 'https://m.media-amazon.com/images/I/81+373i2z-L._AC_UY327_FMwebp_QL65_.jpg' },
+    { id: 'pb2', title: 'A New Approach to Reasoning', author: 'B.S. Sijwali & Indu Sijwali', url: '#', imageUrl: 'https://m.media-amazon.com/images/I/81MW4K52pDL._AC_UY327_FMwebp_QL65_.jpg' },
+    { id: 'pb3', title: 'Comprehensive Guide to IBPS PO/MT', author: 'Disha Experts', url: '#', imageUrl: 'https://m.media-amazon.com/images/I/81w4fTj2-JL._AC_UY327_FMwebp_QL65_.jpg' },
+];
+
+export const INITIAL_UPCOMING_EXAMS: UpcomingExam[] = [
+    { id: 'ue1', name: 'SSC CGL 2025 Tier I Application', deadline: '2025-11-25', notificationLink: '#' },
+    { id: 'ue2', name: 'IBPS PO 2025 Registration', deadline: '2025-10-20', notificationLink: '#' },
+    { id: 'ue3', name: 'UPSC Civil Services 2025 Prelims Application', deadline: '2025-10-10', notificationLink: '#' },
 ];
 
 export const initialAdSettings: AdSettings = {

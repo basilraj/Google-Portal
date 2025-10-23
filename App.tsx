@@ -46,6 +46,14 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, [path]);
   
+  // This effect updates the favicon dynamically.
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>("link[rel*='icon']");
+    if (link && generalSettings.siteIconUrl) {
+      link.href = generalSettings.siteIconUrl;
+    }
+  }, [generalSettings.siteIconUrl]);
+
   // Update document title based on SEO settings and current page
   useEffect(() => {
     const route = (path.replace(basePath, '') || '/').toLowerCase();

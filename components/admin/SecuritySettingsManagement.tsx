@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext.tsx';
 import { SecuritySettings, DemoUserSettings } from '../../types.ts';
 import Icon from '../Icon.tsx';
+import { initialSecuritySettings, initialDemoUserSettings } from '../../constants.ts';
 
 const FAKE_QR_CODE_SVG = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj48cGF0aCBmaWxsPSJibGFjayIgZD0iTTAgMGgyNTB2MjUwSDB6bTIwIDIwaDIxMHYyMTBIMjB6Ii8+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik01MCA1MGgxNTB2MTUwSDUwek02MCAxMDBoMzB2MzBINjB6TTEwMCAxMDBoMzB2MzBIMTAwek0xNDAgMTAwaDMwdjMwSDE0MHpNODAgMTQwaDMwdjMwSDgwek0xMjAgMTQwaDMwdjMwSDEyMHpNNjAgNjBoMzB2MzBINjB6TTEwMCA2MGgzMHYzMEgxMDB6TTE0MCA2MGgzMHYzMEgxNDB6Ii8+PHBhdGggZmlsbD0iYmxhY2siIGQ9Ik03MCA3MGgxMHYxMEg3MHpNMTEwIDcwaDEwdjEwSDExMHpNMTUwIDcwaDEwdjEwSDE1MHpNNzAgOTBoMTB2MTBINzB6TTEzMCA5MGgxMHYxMEgxMzB6TTE3MCA5MGgxMHYxMEgxNzB6TTcwIDExMGgxMHYxMEg3MHpNOTAgMTMwaDEwdjEwSDkwelpNMTUwIDEzMGgxMHYxMEgxNTB6TTcwIDE1MGgxMHYxMEg3MHpNMTEwIDE1MGgxMHYxMEgxMTB6TTE1MCAxNzBoMTB2MTBIMTUweiIvPjwvc3ZnPg==";
 
@@ -20,13 +21,13 @@ const PermissionCheckbox: React.FC<{ name: keyof DemoUserSettings; label: string
 
 export const SecuritySettingsManagement: React.FC = () => {
     const { securitySettings, updateSecuritySettings, demoUserSettings, updateDemoUserSettings } = useData();
-    const [localSecurity, setLocalSecurity] = useState<SecuritySettings>(securitySettings);
-    const [localDemo, setLocalDemo] = useState<DemoUserSettings>(demoUserSettings);
+    const [localSecurity, setLocalSecurity] = useState<SecuritySettings>(securitySettings || initialSecuritySettings);
+    const [localDemo, setLocalDemo] = useState<DemoUserSettings>(demoUserSettings || initialDemoUserSettings);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        setLocalSecurity(securitySettings);
-        setLocalDemo(demoUserSettings);
+        setLocalSecurity(securitySettings || initialSecuritySettings);
+        setLocalDemo(demoUserSettings || initialDemoUserSettings);
     }, [securitySettings, demoUserSettings]);
     
     const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -155,7 +156,7 @@ export const SecuritySettingsManagement: React.FC = () => {
             </div>
 
             <div className="flex justify-end pt-4 border-t">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90 flex items-center gap-2">
                     <Icon name="save" /> Save Security Settings
                 </button>
             </div>

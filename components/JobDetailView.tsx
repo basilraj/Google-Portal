@@ -7,6 +7,7 @@ import Modal from './Modal.tsx';
 import AdComponent from './AdComponent.tsx';
 import { useData } from '../contexts/DataContext.tsx';
 import { getAdCodeForPlacement } from '../utils/jobUtils.ts';
+import MarkdownRenderer from './MarkdownRenderer.tsx';
 
 interface JobDetailViewProps {
   job: Job;
@@ -55,7 +56,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
 
         <div className="static-content">
           <h2>Job Description</h2>
-          <p className="whitespace-pre-wrap">{job.description}</p>
+          <MarkdownRenderer content={job.description} />
         </div>
 
         {hasPrepMaterials && (

@@ -2,10 +2,11 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 // Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import { SEOSettings } from '../../types.ts';
 // Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
+import { initialSeoSettings } from '../../constants.ts';
 
 const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: boolean; onToggle: () => void; }> = ({ title, children, isOpen, onToggle }) => (
     <div className="border-b">
@@ -27,11 +28,11 @@ const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: b
 
 const SEOManagement: React.FC = () => {
     const { seoSettings, updateSEOSettings } = useData();
-    const [formData, setFormData] = useState<SEOSettings>(seoSettings);
+    const [formData, setFormData] = useState<SEOSettings>(seoSettings || initialSeoSettings);
     const [activeSection, setActiveSection] = useState<string>('global');
 
     useEffect(() => {
-        setFormData(seoSettings);
+        setFormData(seoSettings || initialSeoSettings);
     }, [seoSettings]);
 
     const handleToggleSection = (section: string) => {
@@ -125,7 +126,7 @@ const SEOManagement: React.FC = () => {
             </AccordionSection>
 
             <div className="flex justify-end mt-6 p-4 border-t bg-gray-50">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 text-base font-semibold flex items-center gap-2">
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90 text-base font-semibold flex items-center gap-2">
                     <Icon name="save" /> Save SEO Settings
                 </button>
             </div>

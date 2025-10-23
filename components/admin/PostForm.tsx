@@ -3,6 +3,7 @@ import { ContentPost } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import { useData } from '../../contexts/DataContext.tsx';
 import { slugify } from '../../utils/slugify.ts';
+import MarkdownToolbar from './MarkdownToolbar.tsx';
 
 interface PostFormProps {
     post?: ContentPost;
@@ -40,6 +41,7 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
     const [isSeoOpen, setIsSeoOpen] = useState(false);
 
     const titleInputRef = useRef<HTMLInputElement>(null);
+    const contentRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         titleInputRef.current?.focus();
@@ -48,6 +50,10 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value as any }));
+    };
+    
+    const handleContentChange = (value: string) => {
+        setFormData(prev => ({ ...prev, content: value }));
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +101,8 @@ const PostForm: React.FC<PostFormProps> = ({ post, onSave, onCancel, defaultType
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700">Content</label>
-                <textarea name="content" value={formData.content} onChange={handleChange} rows={6} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
+                <MarkdownToolbar textareaRef={contentRef} onValueChange={handleContentChange} />
+                <textarea ref={contentRef} name="content" value={formData.content} onChange={handleChange} rows={6} className="block w-full px-3 py-2 border border-gray-300 rounded-md rounded-t-none" />
             </div>
             
             <div>

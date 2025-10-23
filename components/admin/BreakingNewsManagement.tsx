@@ -13,7 +13,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
       <Icon name="newspaper" className="text-5xl text-gray-300 mb-4" />
       <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
       {buttonText && onButtonClick && (
-        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+        <button onClick={onButtonClick} className="mt-4 bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
           <Icon name="plus" /> {buttonText}
         </button>
       )}
@@ -56,7 +56,7 @@ const NewsForm: React.FC<{ newsItem?: BreakingNews; onSave: (news: Omit<Breaking
             </div>
             <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Save News</button>
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90">Save News</button>
             </div>
         </form>
     );
@@ -122,7 +122,7 @@ const BreakingNewsManagement: React.FC = () => {
                     setIsConfirmModalOpen(false);
                 },
                 confirmText: 'Proceed',
-                confirmButtonClass: 'bg-blue-600 hover:bg-blue-700'
+                confirmButtonClass: 'bg-[var(--primary-color)] filter hover:brightness-90'
             });
         } else {
             window.open(url, '_blank', 'noopener,noreferrer');
@@ -134,7 +134,7 @@ const BreakingNewsManagement: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-700">Breaking News Ticker</h2>
                 {canManage && (
-                    <button onClick={() => { setEditingNews(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                    <button onClick={() => { setEditingNews(undefined); setIsModalOpen(true); }} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
                         <Icon name="plus" /> Add News Item
                     </button>
                 )}
@@ -154,7 +154,7 @@ const BreakingNewsManagement: React.FC = () => {
                         {breakingNews.map(news => (
                             <tr key={news.id} className="bg-white hover:bg-gray-50 border-b">
                                 <td data-label="Text" className="px-6 py-4 font-medium text-gray-900">{news.text}</td>
-                                <td data-label="Link" className="px-6 py-4 truncate max-w-xs"><a href={news.link} onClick={(e) => handleExternalLinkClick(e, news.link)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{news.link}</a></td>
+                                <td data-label="Link" className="px-6 py-4 truncate max-w-xs"><a href={news.link} onClick={(e) => handleExternalLinkClick(e, news.link)} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{news.link}</a></td>
                                 <td data-label="Status" className="px-6 py-4">
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${news.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{news.status}</span>
                                 </td>

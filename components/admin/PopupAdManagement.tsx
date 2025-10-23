@@ -3,17 +3,18 @@ import { useData } from '../../contexts/DataContext.tsx';
 import { PopupAdSettings } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import { useAuth } from '../../contexts/AuthContext.tsx';
+import { initialPopupAdSettings } from '../../constants.ts';
 
 const PopupAdManagement: React.FC = () => {
     const { popupAdSettings, updatePopupAdSettings, demoUserSettings } = useData();
     const { isDemoUser } = useAuth();
-    const [formData, setFormData] = useState<PopupAdSettings>(popupAdSettings);
+    const [formData, setFormData] = useState<PopupAdSettings>(popupAdSettings || initialPopupAdSettings);
     const [message, setMessage] = useState('');
 
     const canManage = !isDemoUser || demoUserSettings.canManageAds;
 
     useEffect(() => {
-        setFormData(popupAdSettings);
+        setFormData(popupAdSettings || initialPopupAdSettings);
     }, [popupAdSettings]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -132,7 +133,7 @@ const PopupAdManagement: React.FC = () => {
                 </div>
                 {canManage && (
                     <div className="flex justify-end pt-6 border-t">
-                        <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                        <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90 flex items-center gap-2">
                             <Icon name="save" /> Save Popup Settings
                         </button>
                     </div>

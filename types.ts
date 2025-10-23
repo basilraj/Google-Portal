@@ -1,19 +1,26 @@
 // Fix: Separate type definitions from constants to resolve circular dependencies.
 export type JobStatus = 'active' | 'closing-soon' | 'expired';
 
-export interface AffiliateCourse {
+export interface PreparationCourse {
   id: string;
   platform: 'Udemy' | 'Unacademy' | 'Coursera' | 'Testbook' | 'Adda247' | 'Other';
   title: string;
   url: string;
 }
 
-export interface AffiliateBook {
+export interface PreparationBook {
   id: string;
   title: string;
   author: string;
   url: string;
   imageUrl?: string;
+}
+
+export interface UpcomingExam {
+  id: string;
+  name: string;
+  deadline: string; // YYYY-MM-DD
+  notificationLink: string;
 }
 
 export interface Job {
@@ -29,8 +36,8 @@ export interface Job {
   applyLink: string;
   status: JobStatus;
   createdAt: string; // ISO String
-  affiliateCourses?: AffiliateCourse[];
-  affiliateBooks?: AffiliateBook[];
+  affiliateCourses?: PreparationCourse[];
+  affiliateBooks?: PreparationBook[];
 }
 
 export interface QuickLink {
@@ -325,4 +332,7 @@ export interface BackupData {
     demoUserSettings: DemoUserSettings;
     emailTemplates: EmailTemplate[];
     googleSearchConsoleSettings: GoogleSearchConsoleSettings;
+    preparationCourses: PreparationCourse[];
+    preparationBooks: PreparationBook[];
+    upcomingExams: UpcomingExam[];
 }

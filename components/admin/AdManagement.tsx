@@ -1,9 +1,10 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { AdSettings, ABTest, GeoTargetedAd, PlacementSetting } from '../../types.ts';
 import Icon from '../Icon.tsx';
+import { initialAdSettings } from '../../constants.ts';
 
 const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: boolean; onToggle: () => void; }> = ({ title, children, isOpen, onToggle }) => (
     <div className="border-b">
@@ -25,13 +26,13 @@ const AccordionSection: React.FC<{ title: string; children: ReactNode; isOpen: b
 
 const AdManagement: React.FC = () => {
     const { adSettings, updateAdSettings } = useData();
-    const [formData, setFormData] = useState<AdSettings>(adSettings);
+    const [formData, setFormData] = useState<AdSettings>(adSettings || initialAdSettings);
     const [activeSection, setActiveSection] = useState<string>('placements');
     const [message, setMessage] = useState('');
     
     // Ensure local form data is synced if context data changes externally
     useEffect(() => {
-        setFormData(adSettings);
+        setFormData(adSettings || initialAdSettings);
     }, [adSettings]);
 
     const handleToggleSection = (section: string) => {
@@ -113,7 +114,7 @@ const AdManagement: React.FC = () => {
         placementKey: PlacementKey;
         label: string;
     }> = ({ placementKey, label }) => {
-        const placement = formData[placementKey] as PlacementSetting;
+        const placement = formData[placementKey] as PlacementSetting || { enabled: false, type: 'network', networkKey: '', customCode: '' };
         
         const handlePlacementChange = (field: keyof PlacementSetting, value: any) => {
             handleNestedChange([placementKey, field], value);
@@ -336,7 +337,7 @@ const AdManagement: React.FC = () => {
             </AccordionSection>
 
              <div className="flex justify-end mt-6 p-4 border-t bg-gray-50">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 text-base font-semibold flex items-center gap-2">
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90 text-base font-semibold flex items-center gap-2">
                     <Icon name="save" /> Save Ad Settings
                 </button>
             </div>

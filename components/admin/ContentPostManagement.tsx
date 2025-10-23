@@ -10,6 +10,7 @@ import usePagination from '../../hooks/usePagination.ts';
 import PostForm from './PostForm.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import { useAuth } from '../../contexts/AuthContext.tsx';
+import MarkdownRenderer from '../MarkdownRenderer.tsx';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -343,7 +344,7 @@ const ContentPostManagement: React.FC = () => {
                             </div>
 
                             <div className="static-content">
-                                <p className="whitespace-pre-wrap">{previewPost.content}</p>
+                                <MarkdownRenderer content={previewPost.content} />
                             </div>
                         </div>
                     </div>

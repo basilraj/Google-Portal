@@ -18,7 +18,7 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
       <Icon name="poll" className="text-5xl text-gray-300 mb-4" />
       <h3 className="text-lg font-semibold text-gray-600">{message}</h3>
       {buttonText && onButtonClick && (
-        <button onClick={onButtonClick} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700 mx-auto">
+        <button onClick={onButtonClick} className="mt-4 bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90 mx-auto">
           <Icon name="plus" /> {buttonText}
         </button>
       )}
@@ -88,7 +88,7 @@ const ResultManagement: React.FC = () => {
             <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 className="text-xl font-bold text-gray-700">Latest Results</h2>
                 {canManage && (
-                    <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700">
+                    <button onClick={() => { setEditingPost(undefined); setIsModalOpen(true); }} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
                         <Icon name="plus" /> Add New Result
                     </button>
                 )}

@@ -85,7 +85,7 @@ const UserProfile: React.FC = () => {
                 )}
 
                 <div className="flex justify-end pt-4 border-t">
-                    <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                    <button type="submit" className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90 flex items-center gap-2">
                         <Icon name="save" /> Save Changes
                     </button>
                 </div>

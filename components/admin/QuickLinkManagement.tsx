@@ -145,7 +145,7 @@ const QuickLinkManagement: React.FC = () => {
                     setIsConfirmModalOpen(false);
                 },
                 confirmText: 'Proceed',
-                confirmButtonClass: 'bg-blue-600 hover:bg-blue-700'
+                confirmButtonClass: 'bg-[var(--primary-color)] filter hover:brightness-90'
             });
         } else {
             window.open(url, '_blank', 'noopener,noreferrer');

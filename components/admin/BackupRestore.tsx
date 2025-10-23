@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 // Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import { BackupData } from '../../types.ts';
 // Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
@@ -72,7 +72,7 @@ const BackupRestore: React.FC = () => {
                 <p className="text-sm text-gray-600 mb-4">Download a single JSON file containing all your website's data, including jobs, posts, subscribers, and settings. Keep this file in a safe place.</p>
                 <button
                     onClick={handleCreateBackup}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700"
+                    className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90"
                 >
                     <Icon name="download" /> Download Backup File
                 </button>

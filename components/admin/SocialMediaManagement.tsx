@@ -2,18 +2,19 @@
 import React, { useState, useEffect } from 'react';
 // Fix: Add .tsx extension to local module import.
 import { useData } from '../../contexts/DataContext.tsx';
-// Fix: Add .ts extension to local module import.
+// Fix: Add .tsx extension to local module import.
 import { SocialMediaSettings } from '../../types.ts';
 // Fix: Add .tsx extension to local module import.
 import Icon from '../Icon.tsx';
+import { initialSocialMediaSettings } from '../../constants.ts';
 
 const SocialMediaManagement: React.FC = () => {
     const { socialMediaSettings, updateSocialMediaSettings } = useData();
-    const [formData, setFormData] = useState<SocialMediaSettings>(socialMediaSettings);
+    const [formData, setFormData] = useState<SocialMediaSettings>(socialMediaSettings || initialSocialMediaSettings);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        setFormData(socialMediaSettings);
+        setFormData(socialMediaSettings || initialSocialMediaSettings);
     }, [socialMediaSettings]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,7 +146,7 @@ const SocialMediaManagement: React.FC = () => {
                 )}
 
                 <div className="flex justify-end pt-4 border-t mt-6">
-                    <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                    <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md filter hover:brightness-90 flex items-center gap-2">
                         <Icon name="save" /> Save Links
                     </button>
                 </div>

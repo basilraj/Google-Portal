@@ -28,7 +28,7 @@ const SignupForm: React.FC = () => {
     return (
         <>
             <div className="text-center">
-                <Icon name="user-plus" className="text-5xl text-indigo-600 mx-auto" />
+                <Icon name="user-plus" className="text-5xl text-[var(--primary-color)] mx-auto" />
                 <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Create Admin Account</h1>
                 <p className="mt-2 text-sm text-gray-600">This is a one-time setup to secure your admin panel.</p>
             </div>
@@ -39,7 +39,7 @@ const SignupForm: React.FC = () => {
                     <input type="password" placeholder="Choose a Secure Password" required value={password} onChange={e => setPassword(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                 </div>
                 {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--primary-color)] filter hover:brightness-90 disabled:opacity-50">
                     {isLoading ? 'Creating...' : 'Create Account'}
                 </button>
             </form>
@@ -69,7 +69,7 @@ const LoginForm: React.FC = () => {
     return (
         <>
             <div className="text-center">
-                <Icon name="user-shield" className="text-5xl text-indigo-600 mx-auto" />
+                <Icon name="user-shield" className="text-5xl text-[var(--primary-color)] mx-auto" />
                 <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Admin Login</h1>
                 <p className="mt-2 text-sm text-gray-600">Please sign in to access the dashboard.</p>
             </div>
@@ -81,12 +81,12 @@ const LoginForm: React.FC = () => {
                 {error && <p className="text-sm text-red-600 text-center">{error}</p>}
                 <div className="flex items-center justify-end">
                     <div className="text-sm">
-                        <button type="button" onClick={goToForgotPassword} className="font-medium text-indigo-600 hover:text-indigo-500">
+                        <button type="button" onClick={goToForgotPassword} className="font-medium text-[var(--primary-color)] hover:brightness-90">
                             Forgot your password?
                         </button>
                     </div>
                 </div>
-                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--primary-color)] filter hover:brightness-90 disabled:opacity-50">
                     {isLoading ? 'Verifying...' : 'Sign in'}
                 </button>
             </form>
@@ -134,14 +134,14 @@ const ForgotPasswordForm: React.FC = () => {
     return (
         <>
             <div className="text-center">
-                <Icon name="question-circle" className="text-5xl text-indigo-600 mx-auto" />
+                <Icon name="question-circle" className="text-5xl text-[var(--primary-color)] mx-auto" />
                 <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Forgot Password</h1>
                 <p className="mt-2 text-sm text-gray-600">Enter your admin email to begin the reset process.</p>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                 <input type="email" placeholder="Administrator Email" required value={email} onChange={e => setEmail(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                 {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--primary-color)] filter hover:brightness-90 disabled:opacity-50">
                     {isLoading ? 'Verifying...' : 'Request Reset'}
                 </button>
                 <button type="button" onClick={backToLogin} className="w-full text-center text-sm text-gray-600 hover:underline">
@@ -169,14 +169,14 @@ const ResetPasswordForm: React.FC = () => {
     return (
          <>
             <div className="text-center">
-                <Icon name="key" className="text-5xl text-indigo-600 mx-auto" />
+                <Icon name="key" className="text-5xl text-[var(--primary-color)] mx-auto" />
                 <h1 className="mt-4 text-3xl font-extrabold text-gray-900">Reset Your Password</h1>
                 <p className="mt-2 text-sm text-gray-600">Enter a new password for your account associated with <strong>{userEmail}</strong>.</p>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                 <input type="password" placeholder="Enter new password" required value={newPassword} onChange={e => setNewPassword(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md" />
                 {message && <p className="text-sm text-green-600 text-center">{message}</p>}
-                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--primary-color)] filter hover:brightness-90 disabled:opacity-50">
                     {isLoading ? 'Resetting...' : 'Set New Password'}
                 </button>
                  <button type="button" onClick={backToLogin} className="w-full text-center text-sm text-gray-600 hover:underline">

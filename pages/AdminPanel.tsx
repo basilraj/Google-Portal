@@ -20,8 +20,9 @@ import { useData } from '../contexts/DataContext.tsx';
 import SponsoredAdManagement from '../components/admin/SponsoredAdManagement.tsx';
 import PopupAdManagement from '../components/admin/PopupAdManagement.tsx';
 import EmailTemplateManagement from '../components/admin/EmailTemplateManagement.tsx';
+import PreparationManagement from '../components/admin/PreparationManagement.tsx';
 
-type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'email-templates' | 'sponsored-ads' | 'popup-ad' | 'alerts' | 'notification-history' | 'settings' | 'theme' | 'security' | 'profile' | 'backup-restore' | 'activity-logs';
+type AdminTab = 'dashboard' | 'jobs' | 'posts' | 'exam-notices' | 'results' | 'exam-prep' | 'quick-links' | 'breaking-news' | 'subscribers' | 'contacts' | 'email-marketing' | 'email-templates' | 'sponsored-ads' | 'popup-ad' | 'alerts' | 'notification-history' | 'settings' | 'theme' | 'security' | 'profile' | 'backup-restore' | 'activity-logs';
 
 const AdminPanel: React.FC = () => {
     const { logout, isDemoUser } = useAuth();
@@ -75,6 +76,7 @@ const AdminPanel: React.FC = () => {
             case 'posts': return <ContentPostManagement />;
             case 'exam-notices': return <ExamNoticeManagement />;
             case 'results': return <ResultManagement />;
+            case 'exam-prep': return <PreparationManagement />;
             case 'quick-links': return <QuickLinkManagement />;
             case 'breaking-news': return <BreakingNewsManagement />;
             case 'subscribers': return <SubscriberManagement />;
@@ -100,7 +102,7 @@ const AdminPanel: React.FC = () => {
         return (
             <button
                 onClick={() => { setActiveTab(tab); setIsSidebarOpen(false); }}
-                className={`flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors ${activeTab === tab ? 'bg-indigo-600 text-white' : 'text-gray-200 hover:bg-indigo-800'}`}
+                className={`flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors ${activeTab === tab ? 'bg-[var(--primary-color)] text-white' : 'text-gray-300 hover:bg-gray-700'}`}
             >
                 <Icon name={icon} className="w-6 mr-3" />
                 <span>{label}</span>
@@ -111,8 +113,8 @@ const AdminPanel: React.FC = () => {
     return (
         <div className="flex h-screen bg-gray-100 font-sans">
             {/* Sidebar */}
-            <aside className={`bg-indigo-900 text-white w-64 fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30`}>
-                <div className="p-4 flex items-center gap-3 border-b border-indigo-800">
+            <aside className={`bg-gray-800 text-white w-64 fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30`}>
+                <div className="p-4 flex items-center gap-3 border-b border-gray-700">
                     {generalSettings.siteIconUrl && <img src={generalSettings.siteIconUrl} alt="Logo" className="h-8 w-8 rounded-full" />}
                     <h1 className="text-xl font-bold">{generalSettings.siteTitle}</h1>
                 </div>
@@ -124,6 +126,7 @@ const AdminPanel: React.FC = () => {
                         <NavLink tab="posts" icon="file-alt" label="General Posts" permission={!isDemoUser || demoUserSettings.canManageContent} />
                         <NavLink tab="exam-notices" icon="bell" label="Exam Notices" permission={!isDemoUser || demoUserSettings.canManageContent} />
                         <NavLink tab="results" icon="poll" label="Results" permission={!isDemoUser || demoUserSettings.canManageContent} />
+                        <NavLink tab="exam-prep" icon="graduation-cap" label="Exam Prep" permission={!isDemoUser || demoUserSettings.canManageContent} />
                         <NavLink tab="quick-links" icon="link" label="Quick Links" permission={!isDemoUser || demoUserSettings.canManageLinks} />
                         <NavLink tab="breaking-news" icon="newspaper" label="Breaking News" permission={!isDemoUser || demoUserSettings.canManageLinks} />
                     </div>
