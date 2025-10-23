@@ -17,6 +17,8 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
   const { adSettings } = useData();
   const jobDetailTopAdCode = getAdCodeForPlacement('jobDetailTopAd', adSettings);
 
+  const hasPrepMaterials = (job.affiliateCourses && job.affiliateCourses.length > 0) || (job.affiliateBooks && job.affiliateBooks.length > 0);
+
   const jobUrl = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
   const shareTitle = `Check out this job: ${job.title}`;
   const summary = job.description.substring(0, 100) + '...';
@@ -55,6 +57,51 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job }) => {
           <h2>Job Description</h2>
           <p className="whitespace-pre-wrap">{job.description}</p>
         </div>
+
+        {hasPrepMaterials && (
+            <section className="mt-8 pt-6 border-t">
+                <h2 className="text-3xl font-bold text-[#1e3c72] mb-6 flex items-center gap-3"><Icon name="book-reader" /> Prepare for this Exam</h2>
+                
+                {job.affiliateCourses && job.affiliateCourses.length > 0 && (
+                    <div className="mb-8">
+                        <h3 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Courses</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {job.affiliateCourses.map(course => (
+                                <div key={course.id} className="border rounded-lg p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    <div>
+                                        <p className="font-bold text-gray-800">{course.title}</p>
+                                        <p className="text-sm text-gray-500 mb-2">Platform: {course.platform}</p>
+                                    </div>
+                                    <a href={course.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-2 text-sm bg-[var(--primary-color)] text-white text-center px-3 py-2 rounded-md font-semibold filter hover:brightness-90">
+                                        View Course
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {job.affiliateBooks && job.affiliateBooks.length > 0 && (
+                     <div>
+                        <h3 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Books</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {job.affiliateBooks.map(book => (
+                                <div key={book.id} className="border rounded-lg p-4 text-center flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    {book.imageUrl && <img src={book.imageUrl} alt={book.title} className="h-40 mx-auto mb-2 object-contain" loading="lazy" />}
+                                    <div>
+                                        <p className="font-bold text-gray-800 text-sm">{book.title}</p>
+                                        <p className="text-xs text-gray-500 mb-2">by {book.author}</p>
+                                    </div>
+                                    <a href={book.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-2 text-sm bg-yellow-500 text-black px-3 py-2 rounded-md font-semibold hover:bg-yellow-600">
+                                        Buy on Amazon
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </section>
+        )}
 
         <div className="flex flex-wrap justify-between items-center mt-8 pt-6 border-t">
           <div className="flex items-center gap-4 text-gray-500 mb-4 sm:mb-0">

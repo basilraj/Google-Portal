@@ -21,6 +21,8 @@ import ContactPage from './pages/ContactPage.tsx';
 import ThemeApplicator from './components/ThemeApplicator.tsx';
 import CSPEffect from './components/CSPEffect.tsx';
 import ContentProtection from './components/ContentProtection.tsx';
+import PreparationPage from './pages/PreparationPage.tsx';
+import GoogleSearchConsoleEffect from './components/GoogleSearchConsoleEffect.tsx';
 
 export const basePath = '';
 
@@ -52,6 +54,7 @@ const App: React.FC = () => {
     else if (route.startsWith('/job/')) title = `Job Details | ${title}`;
     else if (route.startsWith('/blog/')) title = `Blog Post | ${title}`;
     else if (route === '/blog') title = `Blog | ${title}`;
+    else if (route === '/preparation') title = `Exam Preparation | ${title}`;
     else if (route === '/privacy') title = `Privacy Policy | ${title}`;
     else if (route === '/terms') title = `Terms & Conditions | ${title}`;
     else if (route === '/about') title = `About Us | ${title}`;
@@ -97,6 +100,8 @@ const App: React.FC = () => {
         return <PublicWebsite navigate={navigate} />;
       case '/blog':
         return <BlogPage navigate={navigate} />;
+      case '/preparation':
+        return <PreparationPage navigate={navigate} />;
       case '/privacy':
         return <PrivacyPolicy navigate={navigate} />;
       case '/about':
@@ -116,6 +121,7 @@ const App: React.FC = () => {
     <>
       <ThemeApplicator />
       <CSPEffect />
+      <GoogleSearchConsoleEffect />
       {isPublicRoute && securitySettings.preventContentCopy && <ContentProtection />}
       {renderPage()}
       {isPublicRoute && !generalSettings.maintenanceMode && <TelegramFAB />}

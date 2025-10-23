@@ -2,15 +2,15 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Fix: Add .tsx extension to local module imports.
 import { useData } from '../../contexts/DataContext.tsx';
 // Fix: Add .tsx extension to local module imports.
-import { Job } from '../../types.ts';
+import { Job, AffiliateCourse, AffiliateBook } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import Pagination from './Pagination.tsx';
 import usePagination from '../../hooks/usePagination.ts';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { getEffectiveJobStatus } from '../../utils/jobUtils.ts';
 import JobDetailView from '../JobDetailView.tsx';
-// Fix: Add .ts extension to local module imports.
+// Fix: Add .tsx extension to local module imports.
 import { slugify } from '../../utils/slugify.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import NotificationExtractorModal from './NotificationExtractorModal.tsx';
@@ -35,17 +35,32 @@ const EmptyState: React.FC<{ message: string; buttonText?: string; onButtonClick
 );
 
 const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>, id?: string, options?: { createNews: boolean; createLink: boolean; sendEmailAlert: boolean; }) => void; onCancel: () => void; isLoading: boolean; uniqueCategories: string[]; }> = ({ job, onSave, onCancel, isLoading, uniqueCategories }) => {
-    const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(job ? { ...job } : {
-        title: '',
-        department: '',
-        category: '',
-        description: '',
-        qualification: '',
-        vacancies: '',
-        postedDate: new Date().toISOString().split('T')[0],
-        lastDate: '',
-        applyLink: '',
-        status: 'active',
+    // This state initializer is robust. It handles both creating a new job and editing an existing one.
+    // For existing jobs, it ensures that the affiliate course/book arrays are always initialized
+    // as empty arrays if they don't exist, preventing runtime errors.
+    const [formData, setFormData] = useState<Omit<Job, 'id' | 'createdAt'>>(() => {
+        if (job) {
+            const { id, createdAt, ...rest } = job;
+            return {
+                ...rest,
+                affiliateCourses: job.affiliateCourses || [],
+                affiliateBooks: job.affiliateBooks || [],
+            };
+        }
+        return {
+            title: '',
+            department: '',
+            category: '',
+            description: '',
+            qualification: '',
+            vacancies: '',
+            postedDate: new Date().toISOString().split('T')[0],
+            lastDate: '',
+            applyLink: '',
+            status: 'active',
+            affiliateCourses: [],
+            affiliateBooks: [],
+        };
     });
     
     const [createNews, setCreateNews] = useState(true);
@@ -65,11 +80,38 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
         setFormData(prev => ({ ...prev, [name]: value as any }));
     };
 
+    const handleAffiliateChange = (type: 'Courses' | 'Books', index: number, field: string, value: string) => {
+        const key = `affiliate${type}` as 'affiliateCourses' | 'affiliateBooks';
+        const items = [...(formData[key] || [])];
+        // @ts-ignore
+        items[index] = { ...items[index], [field]: value };
+        setFormData(prev => ({ ...prev, [key]: items }));
+    };
+
+    const addAffiliateItem = (type: 'Courses' | 'Books') => {
+        const key = `affiliate${type}` as 'affiliateCourses' | 'affiliateBooks';
+        const newItem = type === 'Courses' 
+            ? { id: crypto.randomUUID(), platform: 'Other', title: '', url: '' }
+            : { id: crypto.randomUUID(), title: '', author: '', url: '', imageUrl: '' };
+        
+        // @ts-ignore
+        setFormData(prev => ({
+            ...prev,
+            [key]: [...(prev[key] || []), newItem],
+        }));
+    };
+
+    const removeAffiliateItem = (type: 'Courses' | 'Books', index: number) => {
+        const key = `affiliate${type}` as 'affiliateCourses' | 'affiliateBooks';
+        setFormData(prev => ({
+            ...prev,
+            [key]: (prev[key] || []).filter((_, i) => i !== index),
+        }));
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Explicitly destructure id and createdAt to create a clean object for saving.
-        const { id, createdAt, ...dataToSave } = formData as Job;
-        onSave(dataToSave, job?.id, !job ? { createNews, createLink, sendEmailAlert } : undefined);
+        onSave(formData, job?.id, !job ? { createNews, createLink, sendEmailAlert } : undefined);
     };
 
     return (
@@ -134,6 +176,69 @@ const JobForm: React.FC<{ job?: Job; onSave: (job: Omit<Job, 'id' | 'createdAt'>
                     <option value="closing-soon">Closing Soon</option>
                     <option value="expired">Expired</option>
                 </select>
+            </div>
+            
+             <div className="pt-4 border-t">
+                <h3 className="text-lg font-medium text-gray-800 mb-3">Affiliate Marketing</h3>
+                
+                <div className="space-y-2 p-3 border rounded-md bg-gray-50/50">
+                    <h4 className="font-semibold text-gray-700">Recommended Courses</h4>
+                    {formData.affiliateCourses?.map((course, index) => (
+                        <div key={index} className="p-3 border bg-white rounded-md space-y-2 relative">
+                             <button type="button" onClick={() => removeAffiliateItem('Courses', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Icon name="times-circle" /></button>
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-xs font-medium text-gray-600">Course Title</label>
+                                    <input type="text" value={course.title} onChange={e => handleAffiliateChange('Courses', index, 'title', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-gray-600">Platform</label>
+                                     <select value={course.platform} onChange={e => handleAffiliateChange('Courses', index, 'platform', e.target.value)} className="w-full text-sm border-gray-300 rounded-md bg-white">
+                                        <option>Udemy</option>
+                                        <option>Unacademy</option>
+                                        <option>Coursera</option>
+                                        <option>Testbook</option>
+                                        <option>Adda247</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-gray-600">Affiliate URL</label>
+                                <input type="url" value={course.url} onChange={e => handleAffiliateChange('Courses', index, 'url', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                            </div>
+                        </div>
+                    ))}
+                    <button type="button" onClick={() => addAffiliateItem('Courses')} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle" /> Add Course</button>
+                </div>
+
+                <div className="space-y-2 p-3 border rounded-md bg-gray-50/50 mt-4">
+                    <h4 className="font-semibold text-gray-700">Recommended Books</h4>
+                    {formData.affiliateBooks?.map((book, index) => (
+                        <div key={index} className="p-3 border bg-white rounded-md space-y-2 relative">
+                             <button type="button" onClick={() => removeAffiliateItem('Books', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700"><Icon name="times-circle" /></button>
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-xs font-medium text-gray-600">Book Title</label>
+                                    <input type="text" value={book.title} onChange={e => handleAffiliateChange('Books', index, 'title', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-gray-600">Author</label>
+                                    <input type="text" value={book.author} onChange={e => handleAffiliateChange('Books', index, 'author', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-gray-600">Affiliate URL</label>
+                                <input type="url" value={book.url} onChange={e => handleAffiliateChange('Books', index, 'url', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-gray-600">Image URL (Optional)</label>
+                                <input type="url" value={book.imageUrl || ''} onChange={e => handleAffiliateChange('Books', index, 'imageUrl', e.target.value)} className="w-full text-sm border-gray-300 rounded-md" />
+                            </div>
+                        </div>
+                    ))}
+                    <button type="button" onClick={() => addAffiliateItem('Books')} className="text-sm text-indigo-600 hover:underline flex items-center gap-1"><Icon name="plus-circle" /> Add Book</button>
+                </div>
             </div>
 
             {!job && (

@@ -11,23 +11,47 @@ import Pagination from '../components/admin/Pagination.tsx';
 import AdComponent from '../components/AdComponent.tsx';
 import PopupAd from '../components/PopupAd.tsx';
 
-const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.memo(({ job, onView }) => (
-    <div className="group border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden hover:border-[var(--primary-color)]">
-        <div className="p-4 sm:p-5 flex-grow">
-            <h3 className="text-md sm:text-lg font-bold text-[#1e3c72] leading-tight mb-2">{job.title}</h3>
-            <p className="text-sm text-gray-500 mb-3">{job.department}</p>
-            <div className="text-sm text-gray-700 space-y-3">
-                <p className="flex items-center gap-2"><Icon name="tag" className="w-4 text-gray-400" />{job.category}</p>
-                <p className="flex items-center gap-2"><Icon name="graduation-cap" className="w-4 text-gray-400" />{job.qualification}</p>
-                <p className="flex items-center gap-2"><Icon name="briefcase" className="w-4 text-gray-400" />{job.vacancies} Vacancies</p>
-                <p className="flex items-center gap-2"><Icon name="calendar-alt" className="w-4 text-gray-400" />Last Date: {job.lastDate}</p>
+const JobCard: React.FC<{ job: Job; onView: (slug: string) => void }> = React.memo(({ job, onView }) => {
+    const effectiveStatus = getEffectiveJobStatus(job);
+    
+    const statusStyles = {
+        'active': { bg: 'bg-green-100', text: 'text-green-800', label: 'Active' },
+        'closing-soon': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Closing Soon' },
+        'expired': { bg: 'bg-red-100', text: 'text-red-800', label: 'Expired' },
+    };
+    const currentStatusStyle = statusStyles[effectiveStatus];
+
+    return (
+        <div className="relative group border bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden hover:border-[var(--primary-color)]">
+            {currentStatusStyle && (
+                <span className={`absolute top-3 right-3 px-2 py-1 text-xs font-bold leading-none rounded-full ${currentStatusStyle.bg} ${currentStatusStyle.text} z-10`}>
+                    {currentStatusStyle.label}
+                </span>
+            )}
+            <div className="p-4 sm:p-5 flex-grow">
+                <h3 className="text-md sm:text-lg font-bold text-[#1e3c72] leading-tight mb-2 pr-24">{job.title}</h3>
+                <p className="text-sm text-gray-500 mb-3">{job.department}</p>
+                <div className="text-sm text-gray-700 space-y-3">
+                    <p className="flex items-center gap-2"><Icon name="tag" className="w-4 text-gray-400" />{job.category}</p>
+                    <p className="flex items-center gap-2"><Icon name="graduation-cap" className="w-4 text-gray-400" />{job.qualification}</p>
+                    <p className="flex items-center gap-2"><Icon name="briefcase" className="w-4 text-gray-400" />{job.vacancies} Vacancies</p>
+                    <p className="flex items-center gap-2"><Icon name="calendar-alt" className="w-4 text-gray-400" />Last Date: {job.lastDate}</p>
+                </div>
+                 {(job.affiliateBooks?.length || 0) > 0 || (job.affiliateCourses?.length || 0) > 0 ? (
+                    <div className="mt-4 pt-3 border-t border-dashed">
+                        <p className="text-sm font-semibold text-blue-600 group-hover:underline">📘 Prepare for this Exam →</p>
+                    </div>
+                ) : null}
+            </div>
+            <div className="p-4 bg-gray-50 border-t mt-auto">
+                <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} className="w-full text-center bg-[var(--primary-color)] text-white px-4 py-2 rounded-md text-sm font-semibold filter group-hover:brightness-90 transition-all duration-200 block">
+                    View Details
+                    {((job.affiliateBooks?.length || 0) > 0 || (job.affiliateCourses?.length || 0) > 0) && ' & Prep'}
+                </a>
             </div>
         </div>
-        <div className="p-4 bg-gray-50 border-t">
-            <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} className="w-full text-center bg-[var(--primary-color)] text-white px-4 py-2 rounded-md text-sm font-semibold filter group-hover:brightness-90 transition-all duration-200 block">View Details</a>
-        </div>
-    </div>
-));
+    );
+});
 
 const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; typeLabel: string }> = React.memo(({ post, navigate, typeLabel }) => {
     const getButtonText = (title: string) => {
@@ -62,6 +86,7 @@ const PostCard: React.FC<{ post: ContentPost; navigate: (path: string) => void; 
 )});
 
 const JOBS_PER_PAGE = 10;
+const TOP_CATEGORIES = ['UPSC', 'SSC', 'Banking', 'Railways', 'Defence'];
 
 const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
     const { jobs, posts, quickLinks, breakingNews, adSettings, sponsoredAds, addSubscriber, seoSettings, trackSponsoredAdClick, popupAdSettings } = useData();
@@ -150,6 +175,14 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
         }
     };
     
+    const handleCategoryButtonClick = (cat: string) => {
+        if (categoryFilter === cat) {
+            setCategoryFilter('All Categories'); // Toggle off
+        } else {
+            setCategoryFilter(cat);
+        }
+    };
+
     return (
         <div className="public-website bg-gray-50">
             <PublicHeader navigate={navigate} />
@@ -174,6 +207,21 @@ const PublicWebsite: React.FC<{ navigate: (path: string) => void }> = ({ navigat
             <main className="container mx-auto px-4 py-12">
                 <section id="job-search" className="mb-12">
                     <h2 className="text-3xl font-bold text-center text-[#1e3c72] mb-6">Find Your Dream Government Job</h2>
+                    <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                        {TOP_CATEGORIES.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => handleCategoryButtonClick(cat)}
+                                className={`px-4 py-2 text-sm font-semibold rounded-full border-2 transition-colors ${
+                                    categoryFilter === cat
+                                    ? 'bg-[var(--primary-color)] text-white border-[var(--primary-color)]'
+                                    : 'bg-white text-gray-700 border-gray-300 hover:border-[var(--primary-color)] hover:text-[var(--primary-color)]'
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
                     <div className="bg-white p-6 rounded-lg shadow-md">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input 

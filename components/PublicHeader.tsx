@@ -17,6 +17,7 @@ const PublicHeader: React.FC<{ navigate: (path: string) => void }> = ({ navigate
 
     const navLinks = [
         { name: 'Home', path: '/' },
+        { name: 'Exam Prep', path: '/preparation'},
         { name: 'Blog', path: '/blog' },
         { name: 'About Us', path: '/about' },
         { name: 'Contact Us', path: '/contact' }

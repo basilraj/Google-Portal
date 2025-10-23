@@ -10,7 +10,7 @@ import ThemeManagement from './ThemeManagement.tsx';
 // Fix: Use a named import for SecuritySettingsManagement as it does not have a default export.
 import { SecuritySettingsManagement } from './SecuritySettingsManagement.tsx';
 
-type SettingsTab = 'general' | 'seo' | 'ads' | 'social' | 'email' | 'alerts' | 'theme' | 'security';
+type SettingsTab = 'general' | 'seo' | 'ads' | 'social' | 'email' | 'alerts' | 'theme' | 'security' | 'search-console';
 
 const GeneralSettingsManagement: React.FC = () => {
     const { generalSettings, updateGeneralSettings } = useData();
@@ -114,6 +114,46 @@ const GeneralSettingsManagement: React.FC = () => {
     )
 }
 
+const GoogleSearchConsoleManagement: React.FC = () => {
+    const { googleSearchConsoleSettings, updateGoogleSearchConsoleSettings } = useData();
+    const [tag, setTag] = useState(googleSearchConsoleSettings.verificationTag);
+    const [message, setMessage] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        updateGoogleSearchConsoleSettings({ verificationTag: tag });
+        setMessage('Search Console settings saved successfully!');
+        setTimeout(() => setMessage(''), 3000);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+            <h2 className="text-xl font-bold text-gray-700 flex items-center gap-2"><Icon name="google" prefix="fab" /> Google Search Console</h2>
+            <p className="text-sm text-gray-600">
+                Verify your site ownership with Google. Paste the entire HTML tag provided by Search Console (e.g., <code>{`<meta name="google-site-verification" content="..." />`}</code>).
+            </p>
+            <div>
+                <label htmlFor="verificationTag" className="block text-sm font-medium text-gray-700">Verification HTML Tag</label>
+                <input
+                    type="text"
+                    id="verificationTag"
+                    name="verificationTag"
+                    value={tag}
+                    onChange={(e) => setTag(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono"
+                    placeholder='<meta name="google-site-verification" ... />'
+                />
+            </div>
+            {message && <div className="p-3 bg-green-100 text-green-800 rounded-md text-sm text-center">{message}</div>}
+            <div className="flex justify-end pt-4 border-t">
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-6 py-2 rounded-md hover:brightness-90 flex items-center gap-2 filter">
+                    <Icon name="save" /> Save Verification Tag
+                </button>
+            </div>
+        </form>
+    );
+};
+
 
 const SettingsManagement: React.FC<{ defaultTab?: SettingsTab }> = ({ defaultTab = 'general' }) => {
     const [activeTab, setActiveTab] = useState<SettingsTab>(defaultTab);
@@ -136,12 +176,14 @@ const SettingsManagement: React.FC<{ defaultTab?: SettingsTab }> = ({ defaultTab
                 return <ThemeManagement />;
             case 'security':
                 return <SecuritySettingsManagement />;
+            case 'search-console':
+                return <GoogleSearchConsoleManagement />;
             default:
                 return null;
         }
     };
 
-    const TabButton: React.FC<{ tabName: SettingsTab; label: string; icon: string }> = ({ tabName, label, icon }) => (
+    const TabButton: React.FC<{ tabName: SettingsTab; label: string; icon: string; prefix?: 'fas' | 'fab' | 'far' }> = ({ tabName, label, icon, prefix }) => (
         <button
             onClick={() => setActiveTab(tabName)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors w-full text-left ${
@@ -150,7 +192,7 @@ const SettingsManagement: React.FC<{ defaultTab?: SettingsTab }> = ({ defaultTab
                     : 'text-gray-600 hover:bg-gray-100'
             }`}
         >
-            <Icon name={icon} className="w-5" />
+            <Icon name={icon} prefix={prefix} className="w-5" />
             <span>{label}</span>
         </button>
     );
@@ -167,6 +209,7 @@ const SettingsManagement: React.FC<{ defaultTab?: SettingsTab }> = ({ defaultTab
                     <TabButton tabName="alerts" label="Alerts" icon="bullhorn" />
                     <TabButton tabName="theme" label="Theme" icon="palette" />
                     <TabButton tabName="security" label="Security" icon="shield-alt" />
+                    <TabButton tabName="search-console" label="Search Console" icon="google" prefix="fab" />
                 </nav>
             </aside>
             <main className="flex-1">

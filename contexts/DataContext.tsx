@@ -4,13 +4,13 @@ import {
     Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, 
     SocialMediaSettings, SMTPSettings, ActivityLog, ContactSubmission, EmailNotification, CustomEmail, 
     BackupData, RSSSettings, AlertSettings, SponsoredAd, PlacementKey, PopupAdSettings, ThemeSettings,
-    SecuritySettings, DemoUserSettings, EmailTemplate
+    SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings
 } from '../types.ts';
 import { 
     INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, 
     initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, 
     initialSmtpSettings, INITIAL_ACTIVITY_LOGS, initialRssSettings, initialAlertSettings, INITIAL_SPONSORED_ADS,
-    initialPopupAdSettings, initialThemeSettings, initialSecuritySettings, initialDemoUserSettings, INITIAL_EMAIL_TEMPLATES
+    initialPopupAdSettings, initialThemeSettings, initialSecuritySettings, initialDemoUserSettings, INITIAL_EMAIL_TEMPLATES, initialGoogleSearchConsoleSettings
 } from '../constants.ts';
 import { isLocalStorageAvailable } from '../utils/storage.ts';
 import { slugify } from '../utils/slugify.ts';
@@ -85,6 +85,9 @@ interface DataContextType {
   demoUserSettings: DemoUserSettings;
   updateDemoUserSettings: (settings: DemoUserSettings) => Promise<void>;
 
+  googleSearchConsoleSettings: GoogleSearchConsoleSettings;
+  updateGoogleSearchConsoleSettings: (settings: GoogleSearchConsoleSettings) => Promise<void>;
+
   activityLogs: ActivityLog[];
   addActivityLog: (action: string, details: string) => Promise<void>;
   clearActivityLogs: () => void;
@@ -134,6 +137,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [themeSettings, setThemeSettings] = useLocalStorage<ThemeSettings>('theme-settings', initialThemeSettings);
     const [securitySettings, setSecuritySettings] = useLocalStorage<SecuritySettings>('security-settings', initialSecuritySettings);
     const [demoUserSettings, setDemoUserSettings] = useLocalStorage<DemoUserSettings>('demo-user-settings', initialDemoUserSettings);
+    const [googleSearchConsoleSettings, setGoogleSearchConsoleSettings] = useLocalStorage<GoogleSearchConsoleSettings>('gsc-settings', initialGoogleSearchConsoleSettings);
     const [activityLogs, setActivityLogs] = useLocalStorage<ActivityLog[]>('activity-logs', INITIAL_ACTIVITY_LOGS);
     const [contacts, setContacts] = useLocalStorage<ContactSubmission[]>('contacts', []);
     const [emailNotifications, setEmailNotifications] = useLocalStorage<EmailNotification[]>('email-notifications', []);
@@ -229,6 +233,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setDemoUserSettings(settings);
         await addActivityLog('Settings Updated', 'Demo user permissions were updated.');
     }, [setDemoUserSettings, addActivityLog]);
+
+    const updateGoogleSearchConsoleSettings = useCallback(async (settings: GoogleSearchConsoleSettings) => {
+        setGoogleSearchConsoleSettings(settings);
+        await addActivityLog('Settings Updated', 'Google Search Console settings were updated.');
+    }, [setGoogleSearchConsoleSettings, addActivityLog]);
 
     const addJob = useCallback(async (job: Omit<Job, 'id' | 'createdAt'>) => {
         const newJob = { ...job, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
@@ -605,9 +614,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             jobs, quickLinks, posts, subscribers, breakingNews, adSettings, 
             seoSettings, generalSettings, socialMediaSettings, activityLogs, 
             smtpSettings, rssSettings, alertSettings, sponsoredAds, popupAdSettings,
-            themeSettings, securitySettings, demoUserSettings, emailTemplates
+            themeSettings, securitySettings, demoUserSettings, emailTemplates, googleSearchConsoleSettings
         };
-    }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings, alertSettings, sponsoredAds, popupAdSettings, themeSettings, securitySettings, demoUserSettings, emailTemplates]);
+    }, [jobs, quickLinks, posts, subscribers, breakingNews, adSettings, seoSettings, generalSettings, socialMediaSettings, activityLogs, smtpSettings, rssSettings, alertSettings, sponsoredAds, popupAdSettings, themeSettings, securitySettings, demoUserSettings, emailTemplates, googleSearchConsoleSettings]);
 
     const restoreBackup = useCallback((data: BackupData): boolean => {
         try {
@@ -633,13 +642,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setSecuritySettings(data.securitySettings || initialSecuritySettings);
             setDemoUserSettings(data.demoUserSettings || initialDemoUserSettings);
             setEmailTemplates(data.emailTemplates || []);
+            setGoogleSearchConsoleSettings(data.googleSearchConsoleSettings || initialGoogleSearchConsoleSettings);
             addActivityLog('System Restore', 'Data was restored from a backup file.');
             return true;
         } catch (error) {
             console.error("Restore failed:", error);
             return false;
         }
-    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, setAlertSettings, setSponsoredAds, setPopupAdSettings, setThemeSettings, setSecuritySettings, setDemoUserSettings, setEmailTemplates, addActivityLog]);
+    }, [setJobs, setQuickLinks, setPosts, setSubscribers, setBreakingNews, setAdSettings, setSeoSettings, setGeneralSettings, setSocialMediaSettings, setActivityLogs, setSmtpSettings, setRssSettings, setAlertSettings, setSponsoredAds, setPopupAdSettings, setThemeSettings, setSecuritySettings, setDemoUserSettings, setEmailTemplates, setGoogleSearchConsoleSettings, addActivityLog]);
 
     return (
         <DataContext.Provider value={{
@@ -660,6 +670,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             themeSettings, updateThemeSettings,
             securitySettings, updateSecuritySettings,
             demoUserSettings, updateDemoUserSettings,
+            googleSearchConsoleSettings, updateGoogleSearchConsoleSettings,
             activityLogs, addActivityLog, clearActivityLogs,
             contacts, addContact, deleteContact,
             emailNotifications, deleteEmailNotification, clearAllEmailNotifications,
