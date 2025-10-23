@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react';
 import { useData } from '../contexts/DataContext.tsx';
-import { Job, PreparationCourse, PreparationBook } from '../types.ts';
+import { PreparationCourse, PreparationBook, UpcomingExam } from '../types.ts';
 import Icon from '../components/Icon.tsx';
 import PublicHeader from '../components/PublicHeader.tsx';
 import PublicFooter from '../components/PublicFooter.tsx';
-import { slugify } from '../utils/slugify.ts';
-import { getEffectiveJobStatus } from '../utils/jobUtils.ts';
 
-const UpcomingExamCard: React.FC<{ job: Job; onView: (slug: string) => void }> = ({ job, onView }) => {
-    const lastDate = new Date(job.lastDate);
-    const day = lastDate.getDate();
-    const month = lastDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+const UpcomingExamDeadlineCard: React.FC<{ exam: UpcomingExam }> = ({ exam }) => {
+    const deadline = new Date(exam.deadline);
+    // Adjust for timezone to prevent date from being off by one
+    deadline.setMinutes(deadline.getMinutes() + deadline.getTimezoneOffset());
+    const day = deadline.getDate();
+    const month = deadline.toLocaleString('default', { month: 'short' }).toUpperCase();
 
     return (
         <div className="flex items-center justify-between gap-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0">
@@ -20,21 +20,17 @@ const UpcomingExamCard: React.FC<{ job: Job; onView: (slug: string) => void }> =
                     <span className="text-xs font-semibold">{month}</span>
                 </div>
                 <div className="flex-grow min-w-0">
-                    <p className="font-bold text-gray-800 leading-tight hover:text-[var(--primary-color)] transition-colors truncate">
-                        <a href={`/job/${slugify(job.title)}`} onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }}>
-                            {job.title}
-                        </a>
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">{job.department}</p>
+                    <p className="font-bold text-gray-800 leading-tight truncate">{exam.name}</p>
                 </div>
             </div>
             <div className="flex-shrink-0 ml-4">
                 <a 
-                    href={`/job/${slugify(job.title)}`} 
-                    onClick={(e) => { e.preventDefault(); onView(slugify(job.title)); }} 
+                    href={exam.notificationLink} 
+                    target="_blank" 
+                    rel="nofollow noopener noreferrer"
                     className="text-sm bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-md font-semibold hover:bg-gray-50 hover:border-[var(--primary-color)] hover:text-[var(--primary-color)] transition-all whitespace-nowrap"
                 >
-                    View Details
+                    View Notification
                 </a>
             </div>
         </div>
@@ -68,16 +64,15 @@ const BookCard: React.FC<{ book: PreparationBook }> = ({ book }) => (
 
 
 const PreparationPage: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
-    const { jobs, preparationCourses, preparationBooks } = useData();
+    const { preparationCourses, preparationBooks, upcomingExams } = useData();
 
-    const upcomingExams = useMemo(() => {
+    const sortedUpcomingExams = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return jobs
-            .filter(job => (getEffectiveJobStatus(job) === 'active' || getEffectiveJobStatus(job) === 'closing-soon') && new Date(job.lastDate) >= today)
-            .sort((a, b) => new Date(a.lastDate).getTime() - new Date(b.lastDate).getTime())
-            .slice(0, 10);
-    }, [jobs]);
+        return upcomingExams
+            .filter(exam => new Date(exam.deadline) >= today)
+            .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    }, [upcomingExams]);
     
 
     return (
@@ -111,12 +106,12 @@ const PreparationPage: React.FC<{ navigate: (path: string) => void }> = ({ navig
 
                     {/* Sidebar */}
                     <aside className="space-y-8 sticky top-24 h-fit">
-                        {upcomingExams.length > 0 && (
+                        {sortedUpcomingExams.length > 0 && (
                             <div className="widget bg-white p-6 rounded-lg shadow-md">
                                 <h3 className="text-xl font-bold text-[#1e3c72] mb-4 pb-2 border-b-2 border-[var(--accent-color)]">Upcoming Exam Deadlines</h3>
                                 <div className="space-y-4">
-                                    {upcomingExams.map(job => (
-                                        <UpcomingExamCard key={job.id} job={job} onView={(slug) => navigate(`/job/${slug}`)} />
+                                    {sortedUpcomingExams.map(exam => (
+                                        <UpcomingExamDeadlineCard key={exam.id} exam={exam} />
                                     ))}
                                 </div>
                             </div>

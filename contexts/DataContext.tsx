@@ -17,6 +17,15 @@ import { isLocalStorageAvailable } from '../utils/storage.ts';
 import { slugify } from '../utils/slugify.ts';
 import { basePath } from '../App.tsx';
 
+const getNameFromEmail = (email: string): string => {
+    if (!email || !email.includes('@')) return 'Subscriber';
+    const namePart = email.split('@')[0];
+    // Replace dots/underscores/hyphens with spaces and capitalize each word
+    return namePart
+        .replace(/[._-]/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
+};
+
 
 interface DataContextType {
   jobs: Job[];
@@ -352,8 +361,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (!template) {
                 console.error("Welcome Email template not found.");
             } else {
-                const subject = template.subject.replace(/{{siteName}}/g, generalSettings.siteTitle);
-                const body = template.body.replace(/{{siteName}}/g, generalSettings.siteTitle);
+                const subscriberName = getNameFromEmail(email);
+                const subject = template.subject
+                    .replace(/{{siteName}}/g, generalSettings.siteTitle)
+                    .replace(/{{subscriberName}}/g, subscriberName)
+                    .replace(/{{subscriberEmail}}/g, email);
+                const body = template.body
+                    .replace(/{{siteName}}/g, generalSettings.siteTitle)
+                    .replace(/{{subscriberName}}/g, subscriberName)
+                    .replace(/{{subscriberEmail}}/g, email);
 
                 const newNotification: EmailNotification = {
                     id: crypto.randomUUID(),
@@ -504,17 +520,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // Simulate sending to all active subscribers
         const activeSubscribers = subscribers.filter(s => s.status === 'active');
-        const notifications: EmailNotification[] = activeSubscribers.map(sub => ({
-            id: crypto.randomUUID(),
-            recipient: sub.email,
-            subject,
-            body,
-            sentAt: new Date().toISOString(),
-        }));
+        const notifications: EmailNotification[] = activeSubscribers.map(sub => {
+            const subscriberName = getNameFromEmail(sub.email);
+            const finalSubject = subject
+                .replace(/{{siteName}}/g, generalSettings.siteTitle)
+                .replace(/{{subscriberName}}/g, subscriberName)
+                .replace(/{{subscriberEmail}}/g, sub.email);
+            const finalBody = body
+                .replace(/{{siteName}}/g, generalSettings.siteTitle)
+                .replace(/{{subscriberName}}/g, subscriberName)
+                .replace(/{{subscriberEmail}}/g, sub.email);
+
+            return {
+                id: crypto.randomUUID(),
+                recipient: sub.email,
+                subject: finalSubject,
+                body: finalBody,
+                sentAt: new Date().toISOString(),
+            };
+        });
         setEmailNotifications(prev => [...notifications, ...prev]);
         await addActivityLog('Email Campaign Sent', `Campaign "${subject}" sent to ${activeSubscribers.length} subscribers.`);
 
-    }, [subscribers, setCustomEmails, setEmailNotifications, addActivityLog]);
+    }, [subscribers, setCustomEmails, setEmailNotifications, addActivityLog, generalSettings]);
 
     const deleteCustomEmail = useCallback((id: string) => {
         setCustomEmails(prev => prev.filter(e => e.id !== id));
@@ -555,15 +583,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // FIX: Add a return statement inside the map function.
         const newNotifications: EmailNotification[] = activeSubscribers.map(sub => {
-            const subject = template.subject.replace(/{{siteName}}/g, generalSettings.siteTitle)
+            const subscriberName = getNameFromEmail(sub.email);
+            const subject = template.subject
+                .replace(/{{siteName}}/g, generalSettings.siteTitle)
                 .replace(/{{jobTitle}}/g, job.title)
-                .replace(/{{jobDepartment}}/g, job.department);
+                .replace(/{{jobDepartment}}/g, job.department)
+                .replace(/{{subscriberName}}/g, subscriberName)
+                .replace(/{{subscriberEmail}}/g, sub.email);
             
-            const body = template.body.replace(/{{siteName}}/g, generalSettings.siteTitle)
+            const body = template.body
+                .replace(/{{siteName}}/g, generalSettings.siteTitle)
                 .replace(/{{jobTitle}}/g, job.title)
                 .replace(/{{jobDepartment}}/g, job.department)
                 .replace(/{{jobLastDate}}/g, job.lastDate)
-                .replace(/{{jobLink}}/g, jobLink);
+                .replace(/{{jobLink}}/g, jobLink)
+                .replace(/{{subscriberName}}/g, subscriberName)
+                .replace(/{{subscriberEmail}}/g, sub.email);
 
             return {
                 id: crypto.randomUUID(),
@@ -594,15 +629,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const jobLink = `${window.location.origin}${basePath}/job/${slugify(job.title)}`.replace(/([^:]\/)\/+/g, "$1");
 
             const notificationsForThisJob: EmailNotification[] = activeSubscribers.map(sub => {
-                const subject = template.subject.replace(/{{siteName}}/g, generalSettings.siteTitle)
+                const subscriberName = getNameFromEmail(sub.email);
+                const subject = template.subject
+                    .replace(/{{siteName}}/g, generalSettings.siteTitle)
                     .replace(/{{jobTitle}}/g, job.title)
-                    .replace(/{{jobDepartment}}/g, job.department);
+                    .replace(/{{jobDepartment}}/g, job.department)
+                    .replace(/{{subscriberName}}/g, subscriberName)
+                    .replace(/{{subscriberEmail}}/g, sub.email);
                 
-                const body = template.body.replace(/{{siteName}}/g, generalSettings.siteTitle)
+                const body = template.body
+                    .replace(/{{siteName}}/g, generalSettings.siteTitle)
                     .replace(/{{jobTitle}}/g, job.title)
                     .replace(/{{jobDepartment}}/g, job.department)
                     .replace(/{{jobLastDate}}/g, job.lastDate)
-                    .replace(/{{jobLink}}/g, jobLink);
+                    .replace(/{{jobLink}}/g, jobLink)
+                    .replace(/{{subscriberName}}/g, subscriberName)
+                    .replace(/{{subscriberEmail}}/g, sub.email);
 
                 return {
                     id: crypto.randomUUID(),

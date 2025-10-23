@@ -50,10 +50,12 @@ const TemplateForm: React.FC<{ template?: EmailTemplate; onSave: (template: Omit
 
             <div className="text-sm p-3 bg-gray-50 rounded-md border">
                 <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2"><Icon name="info-circle" /> Placeholder Guide</h4>
-                <p className="text-gray-600">Use placeholders to insert dynamic content. They will be replaced when the email is sent (or when the template is loaded).</p>
+                <p className="text-gray-600">Use placeholders to insert dynamic content. They will be replaced automatically when an email is sent.</p>
                 <ul className="list-disc list-inside mt-2 space-y-1 text-xs">
-                    <li><code>{`{{siteName}}`}</code> - Automatically replaced with your website's title.</li>
-                    <li className="text-gray-500"><em>Manual placeholders for guidance (you must replace these yourself):</em> <code>{`{{jobTitle}}`}</code>, <code>{`{{jobLink}}`}</code>, <code>{`{{postTitle}}`}</code>, etc.</li>
+                    <li><code>{`{{siteName}}`}</code> - Your website's title.</li>
+                    <li><code>{`{{subscriberName}}`}</code> - The subscriber's name (e.g., "John Doe" from "john.doe@email.com").</li>
+                    <li><code>{`{{subscriberEmail}}`}</code> - The subscriber's full email address.</li>
+                    <li className="pt-1 mt-1 border-t"><strong>For Job Alerts:</strong> <code>{`{{jobTitle}}`}</code>, <code>{`{{jobDepartment}}`}</code>, <code>{`{{jobLastDate}}`}</code>, <code>{`{{jobLink}}`}</code>.</li>
                 </ul>
             </div>
 

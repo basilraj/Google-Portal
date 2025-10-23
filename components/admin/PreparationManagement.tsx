@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext.tsx';
-import { PreparationCourse, PreparationBook } from '../../types.ts';
+import { PreparationCourse, PreparationBook, UpcomingExam } from '../../types.ts';
 import Icon from '../Icon.tsx';
 import Modal from '../Modal.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
@@ -101,17 +101,56 @@ const BookForm: React.FC<{ book?: PreparationBook; onSave: (book: Omit<Preparati
     );
 };
 
+// Form for Upcoming Exams
+const ExamForm: React.FC<{ exam?: UpcomingExam; onSave: (exam: Omit<UpcomingExam, 'id'>, id?: string) => void; onCancel: () => void; }> = ({ exam, onSave, onCancel }) => {
+    const [formData, setFormData] = useState<Omit<UpcomingExam, 'id'>>(exam ? { ...exam } : {
+        name: '', deadline: '', notificationLink: ''
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave(formData, exam?.id);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Exam Name *</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Deadline Date *</label>
+                <input type="date" name="deadline" value={formData.deadline} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700">Official Notification Link *</label>
+                <input type="url" name="notificationLink" value={formData.notificationLink} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+            <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
+                <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button>
+                <button type="submit" className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md filter hover:brightness-90">Save Deadline</button>
+            </div>
+        </form>
+    );
+};
+
 
 const PreparationManagement: React.FC = () => {
     const { 
         preparationCourses, addPreparationCourse, updatePreparationCourse, deletePreparationCourse,
         preparationBooks, addPreparationBook, updatePreparationBook, deletePreparationBook,
+        upcomingExams, addUpcomingExam, updateUpcomingExam, deleteUpcomingExam,
         demoUserSettings 
     } = useData();
     const { isDemoUser } = useAuth();
 
-    const [modalState, setModalState] = useState<{ type: 'course' | 'book'; item?: PreparationCourse | PreparationBook } | null>(null);
-    const [confirmState, setConfirmState] = useState<{ type: 'course' | 'book'; item: PreparationCourse | PreparationBook } | null>(null);
+    const [modalState, setModalState] = useState<{ type: 'course' | 'book' | 'exam'; item?: PreparationCourse | PreparationBook | UpcomingExam } | null>(null);
+    const [confirmState, setConfirmState] = useState<{ type: 'course' | 'book' | 'exam'; item: PreparationCourse | PreparationBook | UpcomingExam } | null>(null);
 
     const canManage = !isDemoUser || demoUserSettings.canManageContent;
 
@@ -126,15 +165,66 @@ const PreparationManagement: React.FC = () => {
         id ? updatePreparationBook({ ...bookData, id }) : addPreparationBook(bookData);
         setModalState(null);
     };
+    
+    const handleSaveExam = (examData: Omit<UpcomingExam, 'id'>, id?: string) => {
+        if (!canManage) return;
+        id ? updateUpcomingExam({ ...examData, id }) : addUpcomingExam(examData);
+        setModalState(null);
+    };
 
     const confirmDelete = () => {
         if (!canManage || !confirmState) return;
-        confirmState.type === 'course' ? deletePreparationCourse(confirmState.item.id) : deletePreparationBook(confirmState.item.id);
+        if (confirmState.type === 'course') deletePreparationCourse(confirmState.item.id);
+        if (confirmState.type === 'book') deletePreparationBook(confirmState.item.id);
+        if (confirmState.type === 'exam') deleteUpcomingExam(confirmState.item.id);
         setConfirmState(null);
     };
 
     return (
         <div className="space-y-8">
+            {/* Upcoming Exam Deadlines Management */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-gray-700">Upcoming Exam Deadlines</h2>
+                    {canManage && (
+                        <button onClick={() => setModalState({ type: 'exam' })} className="bg-[var(--primary-color)] text-white px-4 py-2 rounded-md flex items-center gap-2 filter hover:brightness-90">
+                            <Icon name="plus" /> Add New Deadline
+                        </button>
+                    )}
+                </div>
+                {upcomingExams.length > 0 ? (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-gray-500 responsive-table">
+                           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3">Exam Name</th>
+                                    <th className="px-6 py-3">Deadline</th>
+                                    <th className="px-6 py-3">Notification Link</th>
+                                    <th className="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {upcomingExams.map(exam => (
+                                    <tr key={exam.id} className="bg-white hover:bg-gray-50 border-b">
+                                        <td data-label="Name" className="px-6 py-4 font-medium">{exam.name}</td>
+                                        <td data-label="Deadline" className="px-6 py-4">{exam.deadline}</td>
+                                        <td data-label="URL" className="px-6 py-4 truncate max-w-xs"><a href={exam.notificationLink} target="_blank" rel="nofollow noopener noreferrer" className="text-[var(--primary-color)] hover:underline">{exam.notificationLink}</a></td>
+                                        <td data-label="Actions" className="px-6 py-4 flex gap-4 actions-cell">
+                                            {canManage && <>
+                                                <button onClick={() => setModalState({ type: 'exam', item: exam })} className="text-yellow-500 hover:text-yellow-700"><Icon name="edit" /></button>
+                                                <button onClick={() => setConfirmState({ type: 'exam', item: exam })} className="text-red-500 hover:text-red-700"><Icon name="trash" /></button>
+                                            </>}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <EmptyState title="No Deadlines Found" message="Add upcoming exam deadlines to display on the prep page." buttonText="Add New Deadline" onButtonClick={() => setModalState({ type: 'exam' })} />
+                )}
+            </div>
+            
             {/* Course Management */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex justify-between items-center mb-4">
@@ -237,6 +327,9 @@ const PreparationManagement: React.FC = () => {
                 {modalState?.type === 'book' && (
                     <BookForm book={modalState.item as PreparationBook} onSave={handleSaveBook} onCancel={() => setModalState(null)} />
                 )}
+                {modalState?.type === 'exam' && (
+                    <ExamForm exam={modalState.item as UpcomingExam} onSave={handleSaveExam} onCancel={() => setModalState(null)} />
+                )}
             </Modal>
             
             {/* Confirmation Modal */}
@@ -245,7 +338,7 @@ const PreparationManagement: React.FC = () => {
                 onClose={() => setConfirmState(null)}
                 onConfirm={confirmDelete}
                 title={`Confirm Deletion`}
-                message={<>Are you sure you want to delete this {confirmState?.type}: <strong>"{confirmState?.item.title}"</strong>?</>}
+                message={<>Are you sure you want to delete this {confirmState?.type}: <strong>"{confirmState?.item.title || (confirmState?.item as UpcomingExam)?.name}"</strong>?</>}
                 confirmText="Delete"
             />
         </div>

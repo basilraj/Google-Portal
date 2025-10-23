@@ -57,13 +57,25 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ textareaRef, onValueC
         onValueChange(newText);
     };
 
+    const insertParagraphBreak = () => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        
+        const start = textarea.selectionStart;
+        const newText = `${textarea.value.substring(0, start)}\n\n${textarea.value.substring(start)}`;
+        onValueChange(newText);
+    };
+
     return (
         <div className="flex items-center gap-1 p-1 border border-b-0 bg-gray-100 rounded-t-md">
             <ToolbarButton onClick={() => applyFormat('**')} icon="bold" title="Bold" />
             <ToolbarButton onClick={() => applyFormat('*')} icon="italic" title="Italic" />
+            <div className="h-5 w-px bg-gray-300 mx-1" />
             <ToolbarButton onClick={() => applyList('-')} icon="list-ul" title="Bulleted List" />
             <ToolbarButton onClick={() => applyList('1.')} icon="list-ol" title="Numbered List" />
+            <div className="h-5 w-px bg-gray-300 mx-1" />
             <ToolbarButton onClick={insertTable} icon="table" title="Insert Table" />
+            <ToolbarButton onClick={insertParagraphBreak} icon="paragraph" title="New Paragraph" />
         </div>
     );
 };

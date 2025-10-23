@@ -98,11 +98,18 @@ const AdminPanel: React.FC = () => {
     };
     
     const NavLink: React.FC<{ tab: AdminTab; icon: string; label: string; permission?: boolean }> = ({ tab, icon, label, permission = true }) => {
-        if (!permission) return null;
+        if (!permission) {
+            return (
+                <div className="flex items-center w-full px-3 py-2 text-sm rounded-md text-gray-500 cursor-not-allowed">
+                    <Icon name={icon} className="w-6 mr-3" />
+                    <span>{label}</span>
+                </div>
+            );
+        }
         return (
             <button
                 onClick={() => { setActiveTab(tab); setIsSidebarOpen(false); }}
-                className={`flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors ${activeTab === tab ? 'bg-[var(--primary-color)] text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                className={`flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors ${activeTab === tab ? 'bg-[var(--primary-color)] text-white' : 'text-white opacity-75 hover:opacity-100 hover:bg-gray-700'}`}
             >
                 <Icon name={icon} className="w-6 mr-3" />
                 <span>{label}</span>
