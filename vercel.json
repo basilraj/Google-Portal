@@ -1,7 +1,27 @@
 {
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap/route" },
+    { "source": "/robots.txt", "destination": "/api/robots/route" },
+    { "source": "/api/auth", "destination": "/api/auth/route" },
+    { "source": "/api/data", "destination": "/api/data/route" },
+    { "source": "/api/jobs", "destination": "/api/jobs/route" },
+    { "source": "/api/posts", "destination": "/api/posts/route" },
+    { "source": "/api/quicklinks", "destination": "/api/quicklinks/route" },
+    { "source": "/api/subscribers", "destination": "/api/subscribers/route" },
+    { "source": "/api/contacts", "destination": "/api/contacts/route" },
+    { "source": "/api/breakingnews", "destination": "/api/breakingnews/route" },
+    { "source": "/api/settings", "destination": "/api/settings/route" },
+    { "source": "/api/activitylogs", "destination": "/api/activitylogs/route" },
+    { "source": "/api/customemails", "destination": "/api/customemails/route" },
+    { "source": "/api/emailnotifications", "destination": "/api/emailnotifications/route" },
+    { "source": "/api/emailtemplates", "destination": "/api/emailtemplates/route" },
+    { "source": "/api/preparationbooks", "destination": "/api/preparationbooks/route" },
+    { "source": "/api/preparationcourses", "destination": "/api/preparationcourses/route" },
+    { "source": "/api/sponsoredads", "destination": "/api/sponsoredads/route" },
+    { "source": "/api/upcomingexams", "destination": "/api/upcomingexams/route" },
+    { "source": "/api/health", "destination": "/api/health/route" },
     {
-      "source": "/:path((?!api/|.*\\.).*)",
+      "source": "/((?!api/|.*\\.).*)",
       "destination": "/index.html"
     }
   ]

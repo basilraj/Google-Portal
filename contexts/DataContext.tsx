@@ -1,41 +1,46 @@
-import React, { createContext, useContext, ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useCallback, useState, useEffect } from 'react';
 import { 
     Job, QuickLink, ContentPost, Subscriber, BreakingNews, AdSettings, SEOSettings, GeneralSettings, 
     SocialMediaSettings, SMTPSettings, ActivityLog, ContactSubmission, EmailNotification, CustomEmail, 
     RSSSettings, AlertSettings, SponsoredAd, PlacementKey, PopupAdSettings, ThemeSettings,
-    SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings, PreparationCourse, PreparationBook, UpcomingExam
+    SecuritySettings, DemoUserSettings, EmailTemplate, GoogleSearchConsoleSettings, PreparationCourse, PreparationBook, UpcomingExam, BackupData
 } from '../types.ts';
-import { 
-    INITIAL_JOBS, INITIAL_QUICK_LINKS, INITIAL_POSTS, INITIAL_SUBSCRIBERS, INITIAL_BREAKING_NEWS, 
-    initialAdSettings, initialSeoSettings, initialGeneralSettings, initialSocialMediaSettings, 
-    initialSmtpSettings, INITIAL_ACTIVITY_LOGS, initialRssSettings, initialAlertSettings, INITIAL_SPONSORED_ADS,
-    initialPopupAdSettings, initialThemeSettings, initialSecuritySettings, initialDemoUserSettings, INITIAL_EMAIL_TEMPLATES, initialGoogleSearchConsoleSettings,
-    INITIAL_PREPARATION_COURSES, INITIAL_PREPARATION_BOOKS, INITIAL_UPCOMING_EXAMS
+import {
+    initialAdSettings,
+    initialAlertSettings,
+    initialDemoUserSettings,
+    initialGeneralSettings,
+    initialGoogleSearchConsoleSettings,
+    initialPopupAdSettings,
+    initialRssSettings,
+    initialSecuritySettings,
+    initialSeoSettings,
+    initialSmtpSettings,
+    initialSocialMediaSettings,
+    initialThemeSettings
 } from '../constants.ts';
-import { slugify } from '../utils/slugify.ts';
-import { basePath } from '../App.tsx';
 
-const getNameFromEmail = (email: string): string => {
-    if (!email || !email.includes('@')) return 'Subscriber';
-    const namePart = email.split('@')[0];
-    return namePart
-        .replace(/[._-]/g, ' ')
-        .replace(/\b\w/g, char => char.toUpperCase());
-};
 
-// API helper function
-const api = async (model: string, action: string, payload?: any) => {
-    const response = await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, action, ...payload }),
-    });
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || `API call failed: ${model}.${action}`);
-    }
-    return response.json();
-};
+// Define initial empty state
+const getInitialState = (): BackupData => ({
+    jobs: [], quickLinks: [], posts: [], subscribers: [], breakingNews: [],
+    activityLogs: [], sponsoredAds: [], contacts: [], emailNotifications: [],
+    customEmails: [], emailTemplates: [], preparationCourses: [], preparationBooks: [],
+    upcomingExams: [],
+    adSettings: initialAdSettings, 
+    seoSettings: initialSeoSettings, 
+    generalSettings: initialGeneralSettings, 
+    socialMediaSettings: initialSocialMediaSettings, 
+    smtpSettings: initialSmtpSettings, 
+    rssSettings: initialRssSettings, 
+    alertSettings: initialAlertSettings, 
+    popupAdSettings: initialPopupAdSettings, 
+    themeSettings: initialThemeSettings, 
+    securitySettings: initialSecuritySettings, 
+    demoUserSettings: initialDemoUserSettings,
+    googleSearchConsoleSettings: initialGoogleSearchConsoleSettings
+});
+
 
 interface DataContextType {
   isLoading: boolean;
@@ -125,84 +130,37 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// Helper for API calls
+// FIX: Rewriting as a standard function declaration to resolve a critical parsing error
+// that was causing build failures across the entire application.
+async function apiCall<T>(endpoint: string, method: string, body?: any): Promise<T> {
+    const response = await fetch(`/api/${endpoint}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `API call to ${endpoint} failed`);
+    }
+    // For 204 No Content, response.json() will fail.
+    if (response.status === 204) {
+        return {} as T;
+    }
+    return response.json();
+}
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
-    const [jobs, setJobs] = useState<Job[]>([]);
-    const [quickLinks, setQuickLinks] = useState<QuickLink[]>([]);
-    const [posts, setPosts] = useState<ContentPost[]>([]);
-    const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-    const [breakingNews, setBreakingNews] = useState<BreakingNews[]>([]);
-    const [sponsoredAds, setSponsoredAds] = useState<SponsoredAd[]>([]);
-    const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
-    const [contacts, setContacts] = useState<ContactSubmission[]>([]);
-    const [emailNotifications, setEmailNotifications] = useState<EmailNotification[]>([]);
-    const [customEmails, setCustomEmails] = useState<CustomEmail[]>([]);
-    const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
-    const [preparationCourses, setPreparationCourses] = useState<PreparationCourse[]>([]);
-    const [preparationBooks, setPreparationBooks] = useState<PreparationBook[]>([]);
-    const [upcomingExams, setUpcomingExams] = useState<UpcomingExam[]>([]);
-    
-    // Settings are a single object
-    const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(initialGeneralSettings);
-    const [seoSettings, setSeoSettings] = useState<SEOSettings>(initialSeoSettings);
-    const [socialMediaSettings, setSocialMediaSettings] = useState<SocialMediaSettings>(initialSocialMediaSettings);
-    const [smtpSettings, setSmtpSettings] = useState<SMTPSettings>(initialSmtpSettings);
-    const [adSettings, setAdSettings] = useState<AdSettings>(initialAdSettings);
-    const [rssSettings, setRssSettings] = useState<RSSSettings>(initialRssSettings);
-    const [alertSettings, setAlertSettings] = useState<AlertSettings>(initialAlertSettings);
-    const [popupAdSettings, setPopupAdSettings] = useState<PopupAdSettings>(initialPopupAdSettings);
-    const [themeSettings, setThemeSettings] = useState<ThemeSettings>(initialThemeSettings);
-    const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(initialSecuritySettings);
-    const [demoUserSettings, setDemoUserSettings] = useState<DemoUserSettings>(initialDemoUserSettings);
-    const [googleSearchConsoleSettings, setGoogleSearchConsoleSettings] = useState<GoogleSearchConsoleSettings>(initialGoogleSearchConsoleSettings);
+    const [state, setState] = useState<BackupData>(getInitialState());
 
     useEffect(() => {
         const fetchAllData = async () => {
-            setIsLoading(true);
             try {
-                const models = [
-                    'job', 'quickLink', 'contentPost', 'subscriber', 'breakingNews', 'sponsoredAd', 
-                    'activityLog', 'contactSubmission', 'emailNotification', 'customEmail', 
-                    'emailTemplate', 'preparationCourse', 'preparationBook', 'upcomingExam', 'settings'
-                ];
-                const requests = models.map(model => fetch(`/api/data?model=${model}`).then(res => res.json()));
-                const [
-                    jobsData, quickLinksData, postsData, subscribersData, breakingNewsData, sponsoredAdsData,
-                    activityLogsData, contactsData, emailNotificationsData, customEmailsData, emailTemplatesData,
-                    prepCoursesData, prepBooksData, upcomingExamsData, settingsData
-                ] = await Promise.all(requests);
-
-                setJobs(jobsData || []);
-                setQuickLinks(quickLinksData || []);
-                setPosts(postsData || []);
-                setSubscribers(subscribersData || []);
-                setBreakingNews(breakingNewsData || []);
-                setSponsoredAds(sponsoredAdsData || []);
-                setActivityLogs(activityLogsData || []);
-                setContacts(contactsData || []);
-                setEmailNotifications(emailNotificationsData || []);
-                setCustomEmails(customEmailsData || []);
-                setEmailTemplates(emailTemplatesData || []);
-                setPreparationCourses(prepCoursesData || []);
-                setPreparationBooks(prepBooksData || []);
-                setUpcomingExams(upcomingExamsData || []);
-
-                if (settingsData) {
-                    setGeneralSettings(settingsData.generalSettings || initialGeneralSettings);
-                    setSeoSettings(settingsData.seoSettings || initialSeoSettings);
-                    setSocialMediaSettings(settingsData.socialMediaSettings || initialSocialMediaSettings);
-                    setSmtpSettings(settingsData.smtpSettings || initialSmtpSettings);
-                    setAdSettings(settingsData.adSettings || initialAdSettings);
-                    setRssSettings(settingsData.rssSettings || initialRssSettings);
-                    setAlertSettings(settingsData.alertSettings || initialAlertSettings);
-                    setPopupAdSettings(settingsData.popupAdSettings || initialPopupAdSettings);
-                    setThemeSettings(settingsData.themeSettings || initialThemeSettings);
-                    setSecuritySettings(settingsData.securitySettings || initialSecuritySettings);
-                    setDemoUserSettings(settingsData.demoUserSettings || initialDemoUserSettings);
-                    setGoogleSearchConsoleSettings(settingsData.googleSearchConsoleSettings || initialGoogleSearchConsoleSettings);
-                }
+                const data = await apiCall<BackupData>('data', 'GET');
+                setState(prev => ({...prev, ...data}));
             } catch (error) {
-                console.error("Failed to fetch initial data from server:", error);
+                console.error("Failed to fetch initial data:", error);
             } finally {
                 setIsLoading(false);
             }
@@ -210,102 +168,225 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchAllData();
     }, []);
 
-    const addActivityLog = useCallback(async (action: string, details: string) => {
-        const newLog = await api('activityLog', 'create', { data: { action, details } });
-        setActivityLogs(prev => [newLog, ...prev.slice(0, 499)]);
+    const updateSettings = useCallback(async (key: keyof BackupData, value: any) => {
+        await apiCall('settings', 'POST', { key, value });
+        setState(prev => ({ ...prev, [key]: value }));
     }, []);
 
-    // All setter functions now become wrappers around the `api` helper
-    function createSetter<T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, model: string, logName: string) {
-        return {
-            add: async (data: any) => { const newItem = await api(model, 'create', { data }); setter(prev => [...prev, newItem]); await addActivityLog(`${logName} Created`, `New ${logName.toLowerCase()} added.`); return newItem; },
-            update: async (data: any) => { const updated = await api(model, 'update', { where: { id: data.id }, data }); setter(prev => prev.map(item => item.id === data.id ? updated : item)); await addActivityLog(`${logName} Updated`, `${logName} updated.`); },
-            delete: async (id: string) => { await api(model, 'delete', { where: { id } }); setter(prev => prev.filter(item => item.id !== id)); await addActivityLog(`${logName} Deleted`, `${logName} deleted.`); },
-            deleteMany: async (ids: string[]) => { await api(model, 'deleteMany', { where: { id: { in: ids } } }); setter(prev => prev.filter(item => !ids.includes(item.id))); await addActivityLog(`Bulk ${logName} Deletion`, `${ids.length} ${logName.toLowerCase()}s deleted.`); },
-            set: setter,
-        }
-    };
-    
-    function createSettingsSetter<T>(setter: React.Dispatch<React.SetStateAction<T>>, settingsKey: string) {
-        return async (data: T) => {
-            const payload = { [settingsKey]: data };
-            await api('settings', 'update', { data: payload }); // Simplified for single settings object
-            setter(data);
-            await addActivityLog('Settings Updated', `${settingsKey} were updated.`);
-        };
-    };
-
-    const jobActions = createSetter(setJobs, 'job', 'Job');
-    const quickLinkActions = createSetter(setQuickLinks, 'quickLink', 'Quick Link');
-    const postActions = createSetter(setPosts, 'contentPost', 'Post');
-    const subscriberActions = createSetter(setSubscribers, 'subscriber', 'Subscriber');
-    const newsActions = createSetter(setBreakingNews, 'breakingNews', 'Breaking News');
-    const adActions = createSetter(setSponsoredAds, 'sponsoredAd', 'Sponsored Ad');
-    const courseActions = createSetter(setPreparationCourses, 'preparationCourse', 'Preparation Course');
-    const bookActions = createSetter(setPreparationBooks, 'preparationBook', 'Preparation Book');
-    const examActions = createSetter(setUpcomingExams, 'upcomingExam', 'Upcoming Exam');
-    const templateActions = createSetter(setEmailTemplates, 'emailTemplate', 'Email Template');
-    const contactActions = createSetter(setContacts, 'contactSubmission', 'Contact');
-    const customEmailActions = createSetter(setCustomEmails, 'customEmail', 'Custom Email');
-    const notificationActions = createSetter(setEmailNotifications, 'emailNotification', 'Email Notification');
-    
-    const value = {
+    const value: DataContextType = {
         isLoading,
-        jobs, addJob: async (data: any) => { const newJob = await jobActions.add(data); if (newJob) { return newJob; } return null; }, updateJob: jobActions.update, deleteJob: jobActions.delete,
-        addMultipleJobs: async (data: any[]) => { const { count } = await api('job', 'createMany', { data }); const newJobs = await api('job', 'findMany', { where: { title: { in: data.map(j => j.title) } } }); setJobs(prev => [...prev, ...newJobs]); await addActivityLog('Bulk Job Upload', `${count} jobs added.`); return newJobs; },
-        deleteMultipleJobs: jobActions.deleteMany,
-        quickLinks, addQuickLink: quickLinkActions.add, updateQuickLink: quickLinkActions.update, deleteQuickLink: quickLinkActions.delete,
-        posts, addPost: postActions.add, updatePost: postActions.update, deletePost: postActions.delete, deleteMultiplePosts: postActions.deleteMany,
-        subscribers,
-        addSubscriber: async (email: string) => {
-            const existing = await api('subscriber', 'findUnique', { where: { email } });
-            if (existing) return { success: false, message: 'This email is already subscribed.' };
-            await subscriberActions.add({ email, status: 'active' });
-            // Welcome email logic can be added here
-            return { success: true };
+        ...state,
+        addJob: async (jobData) => {
+            const newJob = await apiCall<Job>('jobs', 'POST', jobData);
+            setState(p => ({ ...p, jobs: [...p.jobs, newJob]}));
+            return newJob;
         },
-        deleteSubscriber: subscriberActions.delete,
-        breakingNews, addNews: newsActions.add, updateNews: newsActions.update, deleteNews: newsActions.delete,
-        sponsoredAds, addSponsoredAd: adActions.add, updateSponsoredAd: adActions.update, deleteSponsoredAd: adActions.delete,
-        preparationCourses, addPreparationCourse: courseActions.add, updatePreparationCourse: courseActions.update, deletePreparationCourse: courseActions.delete,
-        preparationBooks, addPreparationBook: bookActions.add, updatePreparationBook: bookActions.update, deletePreparationBook: bookActions.delete,
-        upcomingExams, addUpcomingExam: examActions.add, updateUpcomingExam: examActions.update, deleteUpcomingExam: examActions.delete,
-        emailTemplates, addEmailTemplate: templateActions.add, updateEmailTemplate: templateActions.update, deleteEmailTemplate: templateActions.delete,
-        contacts, addContact: contactActions.add, deleteContact: contactActions.delete,
-        customEmails, sendCustomEmail: async (subject: string, body: string) => { /* Logic to send emails via backend */ await customEmailActions.add({ subject, body }); }, deleteCustomEmail: customEmailActions.delete,
-        emailNotifications, deleteEmailNotification: notificationActions.delete, clearAllEmailNotifications: async () => { await api('emailNotification', 'deleteMany', { where: {} }); setEmailNotifications([]); },
-        activityLogs, addActivityLog, clearActivityLogs: async () => { await api('activityLog', 'deleteMany', { where: {} }); setActivityLogs([]); await addActivityLog('Logs Cleared', 'All activity logs were cleared.'); },
-        generalSettings, updateGeneralSettings: createSettingsSetter(setGeneralSettings, 'generalSettings'),
-        seoSettings, updateSEOSettings: createSettingsSetter(setSeoSettings, 'seoSettings'),
-        socialMediaSettings, updateSocialMediaSettings: createSettingsSetter(setSocialMediaSettings, 'socialMediaSettings'),
-        smtpSettings, updateSmtpSettings: createSettingsSetter(setSmtpSettings, 'smtpSettings'),
-        adSettings, updateAdSettings: createSettingsSetter(setAdSettings, 'adSettings'),
-        rssSettings, updateRssSettings: createSettingsSetter(setRssSettings, 'rssSettings'),
-        alertSettings, updateAlertSettings: createSettingsSetter(setAlertSettings, 'alertSettings'),
-        popupAdSettings, updatePopupAdSettings: createSettingsSetter(setPopupAdSettings, 'popupAdSettings'),
-        themeSettings, updateThemeSettings: createSettingsSetter(setThemeSettings, 'themeSettings'),
-        securitySettings, updateSecuritySettings: createSettingsSetter(setSecuritySettings, 'securitySettings'),
-        demoUserSettings, updateDemoUserSettings: createSettingsSetter(setDemoUserSettings, 'demoUserSettings'),
-        googleSearchConsoleSettings, updateGoogleSearchConsoleSettings: createSettingsSetter(setGoogleSearchConsoleSettings, 'googleSearchConsoleSettings'),
-        trackSponsoredAdClick: async (adId: string) => {
-            const ad = sponsoredAds.find(a => a.id === adId);
-            if(ad) {
-                await adActions.update({ ...ad, clicks: (ad.clicks || 0) + 1 });
+        updateJob: async (job) => {
+            const updatedJob = await apiCall<Job>('jobs', 'PUT', job);
+            setState(p => ({ ...p, jobs: p.jobs.map(j => (j.id === updatedJob.id ? updatedJob : j)) }));
+        },
+        deleteJob: async (id) => {
+            await apiCall('jobs', 'DELETE', { id });
+            setState(p => ({ ...p, jobs: p.jobs.filter(j => j.id !== id) }));
+        },
+        addMultipleJobs: async (jobsData) => {
+            const newJobs = await apiCall<Job[]>('jobs', 'POST', jobsData);
+            setState(p => ({ ...p, jobs: [...p.jobs, ...newJobs] }));
+            return newJobs;
+        },
+        deleteMultipleJobs: async (ids) => {
+            await apiCall('jobs', 'DELETE', { ids });
+            setState(p => ({ ...p, jobs: p.jobs.filter(j => !ids.includes(j.id)) }));
+        },
+
+        addQuickLink: async (data) => {
+            const newItem = await apiCall<QuickLink>('quicklinks', 'POST', data);
+            setState(p => ({ ...p, quickLinks: [...p.quickLinks, newItem] }));
+        },
+        updateQuickLink: async (item) => {
+            const updatedItem = await apiCall<QuickLink>('quicklinks', 'PUT', item);
+            setState(p => ({ ...p, quickLinks: p.quickLinks.map(i => (i.id === updatedItem.id ? updatedItem : i)) }));
+        },
+        deleteQuickLink: async (id) => {
+            await apiCall('quicklinks', 'DELETE', { id });
+            setState(p => ({ ...p, quickLinks: p.quickLinks.filter(i => i.id !== id) }));
+        },
+
+        addPost: async (data) => {
+            const newItem = await apiCall<ContentPost>('posts', 'POST', data);
+            setState(p => ({ ...p, posts: [...p.posts, newItem] }));
+        },
+        updatePost: async (item) => {
+            const updatedItem = await apiCall<ContentPost>('posts', 'PUT', item);
+            setState(p => ({ ...p, posts: p.posts.map(i => (i.id === updatedItem.id ? updatedItem : i)) }));
+        },
+        deletePost: async (id) => {
+            await apiCall('posts', 'DELETE', { id });
+            setState(p => ({ ...p, posts: p.posts.filter(i => i.id !== id) }));
+        },
+        deleteMultiplePosts: async (ids) => {
+            await apiCall('posts', 'DELETE', { ids });
+            setState(p => ({ ...p, posts: p.posts.filter(post => !ids.includes(post.id)) }));
+        },
+        
+        addSubscriber: async (email) => {
+             try {
+                const newItem = await apiCall<Subscriber>('subscribers', 'POST', { email });
+                setState(p => ({ ...p, subscribers: [...p.subscribers, newItem] }));
+                return { success: true };
+            } catch (error: any) {
+                return { success: false, message: error.message };
             }
         },
-        toggleAdTest: async (placement: PlacementKey) => {
-            const currentTests = adSettings.activeTests || [];
+        deleteSubscriber: async (id) => {
+            await apiCall('subscribers', 'DELETE', { id });
+            setState(p => ({...p, subscribers: p.subscribers.filter(s => s.id !== id)}));
+        },
+
+        addNews: async (data) => {
+            const newItem = await apiCall<BreakingNews>('breakingnews', 'POST', data);
+            setState(p => ({ ...p, breakingNews: [...p.breakingNews, newItem] }));
+        },
+        updateNews: async (item) => {
+            const updatedItem = await apiCall<BreakingNews>('breakingnews', 'PUT', item);
+            setState(p => ({ ...p, breakingNews: p.breakingNews.map(i => (i.id === updatedItem.id ? updatedItem : i)) }));
+        },
+        deleteNews: async (id) => {
+            await apiCall('breakingnews', 'DELETE', { id });
+            setState(p => ({ ...p, breakingNews: p.breakingNews.filter(i => i.id !== id) }));
+        },
+        
+        addSponsoredAd: async (data) => {
+            const newItem = await apiCall<SponsoredAd>('sponsoredads', 'POST', data);
+            setState(p => ({ ...p, sponsoredAds: [...p.sponsoredAds, newItem] }));
+        },
+        updateSponsoredAd: async (item) => {
+            const updatedItem = await apiCall<SponsoredAd>('sponsoredads', 'PUT', item);
+            setState(p => ({ ...p, sponsoredAds: p.sponsoredAds.map(i => (i.id === updatedItem.id ? updatedItem : i)) }));
+        },
+        deleteSponsoredAd: async (id) => {
+            await apiCall('sponsoredads', 'DELETE', { id });
+            setState(p => ({ ...p, sponsoredAds: p.sponsoredAds.filter(i => i.id !== id) }));
+        },
+        trackSponsoredAdClick: (adId) => {
+            apiCall('sponsoredads', 'PUT', { id: adId, trackClick: true });
+            setState(p => ({...p, sponsoredAds: p.sponsoredAds.map(ad => ad.id === adId ? { ...ad, clicks: (ad.clicks || 0) + 1 } : ad)}));
+        },
+        toggleAdTest: async (placement) => {
+            const currentTests = state.adSettings.activeTests || [];
             const newActiveTests = currentTests.includes(placement)
                 ? currentTests.filter(p => p !== placement)
                 : [...currentTests, placement];
-            await createSettingsSetter(setAdSettings, 'adSettings')({ ...adSettings, activeTests: newActiveTests });
+            const newSettings = { ...state.adSettings, activeTests: newActiveTests };
+            await updateSettings('adSettings', newSettings);
         },
-        sendNewJobAlert: async (job: Job) => { /* server-side logic needed */ },
-        sendBulkJobAlerts: async (jobs: Job[]) => { /* server-side logic needed */ }
+
+        updateAdSettings: (s) => updateSettings('adSettings', s),
+        updateSEOSettings: (s) => updateSettings('seoSettings', s),
+        updateGeneralSettings: (s) => updateSettings('generalSettings', s),
+        updateSocialMediaSettings: (s) => updateSettings('socialMediaSettings', s),
+        updateSmtpSettings: (s) => updateSettings('smtpSettings', s),
+        updateRssSettings: (s) => updateSettings('rssSettings', s),
+        updateAlertSettings: (s) => updateSettings('alertSettings', s),
+        updatePopupAdSettings: (s) => updateSettings('popupAdSettings', s),
+        updateThemeSettings: (s) => updateSettings('themeSettings', s),
+        updateSecuritySettings: (s) => updateSettings('securitySettings', s),
+        updateDemoUserSettings: (s) => updateSettings('demoUserSettings', s),
+        updateGoogleSearchConsoleSettings: (s) => updateSettings('googleSearchConsoleSettings', s),
+
+        addActivityLog: async (action, details) => {
+            const newLog = await apiCall<ActivityLog>('activitylogs', 'POST', { action, details });
+            setState(p => ({ ...p, activityLogs: [newLog, ...p.activityLogs.slice(0, 499)] }));
+        },
+        clearActivityLogs: async () => {
+            await apiCall('activitylogs', 'DELETE', { clearAll: true });
+            setState(p => ({ ...p, activityLogs: [] }));
+        },
+        
+        addContact: async (data) => {
+            const newItem = await apiCall<ContactSubmission>('contacts', 'POST', data);
+            setState(p => ({ ...p, contacts: [newItem, ...p.contacts] }));
+        },
+        deleteContact: async (id) => {
+            await apiCall('contacts', 'DELETE', { id });
+            setState(p => ({ ...p, contacts: p.contacts.filter(c => c.id !== id) }));
+        },
+
+        deleteEmailNotification: async (id) => {
+            await apiCall('emailnotifications', 'DELETE', { id });
+            setState(p => ({ ...p, emailNotifications: p.emailNotifications.filter(n => n.id !== id) }));
+        },
+        clearAllEmailNotifications: async () => {
+            await apiCall('emailnotifications', 'DELETE', { clearAll: true });
+            setState(p => ({ ...p, emailNotifications: [] }));
+        },
+        sendCustomEmail: async (subject, body) => {
+            const newEmail = await apiCall<CustomEmail>('customemails', 'POST', { subject, body });
+            setState(p => ({ ...p, customEmails: [newEmail, ...p.customEmails] }));
+        },
+        deleteCustomEmail: async (id) => {
+            await apiCall('customemails', 'DELETE', { id });
+            setState(p => ({...p, customEmails: p.customEmails.filter(e => e.id !== id)}));
+        },
+
+        addEmailTemplate: async (data) => {
+            const newItem = await apiCall<EmailTemplate>('emailtemplates', 'POST', data);
+            setState(p => ({ ...p, emailTemplates: [...p.emailTemplates, newItem] }));
+        },
+        updateEmailTemplate: async (item) => {
+            const updatedItem = await apiCall<EmailTemplate>('emailtemplates', 'PUT', item);
+            setState(p => ({ ...p, emailTemplates: p.emailTemplates.map(t => (t.id === updatedItem.id ? updatedItem : t)) }));
+        },
+        deleteEmailTemplate: async (id) => {
+            await apiCall('emailtemplates', 'DELETE', { id });
+            setState(p => ({ ...p, emailTemplates: p.emailTemplates.filter(t => t.id !== id) }));
+        },
+
+        sendNewJobAlert: async (job: Job) => { console.log(`(Simulated) Sending new job alert for: ${job.title}`); },
+        sendBulkJobAlerts: async (jobs: Job[]) => { console.log(`(Simulated) Sending bulk job alerts for ${jobs.length} jobs.`); },
+
+        addPreparationCourse: async (data) => {
+            const newItem = await apiCall<PreparationCourse>('preparationcourses', 'POST', data);
+            setState(p => ({...p, preparationCourses: [...p.preparationCourses, newItem]}));
+        },
+        updatePreparationCourse: async (item) => {
+            const updatedItem = await apiCall<PreparationCourse>('preparationcourses', 'PUT', item);
+            setState(p => ({...p, preparationCourses: p.preparationCourses.map(i => i.id === updatedItem.id ? updatedItem : i)}));
+        },
+        deletePreparationCourse: async (id) => {
+            await apiCall('preparationcourses', 'DELETE', { id });
+            setState(p => ({...p, preparationCourses: p.preparationCourses.filter(i => i.id !== id)}));
+        },
+
+        addPreparationBook: async (data) => {
+            const newItem = await apiCall<PreparationBook>('preparationbooks', 'POST', data);
+            setState(p => ({...p, preparationBooks: [...p.preparationBooks, newItem]}));
+        },
+        updatePreparationBook: async (item) => {
+            const updatedItem = await apiCall<PreparationBook>('preparationbooks', 'PUT', item);
+            setState(p => ({...p, preparationBooks: p.preparationBooks.map(i => i.id === updatedItem.id ? updatedItem : i)}));
+        },
+        deletePreparationBook: async (id) => {
+            await apiCall('preparationbooks', 'DELETE', { id });
+            setState(p => ({...p, preparationBooks: p.preparationBooks.filter(i => i.id !== id)}));
+        },
+        
+        addUpcomingExam: async (data) => {
+            const newItem = await apiCall<UpcomingExam>('upcomingexams', 'POST', data);
+            setState(p => ({...p, upcomingExams: [...p.upcomingExams, newItem]}));
+        },
+        updateUpcomingExam: async (item) => {
+            const updatedItem = await apiCall<UpcomingExam>('upcomingexams', 'PUT', item);
+            setState(p => ({...p, upcomingExams: p.upcomingExams.map(i => i.id === updatedItem.id ? updatedItem : i)}));
+        },
+        deleteUpcomingExam: async (id) => {
+            await apiCall('upcomingexams', 'DELETE', { id });
+            setState(p => ({...p, upcomingExams: p.upcomingExams.filter(i => i.id !== id)}));
+        },
     };
 
     return (
-        <DataContext.Provider value={value as DataContextType}>
+        <DataContext.Provider value={value}>
             {children}
         </DataContext.Provider>
     );

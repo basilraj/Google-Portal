@@ -335,4 +335,8 @@ export interface BackupData {
     preparationCourses: PreparationCourse[];
     preparationBooks: PreparationBook[];
     upcomingExams: UpcomingExam[];
+    // FIX: Add missing properties to align with data context usage
+    contacts: ContactSubmission[];
+    emailNotifications: EmailNotification[];
+    customEmails: CustomEmail[];
 }

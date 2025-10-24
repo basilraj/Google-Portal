@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { User } from '../types.ts';
-import { useData } from './DataContext.tsx';
 
 type AuthStage = 'loading' | 'signup' | 'login' | 'loggedIn' | 'forgotPassword' | 'resetPassword';
 
@@ -10,7 +9,7 @@ interface AuthContextType {
   authStage: AuthStage;
   userEmail: string | null;
   createAdmin: (user: Omit<User, 'id' | 'passwordHash'> & { password: string }) => Promise<boolean>;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
   loginAsDemo: () => void;
   logout: () => void;
   updateCredentials: (currentPassword: string, newUsername: string, newPassword: string) => Promise<boolean>;
@@ -23,148 +22,122 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { addActivityLog, smtpSettings } = useData();
-  const [user, setUser] = useState<Omit<User, 'passwordHash'> | null>(null);
-  const [isDemoUser, setIsDemoUser] = useState(false);
+  const [user, setUser] = useState<{ username: string; email: string; isDemo: boolean } | null>(null);
   const [authStage, setAuthStage] = useState<AuthStage>('loading');
-  const [hasAdminAccount, setHasAdminAccount] = useState(false);
 
-  const checkAdminExists = useCallback(async () => {
+  const checkAuthStatus = useCallback(async () => {
     try {
-        const response = await fetch('/api/data?model=user');
-        const adminUser = await response.json();
-        setHasAdminAccount(!!adminUser);
-        if (adminUser) {
-            setAuthStage('login');
-        } else {
-            setAuthStage('signup');
-        }
+      const res = await fetch('/api/auth', { method: 'GET' });
+      const data = await res.json();
+      
+      if (data.isLoggedIn) {
+        setUser({ username: data.user.username, email: data.user.email, isDemo: data.user.isDemo });
+        setAuthStage('loggedIn');
+      } else {
+        setAuthStage(data.adminExists ? 'login' : 'signup');
+      }
     } catch (error) {
-        console.error("Failed to check for admin account:", error);
-        setAuthStage('login'); // Default to login on error
+      console.error("Failed to check auth status:", error);
+      setAuthStage('login'); // Fallback to login
     }
   }, []);
 
   useEffect(() => {
-    const sessionUser = sessionStorage.getItem('admin-user');
-    const sessionIsDemo = sessionStorage.getItem('is-demo-user') === 'true';
-
-    if (sessionUser) {
-        setUser(JSON.parse(sessionUser));
-        setIsDemoUser(sessionIsDemo);
-        setAuthStage('loggedIn');
-    } else {
-        checkAdminExists();
-    }
-  }, [checkAdminExists]);
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const createAdmin = async (userData: Omit<User, 'id' | 'passwordHash'> & { password: string }): Promise<boolean> => {
-    const response = await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'user', action: 'signup', data: userData })
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'signup', ...userData }),
     });
-    
-    if (response.ok) {
-        await addActivityLog('Admin Account Created', `New admin account created for user: ${userData.username}`);
-        setHasAdminAccount(true);
-        setAuthStage('login');
-        return true;
-    }
-    return false;
-  };
-
-  const login = async (username: string, password: string): Promise<boolean> => {
-    const response = await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'user', action: 'login', data: { username, password }})
-    });
-
-    if (response.ok) {
-      const { user } = await response.json();
-      setUser(user);
-      setIsDemoUser(false);
-      sessionStorage.setItem('admin-user', JSON.stringify(user));
-      sessionStorage.setItem('is-demo-user', 'false');
-      setAuthStage('loggedIn');
-      await addActivityLog('Admin Login', `User '${user.username}' logged in successfully.`);
+    if (res.ok) {
+      setAuthStage('login');
       return true;
     }
     return false;
   };
 
-  const loginAsDemo = () => {
-    const demoUser = { username: 'demo', email: 'demo@example.com' };
-    setUser(demoUser);
-    setIsDemoUser(true);
-    sessionStorage.setItem('admin-user', JSON.stringify(demoUser));
-    sessionStorage.setItem('is-demo-user', 'true');
-    setAuthStage('loggedIn');
-    addActivityLog('Demo Login', 'Demo user logged in.');
-  };
-
-  const logout = () => {
-    addActivityLog(isDemoUser ? 'Demo Logout' : 'Admin Logout', `User '${isDemoUser ? 'demo' : user?.username}' logged out.`);
-    setUser(null);
-    setIsDemoUser(false);
-    sessionStorage.removeItem('admin-user');
-    sessionStorage.removeItem('is-demo-user');
-    setAuthStage('login');
-  };
-
-  const updateCredentials = async (currentPassword: string, newUsername: string, newPassword: string): Promise<boolean> => {
-    const response = await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            model: 'user',
-            action: 'updateCredentials',
-            data: { currentPassword, newUsername, newPassword }
-        })
+  const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
+     const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', username, password, isDemo: false }),
     });
-    if (response.ok) {
-        const updatedUser = await response.json();
-        setUser(updatedUser);
-        sessionStorage.setItem('admin-user', JSON.stringify(updatedUser));
-        await addActivityLog('Credentials Updated', `Admin credentials updated for user: ${newUsername}`);
-        return true;
+    const data = await res.json();
+    if (res.ok) {
+      setUser({ username: data.user.username, email: data.user.email, isDemo: false });
+      setAuthStage('loggedIn');
+      return { success: true };
     }
-    return false;
+    return { success: false, message: data.message };
   };
 
-  const goToForgotPassword = () => {
-    setAuthStage('forgotPassword');
+  const loginAsDemo = async () => {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', isDemo: true }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setUser({ username: data.user.username, email: data.user.email, isDemo: true });
+      setAuthStage('loggedIn');
+    }
+  };
+
+  const logout = async () => {
+    await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'logout' }),
+    });
+    setUser(null);
+    setAuthStage('login');
   };
   
-  const backToLogin = () => {
-    setAuthStage('login');
+  const updateCredentials = async (currentPassword: string, newUsername: string, newPassword: string): Promise<boolean> => {
+    const res = await fetch('/api/auth', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_credentials', currentPassword, newUsername, newPassword }),
+    });
+
+    if (res.ok) {
+        const data = await res.json();
+        setUser(prev => prev ? { ...prev, username: data.user.username } : null);
+        return true;
+    }
+    return false;
   };
 
-  const requestPasswordReset = async (email: string): Promise<boolean> => {
-    // This remains a simulation as server-side email sending is complex for this scope
-    const response = await fetch('/api/data?model=user');
-    const adminUser = await response.json();
+  // Password reset logic remains largely conceptual as SMTP isn't implemented.
+  const goToForgotPassword = () => setAuthStage('forgotPassword');
+  const backToLogin = () => setAuthStage('login');
 
-    if (adminUser && email === adminUser.email) {
-      if (smtpSettings.configured) {
-        alert(`SMTP is configured. In a real-world application, a password reset link would be sent to ${adminUser.email}.`);
-      } else {
-        alert(`SMTP not configured. Please configure it in Settings for a production environment. For this demo, we will proceed directly to the password reset step.`);
-      }
-      setAuthStage('resetPassword');
-      return true;
+  const requestPasswordReset = async (email: string): Promise<boolean> => {
+     const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'request_password_reset', email }),
+    });
+    if (res.ok) {
+        setAuthStage('resetPassword');
+        return true;
     }
     return false;
   };
 
   const resetPassword = async (newPassword: string): Promise<boolean> => {
-    // This would be a proper API call in a full implementation
-     if (user) {
-        // This is a placeholder for a proper reset flow
-      await addActivityLog('Password Reset', `Admin password was reset for user: ${user.username}`);
-      setAuthStage('login');
-      return true;
+    const res = await fetch('/api/auth', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset_password', newPassword }),
+    });
+    if (res.ok) {
+        setAuthStage('login');
+        return true;
     }
     return false;
   };
@@ -172,7 +145,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider value={{ 
         isLoggedIn: authStage === 'loggedIn', 
-        isDemoUser,
+        isDemoUser: user?.isDemo ?? false,
         authStage,
         userEmail: user?.email || null,
         createAdmin,

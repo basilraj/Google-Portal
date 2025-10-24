@@ -79,9 +79,9 @@ const App: React.FC = () => {
         setPath(fullPath); // Update state directly to trigger re-render
     } catch (e) {
         if (e instanceof DOMException && e.name === 'SecurityError') {
-            console.error("History API error (this is expected in some sandboxed environments):", e);
-            // Fallback for sandboxed environments like iframes where pushState is restricted.
-            // This will render the correct component without changing the URL in the address bar.
+            // This is an expected error in sandboxed environments (like iframes).
+            // Fallback to in-app navigation without changing the URL.
+            console.log("History API is disabled in this environment. Falling back to in-app navigation.");
             setPath(fullPath);
         } else {
             throw e;
