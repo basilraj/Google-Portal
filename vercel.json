@@ -2,16 +2,16 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "vite.config.*",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist",
         "buildCommand": "npm run build"
       }
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
     }
   ],
   "rewrites": [
@@ -31,5 +31,8 @@
       "source": "/((?!api/|.*\\.).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
