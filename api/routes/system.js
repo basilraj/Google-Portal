@@ -5,21 +5,20 @@ import { requireAdmin } from '../middleware/auth.js';
 import { getPgConnection } from '../../lib/postgresql.js';
 
 const router = Router();
-router.use(requireAdmin);
 
-// GET /api/system/db-status - Check database connection
-router.get('/db-status', async (req, res, next) => {
+// Public: DB status (no auth)
+router.get('/db-status', async (req, res) => {
     try {
         const connection = await getPgConnection();
-        // A simple query to ensure the connection is live and not just a pooled object.
         await connection.query('SELECT 1 + 1 AS solution'); 
         res.status(200).json({ status: 'connected' });
     } catch (error) {
-        // We catch the error here to provide a structured response,
-        // rather than letting it fall through to the global error handler.
         res.status(500).json({ status: 'error', message: error instanceof Error ? error.message : 'An unknown database error occurred.' });
     }
 });
+
+router.use(requireAdmin);
+
 
 // --- Settings ---
 router.post('/settings', async (req, res, next) => {
