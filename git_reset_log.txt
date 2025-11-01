@@ -1,0 +1,6 @@
+=========================================================== 
+[RESET START] 01-11-2025 14.06.00.86 
+=========================================================== 
+🧹 Deleting old .git folder... 
+✅ Old repository removed. 
+Initialized empty Git repository in C:/Users/user/Downloads/Google Jobtica/.git/
